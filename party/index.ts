@@ -1,32 +1,43 @@
 import type * as Party from "partykit/server";
 
 export default class Server implements Party.Server {
+  private scores: Map<string, number> = new Map();
+
   constructor(readonly room: Party.Room) {}
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    // A websocket just connected!
-    console.log(
-      `Connected:
-  id: ${conn.id}
-  room: ${this.room.id}
-  url: ${new URL(ctx.request.url).pathname}`,
+  private broadcastState() {
+    const connections = Array.from(this.room.getConnections());
+    this.room.broadcast(
+      JSON.stringify({
+        type: "state",
+        state: {
+          connections: connections.map((conn: Party.Connection) => ({
+            id: conn.id,
+            score: this.scores.get(conn.id) || 0,
+          }))
+        }
+      })
     );
+  }
 
-    conn.send("hello from server");
+  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+    this.scores.set(conn.id, 0);
+    conn.send(JSON.stringify({ type: "connection", id: conn.id }));
+    this.broadcastState();
+  }
 
-    // let's send a message to the connection
-    conn.send("hello from server");
+  onClose(conn: Party.Connection) {
+    this.scores.delete(conn.id);
+    this.broadcastState();
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    // let's log the message
-    console.log(`connection ${sender.id} sent message: ${message}`);
-    // as well as broadcast it to all the other connections in the room...
-    this.room.broadcast(
-      `${sender.id}: ${message}`,
-      // ...except for the connection it came from
-      [sender.id],
-    );
+    const data = JSON.parse(message);
+    if (data.type === "counter") {
+      const currentScore = this.scores.get(sender.id) || 0;
+      this.scores.set(sender.id, currentScore + 1);
+      this.broadcastState();
+    }
   }
 }
 

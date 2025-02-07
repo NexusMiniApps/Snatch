@@ -3,11 +3,15 @@
 import { useEffect, useState, useCallback } from "react";
 import PartySocket from "partysocket";
 
+type Player = { id: string; score: number };
+
 export default function GamePage() {
   const [socket, setSocket] = useState<PartySocket | null>(null);
   const [count, setCount] = useState(0);
   const [isPulsing, setIsPulsing] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [connectionId, setConnectionId] = useState<string>("");
+  const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
     // Create new socket connection
@@ -16,15 +20,16 @@ export default function GamePage() {
       room: "my-room",
     });
 
-    // Send initial message
-    partySocket.send("Hello everyone");
-
     // Set up message listener
     partySocket.addEventListener("message", (e) => {
       // Parse the incoming message
       const data = JSON.parse(e.data);
       if (data.type === "counter") {
         setCount(data.value);
+      } else if (data.type === "connection") {
+        setConnectionId(data.id);
+      } else if (data.type === "state") {
+        setPlayers(data.state.connections);
       }
     });
 
@@ -70,8 +75,18 @@ export default function GamePage() {
         Cookie Clicker Ripoff Mk1
       </h1>
       <p className="mt-4 text-gray-600">
-        {socket ? "Connected to socket" : "Connecting..."}
+        {socket ? `Connected to socket (ID: ${connectionId})` : "Connecting..."}
       </p>
+      <p className="mt-2 text-sm text-gray-500">
+        Connected players: {players.length}
+      </p>
+      <div className="mt-2 text-xs text-gray-400">
+        {players.map(player => (
+          <div key={player.id} className={player.id === connectionId ? 'font-bold' : ''}>
+            {player.id === connectionId ? '(You) ' : ''}{player.id}: {player.score} clicks
+          </div>
+        ))}
+      </div>
       <div className="mt-8 flex flex-col items-center">
         <p className="mb-4 text-2xl font-bold">Count: {count}</p>
         <div className="relative flex flex-col items-center">
