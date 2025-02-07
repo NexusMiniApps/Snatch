@@ -1,3 +1,11 @@
+# RUNNING LOCALLY
+
+run `npm install` to install the dependencies
+run `npm run dev` to start the development server
+run `npx partykit dev` to start the partykit server
+
+you must be connected to the internet to run the partykit server
+
 # Create T3 App
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
