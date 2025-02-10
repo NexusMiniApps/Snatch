@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import PartySocket from "partysocket";
+import CookieButton from "~/components/ui/CookieButton";
 
 type Player = { id: string; score: number };
 
@@ -44,7 +45,7 @@ export default function GamePage() {
 
   const triggerAnimation = useCallback(() => {
     if (isAnimating) return;
-    
+
     setIsAnimating(true);
     setIsPulsing(true);
 
@@ -57,8 +58,8 @@ export default function GamePage() {
   const handleIncrement = useCallback(() => {
     const newCount = count + 1;
     setCount(newCount);
-    
-    // Try to trigger animation, but if it's already running that's ok
+
+    // Trigger animation (if not already running)
     triggerAnimation();
 
     socket?.send(
@@ -91,15 +92,8 @@ export default function GamePage() {
         <p className="mb-4 text-2xl font-bold">Count: {count}</p>
         <div className="relative flex flex-col items-center">
           <div className="flex justify-center mt-4">
-            <div className="animate-spin-slow">
-              <img 
-                src="/misc/cookie.svg" 
-                alt="Button Bottom" 
-                className={`w-48 h-48 ${isPulsing ? 'animate-pulse-once' : ''}`}
-                onClick={handleIncrement}
-                style={{ cursor: 'pointer' }}
-              />
-            </div>
+            {/* Use the CookieButton component */}
+            <CookieButton isPulsing={isPulsing} onClick={handleIncrement} />
           </div>
         </div>
       </div>

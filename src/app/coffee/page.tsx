@@ -8,8 +8,7 @@ import { IoTime } from "react-icons/io5";
 import { IoMdNotifications } from "react-icons/io";
 import { Vibrant } from "node-vibrant/node";
 import Image from "next/image";
-import CountdownTimer from "~/components/ui/countdown";
-import { Button } from "~/components/ui/button";
+import CountdownDisplay from "~/components/ui/CountdownDisplay";
 
 
 
@@ -21,15 +20,16 @@ export default async function Home() {
   const eventDate = "21st February, Friday"
   const eventTime = "10:00am"
   const eventDescription = "Learn how to make delicious filter coffee in this exclusive workshop (valued at $88)!"
-  const countdownDate = "2025-02-19T00:00:00"
+  const countdownDate = "2025-02-21T00:00:00"
 
-
-  const hello = await api.post.hello({ text: "from tRPC" });
   const session = await auth();
   const palette = await Vibrant.from(`public${imageSlug}`).getPalette();
   const lightMuted = palette.LightMuted?.hex ?? "#ffffff";
   const lightVibrant = palette.LightVibrant?.hex ?? "#ffffff";
+  const colorVibrant = palette.Vibrant?.hex ?? "#ffffff";
+  const colorMuted = palette.Muted?.hex ?? "#ffffff";
   const darkVibrant = palette.DarkVibrant?.hex ?? "#ffffff";
+  const darkMuted = palette.DarkMuted?.hex ?? "#ffffff";
 
 
   if (session?.user) {
@@ -38,12 +38,13 @@ export default async function Home() {
 
   return (
     <HydrateClient>
-      <main style={{ backgroundColor: lightMuted }} className="flex min-h-screen flex-col items-center pt-4 px-4 gap-y-6">
+      <main style={{ backgroundColor: lightMuted }} className="flex min-h-screen flex-col items-center pt-6 px-4 gap-y-6 overflow-hidden">
 
-        <section className="border-solid border-2 border-black rounded-xl p-1 bg-white w-full h-60 max-w-96">
+
+        <section className="border-solid border-2 border-black rounded-xl p-1 bg-white w-full h-60 max-w-96 z-10 shadow-xl">
           <div className="relative rounded-xl w-full h-full">
             <Image
-              className="object-cover rounded-xl"
+              className="object-cover rounded-lg"
               src={imageSlug}
               alt="Brewed Coffee"
               fill
@@ -52,57 +53,57 @@ export default async function Home() {
         </section>
 
 
-        <section className="flex flex-col w-full gap-y-3 px-2  max-w-96">
+        <section className="relative flex flex-col w-full px-2 max-w-96 py-4">
+          <div
+            style={{
+              backgroundColor: lightVibrant,
 
-          <div className=" w-full text-xl font-medium">
-            {eventName}
-          </div>
+            }}
+            className="absolute top-[-4rem] bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] pointer-events-none border-y-2 border-black"
+          />
+          <div className="z-10 flex flex-col w-full gap-y-4 px-2  max-w-96">
+            <div className=" w-full text-xl font-medium">
+              {eventName}
+            </div>
 
-          <div className="flex w-full items-center text-md">
-            <FaLocationDot className="mr-2" /> {eventLocation}
-          </div>
+            <div className="flex w-full items-center text-md">
+              <FaLocationDot className="mr-2" /> {eventLocation}
+            </div>
 
-          <div className="flex w-full items-center text-md">
-            <IoTime className="mr-2" />{eventDate} <span className="mx-2">·</span> {eventTime}
-          </div>
+            <div className="flex w-full items-center text-md">
+              <IoTime className="mr-2" />{eventDate} <span className="mx-2">·</span> {eventTime}
+            </div>
 
-          <div className="flex w-full items-center font-light text-md">
-            {eventDescription}
-          </div>
-
-        </section>
-
-        <section className="w-full flex flex-col items-center  max-w-96">
-          <div className="w-full custom-box p-1">
-            <div className="flex w-full rounded-xl bg-gray-100 items-center justify-between">
-              <div className="flex flex-1 text-xl font-medium justify-center">
-                Snatch! in
-              </div>
-              <div className="flex px-4 py-3 text-4xl justify-center font-medium bg-gray-800 text-white rounded-xl w-48">
-                <CountdownTimer targetDate={countdownDate} />
-              </div>
+            <div className="flex w-full items-center font-light text-md">
+              {eventDescription}
             </div>
           </div>
-
-          <div className="px-2 py-1 font-light text-sm text-gray-800">
-            20 people are waiting here, ready to Snatch!
-          </div>
         </section>
 
 
-        <section className="flex w-full items-center justify-between sm:justify-center p-2 gap-x-2">
-          <div className="w-56">
-            54 people have turned on notifications for this event!
+        <section className="w-full flex flex-col items-center max-w-96 z-10  ">
+          <CountdownDisplay countdownDate={countdownDate} />
+          <div className="px-2 py-4 text-lg font-light ">
+            <span className="font-semibold">18</span> people currently waiting here...
           </div>
-
-          <div style={{ backgroundColor: lightVibrant }} className="flex rounded-md items-center justify-center custom-box w-24 p-3">
-            <IoMdNotifications className="text-black text-2xl fill-current" />
+          <div className="relative flex w-full items-center justify-between sm:justify-center px-4 gap-x-2">
+            <div className="flex flex-col w-full z-10 font-light">
+              <div >
+                Don't lose out on the Snatch!
+              </div>
+              <div className="text-xs font-light">
+                54 people have turned on notifications.
+              </div>
+            </div>
+            <div className="flex rounded-md items-center justify-center border-2 border-black bg-white rounded-xl w-32 z-10 p-4 shadow-xl ">
+              <IoMdNotifications className="text-3xl fill-current" />
+            </div>
           </div>
-
         </section>
+
 
       </main>
-    </HydrateClient>
+    </HydrateClient >
   );
 }
 
