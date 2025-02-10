@@ -80,3 +80,7 @@ body {
 .custom-box {
   @apply border-2 border-black rounded-xl bg-white;
 }
+
+* {
+  touch-action: manipulation;
+}

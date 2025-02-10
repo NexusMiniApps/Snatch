@@ -10,8 +10,6 @@ import { Vibrant } from "node-vibrant/node";
 import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
 
-
-
 export default async function Home() {
 
   const imageSlug = "/images/coffee.jpeg";

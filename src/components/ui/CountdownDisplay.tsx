@@ -31,7 +31,7 @@ export default function CountdownDisplay({ countdownDate }: { countdownDate: str
 
             {/* If the countdown hits 0, show a different UI */}
             {timeIsUp && (
-                <Link href="/gamepage" className="w-full custom-box p-1">
+                <Link href="gamepage" className="w-full custom-box p-1">
                     <div className="flex py-3 px-4 w-full text-4xl font-medium text-white rounded-xl bg-gray-800 items-center justify-center">
                         Snatch!
                     </div>
