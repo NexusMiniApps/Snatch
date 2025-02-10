@@ -36,9 +36,12 @@ export default function CookieButton({ count, socket, onIncrement }: CookieButto
             <img
                 src="/misc/cookie.svg"
                 alt="Cookie"
-                className={`w-48 h-48 ${isPulsing ? 'animate-pulse-once' : ''}`}
+                className={`w-56 h-56 ${isPulsing ? 'animate-pulse-once' : ''}`}
                 onClick={handleClick}
-                style={{ cursor: 'pointer' }}
+                style={{
+                    cursor: 'pointer',
+                    filter: 'drop-shadow(0 0px 10px rgba(0, 0, 0, 0.3))',
+                }}
             />
         </div>
     );
