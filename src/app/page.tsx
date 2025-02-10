@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
   const session = await auth();
-  
+
 
   if (session?.user) {
     void api.post.getLatest.prefetch();
@@ -22,7 +22,7 @@ export default async function Home() {
             Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
           </h1>
 
-          <Button variant="router" slug="/bread" className="bg-yellow-200 text-2xl text-black p-10"> Buy your bread here!! </Button>
+          <Button variant="router" slug="/coffee" className="bg-yellow-200 text-2xl text-black p-10"> Coffee Workshop Here!! </Button>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
             <Link
               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
@@ -46,7 +46,7 @@ export default async function Home() {
                 to deploy it.
               </div>
             </Link>
-            
+
           </div>
           <div className="flex flex-col items-center gap-2">
             <p className="text-2xl text-white">

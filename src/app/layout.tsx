@@ -1,7 +1,7 @@
 import "~/styles/globals.css";
 
-import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { Poppins } from "next/font/google"
 
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -11,12 +11,19 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-open-sans",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
-      <body>
+    <html lang="en" className={poppins.variable}>
+      <body >
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
