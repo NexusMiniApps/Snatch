@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import CookieButton from "~/components/ui/CookieButton";
 import useGameSocket from "~/lib/useGameSocket";
 import { Leaderboard } from "~/components/ui/Leaderboard";
