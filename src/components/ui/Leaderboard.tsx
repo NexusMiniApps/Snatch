@@ -18,19 +18,6 @@ export default function Leaderboard({ players, connectionId, myScore }: Leaderbo
         player.id === connectionId ? { ...player, score: myScore } : player
     );
 
-    // // Hardcoded array of players for testing.
-    // const players = [
-    //     { id: "Tom", score: 10 },
-    //     { id: "Sasha", score: 15 },
-    //     { id: "Julia", score: 5 },
-    //     { id: "John", score: 8 },
-    //     { id: "Peter", score: 12 },
-    //     { id: "Alice", score: 14 },
-    // ];
-
-    // // Hardcoded current connection ID (simulating the logged-in player).
-    // const connectionId = "Alice";
-
     // Sort players in ascending order by score.
     const sortedPlayers = [...players].sort((a, b) => a.score - b.score);
 
