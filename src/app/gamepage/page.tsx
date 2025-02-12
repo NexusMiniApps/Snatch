@@ -1,16 +1,44 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import CookieButton from "~/components/ui/CookieButton";
 import useGameSocket from "~/lib/useGameSocket";
 import Leaderboard from "~/components/ui/Leaderboard";
 
 export default function GamePage() {
   const { socket, count, setCount } = useGameSocket();
+  const router = useRouter();
+
+  // Hardcoded array of players for testing.
+  const players = [
+    { id: "Tom", score: 10 },
+    { id: "Sasha", score: 15 },
+    { id: "Julia", score: 5 },
+    { id: "John", score: 8 },
+    { id: "Peter", score: 12 },
+    { id: "Alice", score: 14 },
+  ];
+
+  // Hardcoded current connection ID (simulating the logged-in player).
+  const connectionId = "Alice";
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleMessage = (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      if (data.type === "gameOver") {
+        router.push("/results");
+      }
+    };
+    socket.addEventListener("message", handleMessage);
+    return () => socket.removeEventListener("message", handleMessage);
+  }, [socket, router]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-6 bg-orange-200 overflow-hidden">
 
-      <Leaderboard />
+      <Leaderboard players={players} connectionId={connectionId} myScore={players.find(p => p.id === connectionId)?.score || 0} />
 
 
       <section className=" custom-box w-full h-full p-1 z-10 shadow-xl">

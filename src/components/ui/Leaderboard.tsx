@@ -1,19 +1,35 @@
 "use client";
 import React from "react";
 
-export default function Leaderboard() {
-    // Hardcoded array of players for testing.
-    const players = [
-        { id: "Tom", score: 10 },
-        { id: "Sasha", score: 15 },
-        { id: "Julia", score: 5 },
-        { id: "John", score: 8 },
-        { id: "Peter", score: 12 },
-        { id: "Alice", score: 14 },
-    ];
+export interface Player {
+    id: string;
+    score: number;
+}
 
-    // Hardcoded current connection ID (simulating the logged-in player).
-    const connectionId = "Alice";
+interface LeaderboardProps {
+    players: Player[];
+    connectionId: string;
+    myScore: number;
+}
+
+export default function Leaderboard({ players, connectionId, myScore }: LeaderboardProps) {
+    // Update the current player's score with myScore.
+    const updatedPlayers = players.map((player) =>
+        player.id === connectionId ? { ...player, score: myScore } : player
+    );
+
+    // // Hardcoded array of players for testing.
+    // const players = [
+    //     { id: "Tom", score: 10 },
+    //     { id: "Sasha", score: 15 },
+    //     { id: "Julia", score: 5 },
+    //     { id: "John", score: 8 },
+    //     { id: "Peter", score: 12 },
+    //     { id: "Alice", score: 14 },
+    // ];
+
+    // // Hardcoded current connection ID (simulating the logged-in player).
+    // const connectionId = "Alice";
 
     // Sort players in ascending order by score.
     const sortedPlayers = [...players].sort((a, b) => a.score - b.score);
