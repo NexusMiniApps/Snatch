@@ -33,8 +33,12 @@ export default function useGameSocket() {
 
   useEffect(() => {
     console.log("CONNECTING TO SOCKET");
+    const host = process.env.NODE_ENV === 'production' 
+      ? 'snatch-party.jolow99.partykit.dev'
+      : 'localhost:1999';
+
     const partySocket = new PartySocket({
-      host: "localhost:1999",
+      host,
       room: "my-room",
     });
 
