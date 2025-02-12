@@ -1,7 +1,11 @@
 "use client";
+
 import React from "react";
 import { useRouter } from "next/navigation";
 import LeaderboardTable, { Player } from "~/components/ui/LeaderboardTable";
+import Image from "next/image";
+
+const imageSlug = "/images/coffee.jpeg";
 
 export default function ResultsPage() {
     const router = useRouter();
@@ -36,22 +40,61 @@ export default function ResultsPage() {
     const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
     const myRank = sortedPlayers.findIndex(player => player.id === connectionId);
 
+
+
+    const lightVibrant = "#ffffff";
+
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
-            {myRank >= 0 && myRank < 3 ? (
-                <>
-                    <h1 className="text-3xl ">
-                        You won the Snatch!
-                    </h1>
-                </>
-            ) : (
-                <h1 className="text-4xl font-bold">
-                    Game Over! Better luck next time.
-                </h1>
-            )}
+        <div className="flex flex-col items-center min-h-screen bg-gray-50 p-6 gap-y-2">
 
-            <LeaderboardTable players={players} connectionId={connectionId} />
+            <section className="border-solid border-2 border-black rounded-xl p-1 bg-white w-full h-60 max-w-96 z-10 shadow-xl">
+                <div className="relative rounded-xl w-full h-full">
+                    <Image
+                        className="object-cover rounded-lg"
+                        src={imageSlug}
+                        alt="Brewed Coffee"
+                        fill
+                    />
+                </div>
+            </section>
 
-        </div>
+
+            <section className="relative flex flex-col w-full px-2 max-w-96 py-2">
+                <div
+                    style={{
+                        backgroundColor: lightVibrant,
+
+                    }}
+                    className="absolute top-[-4rem] bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] pointer-events-none border-y-2 border-black"
+                />
+                <div className="z-10 flex flex-col w-full gap-y-4 px-2  max-w-96">
+                    <LeaderboardTable players={players} connectionId={connectionId} />
+                </div>
+
+            </section>
+
+            <section className="w-full flex flex-col items-center max-w-96 z-10 custom-box py-4  ">
+                {
+                    myRank >= 0 && myRank < 3 ? (
+                        <>
+                            <h1 className="text-3xl z-10 ">
+                                You won the Snatch!
+                            </h1>
+                        </>
+                    ) : (
+                        <h1 className="text-4xl font-bold">
+                            Game Over! Better luck next time.
+                        </h1>
+                    )
+                }
+
+
+            </section>
+
+
+
+
+
+        </div >
     );
 }

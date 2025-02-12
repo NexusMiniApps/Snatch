@@ -83,7 +83,7 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
                         if (row.rank === -1) {
                             return (
                                 <tr key={`ellipsis-${index}`}>
-                                    <td colSpan={3} className="text-center px-4 py-2">
+                                    <td colSpan={3} className="text-center px-4 ">
                                         ...
                                     </td>
                                 </tr>
@@ -95,11 +95,11 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
                                 className={`hover:bg-gray-100 ${row.player.id === connectionId ? "font-bold text-blue-600" : ""
                                     }`}
                             >
-                                <td className="px-4 py-2 border-b">{row.rank}</td>
-                                <td className="px-4 py-2 border-b">
+                                <td className="px-4 py-1 border-b">{row.rank}</td>
+                                <td className="px-4 py-1 border-b">
                                     {row.player.id} {row.player.id === connectionId && "(You)"}
                                 </td>
-                                <td className="px-4 py-2 border-b">{row.player.score}</td>
+                                <td className="px-4 py-1 border-b">{row.player.score}</td>
                             </tr>
                         );
                     })}
