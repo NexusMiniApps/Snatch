@@ -1,7 +1,13 @@
 import type * as Party from "partykit/server";
 
+interface PlayerData {
+  id: string;
+  name: string;
+  score: number;
+}
+
 export default class Server implements Party.Server {
-  private scores: Map<string, number> = new Map();
+  private players: Record<string, PlayerData> = {};
 
   constructor(readonly room: Party.Room) {}
 
@@ -11,32 +17,43 @@ export default class Server implements Party.Server {
       JSON.stringify({
         type: "state",
         state: {
-          connections: connections.map((conn: Party.Connection) => ({
-            id: conn.id,
-            score: this.scores.get(conn.id) || 0,
-          }))
+          connections: connections.map((conn: Party.Connection) => 
+            this.players[conn.id] || { id: conn.id, name: "Anonymous", score: 0 }
+          )
         }
       })
     );
   }
 
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    this.scores.set(conn.id, 0);
+    this.players[conn.id] = {
+      id: conn.id,
+      name: "",
+      score: 0
+    };
     conn.send(JSON.stringify({ type: "connection", id: conn.id }));
     this.broadcastState();
   }
 
   onClose(conn: Party.Connection) {
-    this.scores.delete(conn.id);
+    delete this.players[conn.id];
     this.broadcastState();
   }
 
   onMessage(message: string, sender: Party.Connection) {
     const data = JSON.parse(message);
     if (data.type === "counter") {
-      const currentScore = this.scores.get(sender.id) || 0;
-      this.scores.set(sender.id, currentScore + 1);
-      this.broadcastState();
+      const player = this.players[sender.id];
+      if (player) {
+        player.score += 1;
+        this.broadcastState();
+      }
+    } else if (data.type === "updateName") {
+      const player = this.players[sender.id];
+      if (player && data.name) {
+        player.name = data.name;
+        this.broadcastState();
+      }
     }
   }
 }

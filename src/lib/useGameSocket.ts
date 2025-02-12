@@ -3,48 +3,105 @@
 import { useEffect, useState } from "react";
 import PartySocket from "partysocket";
 
-// Define the types for the incoming data structure
-export type Player = { id: string; score: number };
+const GENERIC_NAMES = [
+  "ryan",
+  "jan",
+  "jo",
+  "sx",
+  "matt",
+  "dan",
+  "alex",
+  "chris",
+  "jeff",
+  "zz",
+  "yk",
+];
 
-// Define the structure of the event data
-interface GameMessage {
-    type: string;
-    value?: number;
-    id?: string;
-    state?: { connections: Player[] };
+export interface PlayerData {
+  id: string;
+  name: string;
+  score: number;
 }
 
 export default function useGameSocket() {
-    const [socket, setSocket] = useState<PartySocket | null>(null);
-    const [count, setCount] = useState(0);
-    const [connectionId, setConnectionId] = useState<string>("");
-    const [players, setPlayers] = useState<Player[]>([]);
+  const [socket, setSocket] = useState<PartySocket | null>(null);
+  const [currentPlayerCount, setCurrentPlayerCount] = useState(0);
+  const [currentPlayerId, setCurrentPlayerId] = useState<string>("");
+  const [players, setPlayers] = useState<PlayerData[]>([]);
+  const [playerName, setPlayerName] = useState<string>("Anonymous");
 
-    useEffect(() => {
-        const partySocket = new PartySocket({
-            host: "localhost:1999",
-            room: "my-room",
-        });
+  useEffect(() => {
+    console.log("CONNECTING TO SOCKET");
+    const partySocket = new PartySocket({
+      host: "localhost:1999",
+      room: "my-room",
+    });
 
-        partySocket.addEventListener("message", (e: MessageEvent) => {
-            // Parse the event data and cast it to the GameMessage type
-            const data: GameMessage = JSON.parse(e.data) as GameMessage;
+    // Pick a random name when connecting
+    const randomName =
+      GENERIC_NAMES[Math.floor(Math.random() * GENERIC_NAMES.length)];
+    setPlayerName(randomName || "Anonymous");
 
-            // Handle different message types based on the "type" field
-            if (data.type === "counter" && data.value !== undefined) {
-                setCount(data.value ?? 0);
-            } else if (data.type === "connection" && data.id) {
-                setConnectionId(data.id ?? "");
-            } else if (data.type === "state" && data.state) {
-                setPlayers(data.state.connections ?? []);
-            }
-        });
+    partySocket.addEventListener("open", () => {
+      partySocket.send(
+        JSON.stringify({ type: "updateName", name: randomName || "Anonymous" }),
+      );
+    });
 
-        setSocket(partySocket);
-        return () => {
-            partySocket.close();
-        };
-    }, []);
+    partySocket.addEventListener("message", (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === "counter") {
+          setCurrentPlayerCount(data.value);
+        } else if (data.type === "connection") {
+          console.log("setting player id", data.id);
+          setCurrentPlayerId(data.id);
+          // Send name update right after getting our ID
+          partySocket.send(
+            JSON.stringify({
+              type: "updateName",
+              name: randomName || "Anonymous",
+            }),
+          );
+        } else if (data.type === "state") {
+          setPlayers(data.state.connections);
+          // Update local player name if it exists in the state
+          const currentPlayer = data.state.connections.find(
+            (p: PlayerData) => p.id === currentPlayerId,
+          );
+          if (currentPlayer) {
+            setPlayerName(currentPlayer.name);
+          }
+        }
+      });
 
-    return { socket, count, connectionId, players, setCount };
+    setSocket(partySocket);
+    return () => {
+      console.log("CLOSING SOCKET");
+      partySocket.close();
+    };
+  }, []);
+
+  const updatePlayerName = (name: string) => {
+    if (socket && name.trim()) {
+      socket.send(JSON.stringify({ type: "updateName", name: name.trim() }));
+      setPlayerName(name);
+    }
+  };
+
+  const incrementScore = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ type: "counter" }));
+    }
+  };
+
+  return {
+    socket,
+    currentPlayerCount,
+    setCurrentPlayerCount,
+    currentPlayerId,
+    players,
+    playerName,
+    updatePlayerName,
+    incrementScore,
+  };
 }
