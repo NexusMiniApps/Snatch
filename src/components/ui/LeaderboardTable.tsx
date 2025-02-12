@@ -23,7 +23,7 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
 
     let displayRows: Row[] = [];
     let topEllipsis = false;
-    let bottomEllipsis = false;
+    const bottomEllipsis = false;
 
     if (sortedPlayers.length <= 8 || currentIndex < 8) {
         // If there are 10 or fewer players or the current player is in the top 10,

@@ -31,7 +31,7 @@ export default async function Home() {
 
 
   if (session?.user) {
-    void api.post.getLatest.prefetch();
+    void api.events.getLatest.prefetch();
   }
 
   return (
@@ -87,7 +87,7 @@ export default async function Home() {
           <div className="relative flex w-full items-center justify-between sm:justify-center px-4 gap-x-2">
             <div className="flex flex-col w-full z-10 font-light">
               <div >
-                Don't lose out on the Snatch!
+                Don&apos;t lose out on the Snatch!
               </div>
               <div className="text-xs font-light">
                 54 people have turned on notifications.

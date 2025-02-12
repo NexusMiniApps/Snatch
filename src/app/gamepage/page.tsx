@@ -22,7 +22,7 @@ export default function GamePage() {
   ];
 
   // Hardcoded current connection ID (simulating the logged-in player).
-  const connectionId = "Alice";
+  const connectionId: string = "Alice";
 
   useEffect(() => {
     if (!socket) return;
