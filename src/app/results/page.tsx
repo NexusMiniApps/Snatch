@@ -1,19 +1,33 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import React from "react";
-import Leaderboard, { Player } from "~/components/ui/Leaderboard";
+import { useRouter } from "next/navigation";
+import LeaderboardTable, { Player } from "~/components/ui/LeaderboardTable";
 
 export default function ResultsPage() {
     const router = useRouter();
-    // For demonstration, we hardcode a final players list.
-    const [players, setPlayers] = useState<Player[]>([
+
+    // Hardcoded final players list for testing.
+    const players: Player[] = [
         { id: "John", score: 50 },
-        { id: "Alice", score: 45 },
+        { id: "Alice", score: 40 },
         { id: "Sasha", score: 40 },
         { id: "Tom", score: 30 },
         { id: "Julia", score: 20 },
-    ]);
+        { id: "Peter", score: 15 },
+        { id: "Mike", score: 10 },
+        { id: "Eve", score: 7 },
+        { id: "Lindsey", score: 30 },
+        { id: "Julie", score: 20 },
+        { id: "Pam", score: 15 },
+        { id: "Mikey", score: 10 },
+        { id: "Evee", score: 6 },
+        { id: "Ethan", score: 30 },
+        { id: "Julianna", score: 20 },
+        { id: "Peta", score: 15 },
+        { id: "Mika", score: 10 },
+        { id: "Eva", score: 5 },
+        // Add more players if needed.
+    ];
 
     // Hardcoded current player's ID.
     const connectionId = "Alice";
@@ -25,19 +39,19 @@ export default function ResultsPage() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
             {myRank >= 0 && myRank < 3 ? (
-                <h1 className="text-4xl font-bold text-green-700 mb-4">Congratulations! You're a Winner!</h1>
+                <>
+                    <h1 className="text-3xl ">
+                        You won the Snatch!
+                    </h1>
+                </>
             ) : (
-                <h1 className="text-4xl font-bold text-red-600 mb-4">Game Over! Better luck next time.</h1>
+                <h1 className="text-4xl font-bold">
+                    Game Over! Better luck next time.
+                </h1>
             )}
 
-            <Leaderboard players={players} connectionId={connectionId} myScore={players.find(p => p.id === connectionId)?.score || 0} />
+            <LeaderboardTable players={players} connectionId={connectionId} />
 
-            <button
-                className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg"
-                onClick={() => router.push("/")}
-            >
-                Return Home
-            </button>
         </div>
     );
 }
