@@ -1,8 +1,4 @@
-
 export const runtime = "nodejs";
-
-import { auth } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
 import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
 import { IoMdNotifications } from "react-icons/io";
@@ -20,22 +16,15 @@ export default async function Home() {
   const eventDescription = "Learn how to make delicious filter coffee in this exclusive workshop (valued at $88)!"
   const countdownDate = "2025-02-21T00:00:00"
 
-  const session = await auth();
   const palette = await Vibrant.from(`public${imageSlug}`).getPalette();
   const lightMuted = palette.LightMuted?.hex ?? "#ffffff";
   const lightVibrant = palette.LightVibrant?.hex ?? "#ffffff";
-  const colorVibrant = palette.Vibrant?.hex ?? "#ffffff";
-  const colorMuted = palette.Muted?.hex ?? "#ffffff";
-  const darkVibrant = palette.DarkVibrant?.hex ?? "#ffffff";
-  const darkMuted = palette.DarkMuted?.hex ?? "#ffffff";
-
-
-  if (session?.user) {
-    void api.post.getLatest.prefetch();
-  }
+  // const colorVibrant = palette.Vibrant?.hex ?? "#ffffff";
+  // const colorMuted = palette.Muted?.hex ?? "#ffffff";
+  // const darkVibrant = palette.DarkVibrant?.hex ?? "#ffffff";
+  // const darkMuted = palette.DarkMuted?.hex ?? "#ffffff";
 
   return (
-    <HydrateClient>
       <main style={{ backgroundColor: lightMuted }} className="flex min-h-screen flex-col items-center pt-6 px-4 gap-y-6 overflow-hidden">
 
 
@@ -87,7 +76,7 @@ export default async function Home() {
           <div className="relative flex w-full items-center justify-between sm:justify-center px-4 gap-x-2">
             <div className="flex flex-col w-full z-10 font-light">
               <div >
-                Don't lose out on the Snatch!
+                Don&apos;t lose out on the Snatch!
               </div>
               <div className="text-xs font-light">
                 54 people have turned on notifications.
@@ -101,7 +90,6 @@ export default async function Home() {
 
 
       </main>
-    </HydrateClient >
   );
 }
 

@@ -5,6 +5,13 @@ import PartySocket from "partysocket";
 
 export type Player = { id: string; score: number };
 
+interface SocketMessage {
+  type: string;
+  value?: number;
+  id?: string;
+  state?: Player[];
+}
+
 export default function useGameSocket() {
     const [socket, setSocket] = useState<PartySocket | null>(null);
     const [count, setCount] = useState(0);
@@ -12,25 +19,25 @@ export default function useGameSocket() {
     const [players, setPlayers] = useState<Player[]>([]);
 
     useEffect(() => {
-        const partySocket = new PartySocket({
-            host: "localhost:1999",
-            room: "my-room",
+        const ws = new PartySocket({
+            host: process.env.NEXT_PUBLIC_PARTYKIT_HOST!,
+            room: "game",
         });
+        setSocket(ws);
 
-        partySocket.addEventListener("message", (e) => {
-            const data = JSON.parse(e.data);
-            if (data.type === "counter") {
-                setCount(data.value);
-            } else if (data.type === "connection") {
-                setConnectionId(data.id);
-            } else if (data.type === "state") {
-                setPlayers(data.state.connections);
+        ws.addEventListener("message", (event: MessageEvent<string>) => {
+            const message = JSON.parse(event.data) as SocketMessage;
+            if (message.type === "count") {
+                setCount(message.value ?? 0);
+            } else if (message.type === "connection") {
+                setConnectionId(message.id ?? '');
+            } else if (message.type === "state") {
+                setPlayers(message.state ?? []);
             }
         });
 
-        setSocket(partySocket);
         return () => {
-            partySocket.close();
+            ws.close();
         };
     }, []);
 

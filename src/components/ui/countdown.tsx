@@ -1,7 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+
+interface TimeLeft {
+    hours: number;
+    minutes: number;
+    seconds: number;
+    total: number;
+}
 
 interface CountdownTimerInnerProps {
     targetDate: string;
@@ -9,42 +16,33 @@ interface CountdownTimerInnerProps {
 }
 
 function CountdownTimerInner({ targetDate, onTimeUp }: CountdownTimerInnerProps) {
-    const calculateTimeLeft = () => {
+    const calculateTimeLeft = useCallback((): TimeLeft => {
         const difference = new Date(targetDate).getTime() - new Date().getTime();
         if (difference <= 0) {
-            return { hours: 0, minutes: 0, seconds: 0 };
+            return { hours: 0, minutes: 0, seconds: 0, total: 0 };
         }
         return {
+            total: difference,
             hours: Math.floor(difference / (1000 * 60 * 60)),
             minutes: Math.floor((difference / (1000 * 60)) % 60),
             seconds: Math.floor((difference / 1000) % 60),
         };
-    };
+    }, [targetDate]);
 
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
     useEffect(() => {
-        const remaining = new Date(targetDate).getTime() - Date.now();
-        const intervalDelay = remaining < 2000 ? 100 : 1000;
-
         const timer = setInterval(() => {
-            const newTime = calculateTimeLeft();
-            setTimeLeft(newTime);
-
-            // If the difference is 0, call the parent callback
-            if (
-                newTime.hours === 0 &&
-                newTime.minutes === 0 &&
-                newTime.seconds === 0
-            ) {
-                // Stop the timer and call onTimeUp
-                clearInterval(timer);
-                onTimeUp?.();
+            const newTimeLeft = calculateTimeLeft();
+            setTimeLeft(newTimeLeft);
+            
+            if (newTimeLeft.total <= 0 && onTimeUp) {
+                onTimeUp();
             }
-        }, intervalDelay);
+        }, 1000);
 
         return () => clearInterval(timer);
-    }, [onTimeUp]);
+    }, [calculateTimeLeft, onTimeUp]);
 
     return (
         <div>

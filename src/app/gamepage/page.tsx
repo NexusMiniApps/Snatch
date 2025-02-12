@@ -5,7 +5,7 @@ import useGameSocket from "~/lib/useGameSocket";
 import Leaderboard from "~/components/ui/Leaderboard";
 
 export default function GamePage() {
-  const { socket, count, connectionId, players, setCount } = useGameSocket();
+  const { socket, count, setCount } = useGameSocket();
 
   return (
     <main className="flex min-h-screen flex-col items-center p-6 bg-orange-200 overflow-hidden">
