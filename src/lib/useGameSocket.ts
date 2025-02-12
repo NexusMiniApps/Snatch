@@ -101,7 +101,7 @@ try {
       console.log("CLOSING SOCKET");
       partySocket.close();
     };
-  }, [currentPlayerId]);
+  }, []);
 
   const updatePlayerName = (name: string) => {
     if (socket && name.trim()) {
