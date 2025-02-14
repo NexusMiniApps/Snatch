@@ -51,13 +51,13 @@ export default function ChatUI() {
           <div className="mb-1 text-gray-500">No messages yet.</div>
         )}
       </div>
-      <div className="flex">
+      <div className="flex w-full">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1 rounded-lg border border-gray-300 p-2"
+          placeholder="Type here..."
+          className="min-w-0 flex-1 rounded-lg border border-gray-300 p-2"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               handleSend();

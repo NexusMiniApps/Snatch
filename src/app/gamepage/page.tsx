@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import CookieButton from "~/components/ui/CookieButton";
 import useGameSocket from "~/lib/useGameSocket";
 import { Leaderboard } from "~/components/ui/Leaderboard";
 
 export default function GamePage() {
-  const { socket, currentPlayerCount, currentPlayerId, players, setCurrentPlayerCount } = useGameSocket();
+  const {
+    socket,
+    currentPlayerCount,
+    currentPlayerId,
+    players,
+    setCurrentPlayerCount,
+  } = useGameSocket();
 
   return (
     <main className="flex min-h-screen flex-col items-center overflow-hidden bg-orange-200 p-6">
@@ -15,7 +19,7 @@ export default function GamePage() {
 
       <section className="custom-box z-10 h-full w-full p-1 shadow-xl">
         <div className="rounded-lg bg-yellow-950 p-4 text-white">
-          <h1 className="text-4xl font-semibold">Cookie Craze</h1>
+          <h1 className="text-3xl font-semibold">Cookie Craze</h1>
           <h1 className="pt-1 text-sm font-light">
             Tap the cookie as many times as you can!
           </h1>
@@ -25,7 +29,9 @@ export default function GamePage() {
       <div className="relative flex w-full flex-col items-center">
         <div className="pointer-events-none absolute bottom-[-5rem] left-[-2rem] right-[-2rem] top-[-2.5rem] border-y-2 border-black bg-orange-100" />
         <div className="z-10 mt-4 flex flex-col items-center justify-center">
-          <p className="p-10 text-5xl font-semibold text-yellow-950">{currentPlayerCount}</p>
+          <p className="p-10 text-5xl font-semibold text-yellow-950">
+            {currentPlayerCount}
+          </p>
           <CookieButton
             count={currentPlayerCount}
             socket={socket}

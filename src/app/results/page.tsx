@@ -1,17 +1,11 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import LeaderboardTable, { Player } from "~/components/ui/LeaderboardTable";
-import Image from "next/image";
 import { useVibrantPalette } from "~/lib/usePalette";
 import ChatUI from "~/components/Chat";
 
-const imageSlug = "/images/coffee.jpeg";
-
 export default function ResultsPage() {
-  const router = useRouter();
-
   // Hardcoded final players list for testing.
   const players: Player[] = [
     { id: "John", score: 50 },
@@ -36,13 +30,15 @@ export default function ResultsPage() {
   ];
 
   // Hardcoded current player's ID.
-  const connectionId = "Alice";
+  const connectionId = "Eva";
 
   // Determine ranking by sorting in descending order.
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const myRank = sortedPlayers.findIndex(
     (player) => player.id === connectionId,
   );
+
+  const isWinner = myRank >= 0 && myRank < 3;
 
   const palette = useVibrantPalette("/images/coffee.jpeg");
 
@@ -51,17 +47,18 @@ export default function ResultsPage() {
       style={{
         backgroundColor: palette.lightVibrant,
       }}
-      className="flex h-screen flex-col items-center gap-y-2 overflow-hidden bg-gray-50 p-4 pt-6"
+      className="flex min-h-screen flex-col items-center gap-y-2 overflow-hidden bg-gray-50 p-4 pt-6"
     >
-      <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center py-4">
-        {myRank >= 0 && myRank < 3 ? (
+      <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center p-4">
+        {isWinner ? (
           <>
             <h1 className="z-10 text-3xl">You won the Snatch!</h1>
           </>
         ) : (
-          <h1 className="text-4xl font-bold">
-            Game Over! Better luck next time.
-          </h1>
+          <>
+            <h1 className="text-3xl">Snatch over!</h1>
+            <div>Try again next time!</div>
+          </>
         )}
       </div>
 
@@ -82,7 +79,11 @@ export default function ResultsPage() {
       </div>
 
       <div className="z-10 px-2 py-2 text-sm font-light">
-        Join the telegram group for more information!
+        {isWinner ? (
+          <span>Join the Winners Telegram group for more information!</span>
+        ) : (
+          <span>Connect with the host to look out for future events!</span>
+        )}
       </div>
     </div>
   );
