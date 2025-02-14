@@ -15,7 +15,9 @@ interface InfoViewProps {
 
 export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   // Event info data
-  const imageSlug = "/images/coffee.jpeg";
+  const imageSlug = process.env.NEXT_PUBLIC_BASE_URL 
+    ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/coffee.jpeg`
+    : "/images/coffee.jpeg";
   const eventName = "Specialty Coffee Workshop";
   const eventLocation = "SUTD";
   const eventDate = "21st February, Friday";

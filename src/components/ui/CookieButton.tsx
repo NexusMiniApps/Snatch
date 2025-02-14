@@ -31,10 +31,14 @@ export default function CookieButton({ count, socket, onIncrement }: CookieButto
         }
     }, [isAnimating, count, onIncrement, socket]);
 
+    const cookieImagePath = process.env.NEXT_PUBLIC_VERCEL_URL 
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/misc/cookie.svg`
+        : "/misc/cookie.svg";
+
     return (
         <div className="animate-spin-slow">
             <img
-                src="/misc/cookie.svg"
+                src={cookieImagePath}
                 alt="Cookie"
                 className={`w-56 h-56 ${isPulsing ? 'animate-pulse-once' : ''}`}
                 onClick={handleClick}
