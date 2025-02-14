@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
+import { useSession } from '~/hooks/useSession';
 
 const COUNTRY_CODES = [
     { value: "+65", label: "Singapore (+65)" },
@@ -25,6 +26,7 @@ export function LoginForm() {
   const [countryCode, setCountryCode] = useState(
     COUNTRY_CODES.find(code => code.value === "+65")!.value
   );
+  const { setSessionCookie } = useSession();
 
   const createUser = api.user.createUser.useMutation({
     onSuccess: () => {
@@ -33,14 +35,23 @@ export function LoginForm() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    createUser.mutate({
-      name,
-      phoneNo: phoneNumber,
-      countryCode: countryCode,
-      verified: false,
-    });
+    try {
+      const result = await createUser.mutateAsync({
+        name,
+        phoneNo: phoneNumber,
+        countryCode: countryCode,
+        verified: false,
+      });
+      
+      // Set the cookie with the returned session ID
+      setSessionCookie(result.sessionId, result.sessionExpiry);
+      
+      // Handle successful login (e.g., redirect)
+    } catch (error) {
+      // Handle error
+    }
   };
 
   return (

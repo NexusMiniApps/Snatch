@@ -73,17 +73,13 @@ export const userRouter = createTRPCRouter({
         },
       });
 
-      // Set cookie
-      const cookieStore = await cookies();
-      cookieStore.set("session-id", session.id, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-        expires: session.expiresAt,
-        path: '/',
-      });
-
-      return user;
+      // Instead of using cookies() directly, return the session ID
+      // to be set on the client side
+      return {
+        user,
+        sessionId: session.id.toString(),
+        sessionExpiry: session.expiresAt,
+      };
     }),
 
     getUser: protectedProcedure.query(async ({ ctx }) => {
