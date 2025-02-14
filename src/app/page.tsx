@@ -1,74 +1,201 @@
-import Link from "next/link";
+"use client";
 
-import { LatestEvent } from "~/components/ui/post";
-import { auth } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
-import { Button } from "~/components/ui/button";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "~/trpc/react";
+import { FaWhatsapp } from "react-icons/fa";
 
-export default async function Home() {
-  const hello = await api.events.hello({ text: "from tRPC" });
-  const session = await auth();
+const formatPhoneNumber = (phone: string): string => {
+  // Remove all whitespace and any + at the beginning
+  return phone.replace(/\s+/g, '').replace(/^\+/, '');
+};
 
+export default function Home() {
+  const router = useRouter();
+  const [step, setStep] = useState<"phone" | "verify">("phone");
+  const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  if (session?.user) {
-    void api.events.getLatest.prefetch();
-  }
+  const sendVerificationCode = api.auth.sendVerificationCode.useMutation({
+    onSuccess: () => {
+      setStep("verify");
+      setError("");
+    },
+    onError: (error) => {
+      setError(error.message);
+    },
+  });
+
+  const verifyCode = api.auth.verifyCode.useMutation({
+    onSuccess: () => {
+      // Redirect to dashboard or main app page
+      router.push("/gamepage");
+    },
+    onError: (error) => {
+      setError(error.message);
+    },
+  });
+
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      await sendVerificationCode.mutateAsync({
+        phoneNumber: formattedPhone,
+        name,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      await verifyCode.mutateAsync({
+        phoneNumber: formattedPhone,
+        code: verificationCode,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Allow spaces and numbers in the input
+    const value = e.target.value;
+    if (value === '' || /^[+\d\s]*$/.test(value)) {
+      setPhoneNumber(value);
+    }
+  };
 
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
+      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+          Welcome to <span className="text-[hsl(280,100%,70%)]">Snatch</span>
+        </h1>
 
-          <Button variant="router" slug="/coffee" className="bg-yellow-200 text-2xl text-black p-10"> Coffee Workshop Here!! </Button>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              <Link
-                href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Sign out" : "Sign in"}
-              </Link>
+        <div className="w-full max-w-md rounded-lg bg-white/10 p-8 backdrop-blur-lg">
+          {error && (
+            <div className="mb-4 rounded-md bg-red-500/10 p-4 text-red-500">
+              {error}
             </div>
-          </div>
+          )}
 
-          {session?.user && <LatestEvent />}
+          {step === "phone" ? (
+            <form onSubmit={handleSendCode} className="space-y-6">
+              <div className="flex items-center justify-center gap-2 text-white mb-4">
+                <FaWhatsapp className="text-2xl text-green-500" />
+                <span>Verification via WhatsApp</span>
+              </div>
+              
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-white"
+                >
+                  Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-white"
+                >
+                  WhatsApp Number
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
+                  className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  placeholder="+65 XXXX XXXX"
+                  pattern="^[+\d\s]+$"
+                  title="Please enter a valid phone number with country code"
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-400">
+                  Enter your WhatsApp number with country code (e.g., +65 9753 9839)
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <FaWhatsapp />
+                {loading ? "Sending..." : "Send WhatsApp Code"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyCode} className="space-y-6">
+              <div className="flex items-center justify-center gap-2 text-white mb-4">
+                <FaWhatsapp className="text-2xl text-green-500" />
+                <span>Check your WhatsApp for the code</span>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="code"
+                  className="block text-sm font-medium text-white"
+                >
+                  Verification Code
+                </label>
+                <input
+                  type="text"
+                  id="code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  pattern="\d{6}"
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-400">
+                  Enter the 6-digit code sent to your WhatsApp
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <FaWhatsapp />
+                {loading ? "Verifying..." : "Verify Code"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep("phone")}
+                className="w-full text-sm text-gray-400 hover:text-white"
+              >
+                Back to phone number
+              </button>
+            </form>
+          )}
         </div>
-      </main>
-    </HydrateClient>
+      </div>
+    </main>
   );
 }
