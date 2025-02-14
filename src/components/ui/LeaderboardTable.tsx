@@ -69,13 +69,18 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
     }
 
     return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse items-center justify-center flex flex-col">
+        <div className="overflow-x-auto mb-2">
+            <table className="min-w-full w-full table-fixed border-collapse">
+                <colgroup>
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "60%" }} />
+                    <col style={{ width: "25%" }} />
+                </colgroup>
                 <thead>
-                    <tr >
-                        <th className="px-4 py-2 border-b">Rank</th>
-                        <th className="px-4 py-2 border-b">Player</th>
-                        <th className="px-4 py-2 border-b">Score</th>
+                    <tr>
+                        <th className="px-4 pb-2 border-b border-black text-left" />
+                        <th className="px-4 pb-2 border-b border-black text-left">Player</th>
+                        <th className="px-4 pb-2 border-b border-black text-left">Score</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,7 +88,7 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
                         if (row.rank === -1) {
                             return (
                                 <tr key={`ellipsis-${index}`}>
-                                    <td colSpan={3} className="text-center px-4 ">
+                                    <td colSpan={3} className="text-center px-4 py-2 border-b border-black">
                                         ...
                                     </td>
                                 </tr>
@@ -92,14 +97,14 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
                         return (
                             <tr
                                 key={row.player.id}
-                                className={`hover:bg-gray-100 ${row.player.id === connectionId ? "font-bold text-blue-600" : ""
+                                className={`${row.player.id === connectionId ? "font-bold text-blue-600" : "text-gray-800"
                                     }`}
                             >
-                                <td className="px-4 py-1 border-b">{row.rank}</td>
-                                <td className="px-4 py-1 border-b">
-                                    {row.player.id} {row.player.id === connectionId && "(You)"}
+                                <td className="px-4 pt-2 pb-1 border-b border-black">{row.rank}</td>
+                                <td className="px-4 pt-2 pb-1 border-b border-black truncate">
+                                    {row.player.id} {row.player.id === connectionId}
                                 </td>
-                                <td className="px-4 py-1 border-b">{row.player.score}</td>
+                                <td className="px-4 pt-2 pb-1 border-b border-black">{row.player.score}</td>
                             </tr>
                         );
                     })}
@@ -107,4 +112,6 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
             </table>
         </div>
     );
-}
+
+
+}      
