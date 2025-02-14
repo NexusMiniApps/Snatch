@@ -22,6 +22,5 @@ export default async function Home() {
         </div>
       </main>
     </HydrateClient>
-  );
-"use client";
-
+  )
+}
