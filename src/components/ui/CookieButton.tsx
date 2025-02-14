@@ -31,10 +31,11 @@ export default function CookieButton({ count, socket, onIncrement }: CookieButto
         }
     }, [isAnimating, count, onIncrement, socket]);
 
+
     return (
         <div className="animate-spin-slow">
             <img
-                src="/misc/cookie.svg"
+                src='/misc/cookie.svg'
                 alt="Cookie"
                 className={`w-56 h-56 ${isPulsing ? 'animate-pulse-once' : ''}`}
                 onClick={handleClick}
