@@ -4,12 +4,18 @@ import { useState } from "react";
 import CountdownTimer from "~/components/ui/countdown";
 import Link from "next/link";
 
-export default function CountdownDisplay({ countdownDate }: { countdownDate: string }) {
+interface CountdownDisplayProps {
+    countdownDate: string;
+    onTimeUp?: () => void;
+}
+
+export default function CountdownDisplay({ countdownDate, onTimeUp }: CountdownDisplayProps) {
     const initialTimeIsUp = new Date(countdownDate).getTime() - Date.now() <= 0;
     const [timeIsUp, setTimeIsUp] = useState(initialTimeIsUp);
 
     const handleTimeUp = () => {
         setTimeIsUp(true);
+        onTimeUp?.();
     };
 
     return (
