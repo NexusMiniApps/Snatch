@@ -22,20 +22,26 @@ model User {
   verified        Boolean
   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
-  events          Event[]
+  ownedEvents     Event[]           @relation("EventOwner")
+  joinedEvents    Event[]           @relation("EventParticipants")
   eventUserScores EventUserScores[]
+  sessions        UserSessions[]
+
+  @@unique([phoneNo, countryCode])
 }
 
 model Event {
+  id              String            @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name            String
   description     String?
   status          EventStatus
-  id              String            @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ownerId         String            @db.Uuid
   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
-  owner           User              @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ownerId         String            @db.Uuid
+  owner           User              @relation("EventOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  participants    User[]            @relation("EventParticipants")
   eventUserScores EventUserScores[]
+  location        String?
 }
 
 model EventUserScores {
@@ -45,8 +51,8 @@ model EventUserScores {
   score     BigInt
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
-  Event     Event    @relation(fields: [eventId], references: [id])
-  User      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 // For cookies stored for users
@@ -56,6 +62,7 @@ model UserSessions {
   expiresAt DateTime @db.Timestamptz(6)
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 enum EventStatus {
