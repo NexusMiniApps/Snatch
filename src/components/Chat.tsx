@@ -1,76 +1,89 @@
 // components/ui/ChatUI.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import PartySocket from "partysocket";
 
-interface Message {
-  id: number;
-  author: string;
+interface ChatMessage {
+  id: string;
+  sender: string;
   text: string;
+  timestamp: number;
 }
 
-export default function ChatUI() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [nextId, setNextId] = useState(1);
+interface ChatProps {
+  socket: PartySocket | null;
+  currentPlayerId: string;
+}
 
-  const scrollableContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleSend = () => {
-    if (input.trim() === "") return;
-    const newMessage: Message = {
-      id: nextId,
-      author: "You", // You can replace this with the current user's name if needed.
-      text: input,
-    };
-    setMessages((prev) => [...prev, newMessage]);
-    setInput("");
-    setNextId(nextId + 1);
-  };
+export default function Chat({ socket, currentPlayerId }: ChatProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputText, setInputText] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollableContainerRef.current) {
-      scrollableContainerRef.current.scrollTop =
-        scrollableContainerRef.current.scrollHeight;
-    }
+    if (!socket) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "chat") {
+        setMessages(prev => [...prev, data.message]);
+      }
+    };
+
+    socket.addEventListener("message", handleMessage);
+    return () => socket.removeEventListener("message", handleMessage);
+  }, [socket]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const sendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!socket || !inputText.trim()) return;
+
+    socket.send(JSON.stringify({
+      type: "chat",
+      text: inputText.trim()
+    }));
+    setInputText("");
+  };
+
   return (
-    <div className="flex w-full flex-col">
-      <div
-        ref={scrollableContainerRef}
-        className="flex h-40 flex-col overflow-y-auto p-1"
-      >
-        {messages.length > 0 ? (
-          messages.map((message) => (
-            <div key={message.id} className="mb-1">
-              <span className="font-bold">{message.author}: </span>
-              <span>{message.text}</span>
-            </div>
-          ))
-        ) : (
-          <div className="mb-1 text-gray-500">No messages yet.</div>
-        )}
+    <div className="flex h-96 flex-col rounded-lg bg-white p-4 shadow-md">
+      <div className="mb-4 flex-1 overflow-y-auto">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`mb-2 rounded-lg p-2 ${
+              msg.sender === currentPlayerId
+                ? "ml-auto bg-blue-100"
+                : "bg-gray-100"
+            }`}
+          >
+            <div className="text-sm font-semibold">{msg.sender}</div>
+            <div>{msg.text}</div>
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
       </div>
-      <div className="flex w-full">
+      
+      <form onSubmit={sendMessage} className="flex gap-2">
         <input
           type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type here..."
-          className="min-w-0 flex-1 rounded-lg border border-gray-300 p-2"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSend();
-            }
-          }}
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="Type a message..."
+          className="flex-1 rounded-lg border border-gray-300 p-2"
         />
         <button
-          onClick={handleSend}
+          type="submit"
           className="ml-2 rounded-lg bg-gray-800 px-4 py-2 text-white"
         >
           Send
         </button>
-      </div>
+      </form>
     </div>
   );
 }

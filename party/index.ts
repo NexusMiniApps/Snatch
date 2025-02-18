@@ -6,8 +6,16 @@ interface PlayerData {
   score: number;
 }
 
+interface ChatMessage {
+  id: string;
+  sender: string;
+  text: string;
+  timestamp: number;
+}
+
 export default class Server implements Party.Server {
   private players: Record<string, PlayerData> = {};
+  private messages: ChatMessage[] = [];
 
   constructor(readonly room: Party.Room) {}
 
@@ -42,7 +50,20 @@ export default class Server implements Party.Server {
 
   onMessage(message: string, sender: Party.Connection) {
     const data = JSON.parse(message);
-    if (data.type === "counter") {
+    
+    if (data.type === "chat") {
+      const chatMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        sender: this.players[sender.id]?.name || sender.id,
+        text: data.text,
+        timestamp: Date.now()
+      };
+      this.messages.push(chatMessage);
+      this.room.broadcast(JSON.stringify({ 
+        type: "chat",
+        message: chatMessage
+      }));
+    } else if (data.type === "counter") {
       const player = this.players[sender.id];
       if (player) {
         player.score += 1;

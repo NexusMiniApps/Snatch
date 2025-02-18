@@ -1,26 +1,25 @@
 "use client";
 
 import LeaderboardTable, { Player } from "~/components/ui/LeaderboardTable";
-import ChatUI from "~/components/Chat";
+import { PlayerData } from "~/components/ui/Leaderboard";
+import Chat from "~/components/Chat";
+import PartySocket from "partysocket";
 
 interface ResultsViewProps {
   palette: {
     lightMuted: string;
   };
+  resultsPlayers: PlayerData[];
+  socket: PartySocket | null;
+  currentPlayerId: string;
 }
 
-export function ResultsView({ palette }: ResultsViewProps) {
-  // Results data
-  const resultsPlayers: Player[] = [
-    { id: "John", score: 50 },
-    { id: "Alice", score: 40 },
-    { id: "Sasha", score: 40 },
-    { id: "Tom", score: 30 },
-    { id: "Julia", score: 20 },
-  ];
+export function ResultsView({ palette, resultsPlayers, socket, currentPlayerId }: ResultsViewProps) {
   const connectionId = "Eva";
   const sortedPlayers = [...resultsPlayers].sort((a, b) => b.score - a.score);
-  const myRank = sortedPlayers.findIndex((player) => player.id === connectionId);
+  const myRank = sortedPlayers.findIndex(
+    (player) => player.id === connectionId,
+  );
   const isWinner = myRank >= 0 && myRank < 3;
 
   return (
@@ -54,7 +53,7 @@ export function ResultsView({ palette }: ResultsViewProps) {
       </section>
 
       <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center p-2">
-        <ChatUI />
+        <Chat socket={socket} currentPlayerId={currentPlayerId} />
       </div>
 
       <div className="z-10 px-2 py-2 text-sm font-light">
@@ -66,4 +65,4 @@ export function ResultsView({ palette }: ResultsViewProps) {
       </div>
     </>
   );
-} 
+}

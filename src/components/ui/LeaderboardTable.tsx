@@ -3,6 +3,7 @@ import React from "react";
 
 export interface Player {
     id: string;
+    name: string;
     score: number;
 }
 
@@ -60,11 +61,11 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
 
         displayRows = [...top3];
         if (topEllipsis) {
-            displayRows.push({ player: { id: "...", score: 0 }, rank: -1 });
+            displayRows.push({ player: { id: "...", name: "", score: 0 }, rank: -1 });
         }
         displayRows = displayRows.concat(windowRows);
         if (bottomEllipsis) {
-            displayRows.push({ player: { id: "...", score: 0 }, rank: -1 });
+            displayRows.push({ player: { id: "...", name: "", score: 0 }, rank: -1 });
         }
     }
 
@@ -97,12 +98,11 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
                         return (
                             <tr
                                 key={row.player.id}
-                                className={`${row.player.id === connectionId ? "font-bold text-blue-600" : "text-gray-800"
-                                    }`}
+                                className={`${row.player.id === connectionId ? "font-bold text-blue-600" : "text-gray-800"}`}
                             >
                                 <td className="px-4 pt-2 pb-1 border-b border-black">{row.rank}</td>
                                 <td className="px-4 pt-2 pb-1 border-b border-black truncate">
-                                    {row.player.id} {row.player.id === connectionId}
+                                    {row.player.name || row.player.id}
                                 </td>
                                 <td className="px-4 pt-2 pb-1 border-b border-black">{row.player.score}</td>
                             </tr>
@@ -112,6 +112,4 @@ export default function LeaderboardTable({ players, connectionId }: LeaderboardT
             </table>
         </div>
     );
-
-
 }      

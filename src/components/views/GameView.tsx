@@ -1,22 +1,26 @@
 "use client";
 
 import CookieButton from "~/components/ui/CookieButton";
-import { Leaderboard } from "~/components/ui/Leaderboard";
-import useGameSocket from "~/lib/useGameSocket";
+import { Leaderboard, PlayerData } from "~/components/ui/Leaderboard";
+import PartySocket from "partysocket";
 
 interface GameViewProps {
   onGameComplete: () => void;
+  socket: PartySocket | null;
+  currentPlayerCount: number;
+  currentPlayerId: string;
+  players: PlayerData[];
+  setCurrentPlayerCount: (count: number) => void;
 }
 
-export function GameView({ onGameComplete }: GameViewProps) {
-  const {
-    socket,
-    currentPlayerCount,
-    currentPlayerId,
-    players,
-    setCurrentPlayerCount,
-  } = useGameSocket();
-
+export function GameView({ 
+  onGameComplete,
+  socket,
+  currentPlayerCount,
+  currentPlayerId,
+  players,
+  setCurrentPlayerCount
+}: GameViewProps) {
   return (
     <>
       <Leaderboard players={players} currentPlayerId={currentPlayerId} />
