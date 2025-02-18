@@ -19,8 +19,6 @@ export function GameView({ onGameComplete }: GameViewProps) {
 
   return (
     <>
-      <Leaderboard players={players} currentPlayerId={currentPlayerId} />
-
       <section className="custom-box z-10 h-full w-full p-1 shadow-xl">
         <div className="rounded-lg bg-yellow-950 p-4 text-white">
           <h1 className="text-3xl font-semibold">Cookie Craze</h1>
@@ -31,30 +29,32 @@ export function GameView({ onGameComplete }: GameViewProps) {
       </section>
 
       <div className="relative flex w-full flex-col items-center">
-        <div className="pointer-events-none absolute bottom-[-5rem] left-[-2rem] right-[-2rem] top-[-2.5rem] border-y-2 border-black bg-orange-100" />
-        <div className="z-10 mt-4 flex flex-col items-center justify-center">
-          <p className="p-10 text-5xl font-semibold text-yellow-950">
+        <div className="pointer-events-none absolute bottom-[15rem] left-[-2rem] right-[-2rem] top-[-4rem] border-y-2 border-black bg-orange-100" />
+        <div className="z-10 flex flex-col items-center justify-center">
+          {/* <p className="p-4 text-5xl font-semibold text-yellow-950">
             {currentPlayerCount}
-          </p>
+          </p> */}
           <CookieButton
             count={currentPlayerCount}
             socket={socket}
             onIncrement={(newCount) => {
               setCurrentPlayerCount(newCount);
-              if (newCount >= 50) onGameComplete(); // Example threshold
+              if (newCount >= 100) onGameComplete(); // Example threshold
             }}
           />
-          <p className="mt-4 text-gray-600">
+          {/* <p className="mt-4 text-gray-600">
             {socket
               ? `Connected to socket (ID: ${currentPlayerId})`
               : "Connecting..."}
-          </p>
+          </p> */}
 
-          <p className="mt-2 text-sm text-gray-500">
+          {/* <p className="mt-10 text-sm text-gray-500">
             Connected players: {players.length}
-          </p>
+          </p> */}
 
-          <div className="mt-2 text-xs text-gray-400">
+          <Leaderboard players={players} currentPlayerId={currentPlayerId} />
+
+          {/* <div className="mt-2 text-xs text-gray-400">
             {players.map((player) => (
               <div
                 key={player.id}
@@ -64,9 +64,9 @@ export function GameView({ onGameComplete }: GameViewProps) {
                 {player.id}: {player.score} clicks
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
     </>
   );
-} 
+}

@@ -1,6 +1,8 @@
 "use client";
 
-import LeaderboardTable, { Player } from "~/components/ui/LeaderboardTable";
+import LeaderboardTable, {
+  type Player,
+} from "~/components/ui/LeaderboardTable";
 import ChatUI from "~/components/Chat";
 
 interface ResultsViewProps {
@@ -17,10 +19,17 @@ export function ResultsView({ palette }: ResultsViewProps) {
     { id: "Sasha", score: 40 },
     { id: "Tom", score: 30 },
     { id: "Julia", score: 20 },
+    { id: "John2", score: 50 },
+    { id: "Alice2", score: 40 },
+    { id: "Sasha2", score: 40 },
+    { id: "Tom2", score: 30 },
+    { id: "Julia2", score: 20 },
   ];
-  const connectionId = "Eva";
+  const connectionId = "Julia2";
   const sortedPlayers = [...resultsPlayers].sort((a, b) => b.score - a.score);
-  const myRank = sortedPlayers.findIndex((player) => player.id === connectionId);
+  const myRank = sortedPlayers.findIndex(
+    (player) => player.id === connectionId,
+  );
   const isWinner = myRank >= 0 && myRank < 3;
 
   return (
@@ -66,4 +75,4 @@ export function ResultsView({ palette }: ResultsViewProps) {
       </div>
     </>
   );
-} 
+}

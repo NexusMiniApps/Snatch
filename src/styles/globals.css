@@ -28,7 +28,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
 
   .dark {
@@ -55,7 +55,7 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -78,9 +78,19 @@ body {
 }
 
 .custom-box {
-  @apply border-2 border-black rounded-xl bg-white;
+  @apply rounded-xl border-2 border-black bg-white;
 }
 
 * {
   touch-action: manipulation;
+}
+
+.gold-glow {
+  box-shadow: 0 0 10px 2px rgb(255, 217, 0); /* Gold */
+}
+.silver-glow {
+  box-shadow: 0 0 10px 2px rgb(255, 174, 0); /* Silver */
+}
+.bronze-glow {
+  box-shadow: 0 0 10px 2px rgb(255, 157, 0); /* Bronze */
 }
