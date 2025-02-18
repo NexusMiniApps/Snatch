@@ -110,7 +110,7 @@ export function Leaderboard({ players, currentPlayerId }: LeaderboardProps) {
   } else {
     // Determine the window around the current player
     let windowStart = Math.max(3, currentIndex - 2);
-    let windowEnd = Math.min(sortedPlayers.length, windowStart + 5);
+    const windowEnd = Math.min(sortedPlayers.length, windowStart + 5);
 
     // Adjust window to try to show 5 players when possible
     if (windowEnd - windowStart < 5) {
@@ -143,20 +143,17 @@ export function Leaderboard({ players, currentPlayerId }: LeaderboardProps) {
         <AnimatePresence>
           {displayPlayers.map((player, index) => {
             const maxScore = Math.max(...players.map((p) => p.score));
-            const minScore = Math.min(...players.map((p) => p.score));
-            const scoreRange = maxScore - minScore || 1; // Avoid division by zero
-            const minHeight = 10; // Minimum height for visibility
-            const barHeight = Math.max(
-              minHeight,
-              ((player.score - minScore) / scoreRange) * (100 - minHeight) +
-                minHeight,
-            );
+            const barHeight = Math.round((player.score / maxScore) * 100);
 
             // Check if there's a break between the current player and the next top 3
             const isBreak =
               index < displayPlayers.length - 1 &&
-              displayPlayers[index + 1].rank <= 3 &&
-              player.rank > 3;
+              sortedPlayers.findIndex(
+                (p) => p.id === displayPlayers[index + 1]?.id,
+              ) +
+                1 <=
+                3 &&
+              sortedPlayers.findIndex((p) => p.id === player.id) + 1 > 3;
 
             return (
               <React.Fragment key={player.id}>
@@ -165,7 +162,7 @@ export function Leaderboard({ players, currentPlayerId }: LeaderboardProps) {
                   barHeight={barHeight}
                   currentPlayerId={currentPlayerId}
                   rank={sortedPlayers.findIndex((p) => p.id === player.id) + 1}
-                  totalPlayers={players.length} // Pass total number of players
+                  totalPlayers={players.length}
                 />
                 {isBreak && (
                   <div className="flex w-6 items-center justify-center">
