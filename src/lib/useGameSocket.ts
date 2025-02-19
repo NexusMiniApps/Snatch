@@ -47,7 +47,7 @@ export default function useGameSocket(session?: AuthSession) {
     console.log("CONNECTING TO SOCKET");
     const host =
       process.env.NODE_ENV === "production"
-        ? "snatch-party.jolow99.partykit.dev"
+        ? "snatch-party.shilohgreen.partykit.dev"
         : "localhost:1999";
 
     const partySocket = new PartySocket({
