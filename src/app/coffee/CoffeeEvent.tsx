@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
-import { ResultsView } from "~/components/views/ResultsView";
 import useGameSocket from "~/lib/useGameSocket";
 
 type AuthSession = {
@@ -43,16 +42,6 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     setIsGameOver(true);
   };
 
-  useEffect(() => {
-    if (activeTab === "game" && !isGameOver) {
-      const timer = setTimeout(() => {
-        handleGameComplete();
-      }, 30000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [activeTab, isGameOver]);
-
   return (
     <main
       style={{ backgroundColor: palette.lightVibrant }}
@@ -81,13 +70,13 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       )}
       {activeTab === "game" && (
         <GameView
-          onGameComplete={handleGameComplete}
           socket={socket}
           currentPlayerCount={currentPlayerCount}
           currentPlayerId={currentPlayerId}
           players={players}
-          setCurrentPlayerCount={setCurrentPlayerCount}
+          onGameComplete={handleGameComplete}
           isGameOver={isGameOver}
+          setCurrentPlayerCount={setCurrentPlayerCount}
           palette={palette}
         />
       )}
