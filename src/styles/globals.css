@@ -94,3 +94,11 @@ body {
 .bronze-glow {
   box-shadow: 0 0 10px 2px rgb(255, 157, 0); /* Bronze */
 }
+
+.custom-gradient {
+  background: linear-gradient(to bottom, white 0%, white 70%, transparent 100%);
+}
+
+.half-p-1 {
+  padding: 0.125rem;
+}

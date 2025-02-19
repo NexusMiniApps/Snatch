@@ -14,9 +14,9 @@ interface ChatMessage {
 }
 
 export default class Server implements Party.Server {
+  // The string should be the players UUID session id
   private players: Record<string, PlayerData> = {};
   private messages: ChatMessage[] = [];
-
   constructor(readonly room: Party.Room) {}
 
   private broadcastState() {

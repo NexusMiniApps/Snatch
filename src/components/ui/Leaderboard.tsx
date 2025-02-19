@@ -47,6 +47,12 @@ const BarComponent = ({
   const glowColor =
     rank === 1 ? "gold-glow" : rank === 2 ? "silver-glow" : "bronze-glow";
 
+  // Define the popping animation
+  const popAnimation = {
+    scale: [1, 1.2, 1],
+    transition: { duration: 0.3 },
+  };
+
   return (
     <motion.div
       layout
@@ -76,9 +82,12 @@ const BarComponent = ({
           height: `${Math.max(barHeight, 10)}%`,
         }}
       >
-        <span className="mt-1 text-xs font-bold text-white">
+        <motion.span
+          className="mt-1 text-xs font-bold text-white"
+          animate={popAnimation}
+        >
           {player.score}
-        </span>
+        </motion.span>
       </motion.div>
       <motion.span
         layout
@@ -138,7 +147,7 @@ export function Leaderboard({ players, currentPlayerId }: LeaderboardProps) {
   }
 
   return (
-    <div className="relative mt-8 flex w-full justify-center rounded-lg">
+    <div className="relative mt-10 flex w-full justify-center rounded-lg">
       <motion.div layout className="flex gap-x-4">
         <AnimatePresence>
           {displayPlayers.map((player, index) => {
