@@ -4,7 +4,7 @@ export interface Player {
 }
 
 export interface Socket {
-  emit: (event: string, ...args: any[]) => void;
-  on: (event: string, callback: (...args: any[]) => void) => void;
+  emit: (event: string, ...args: unknown[]) => void;
+  on: (event: string, callback: (...args: unknown[]) => void) => void;
   id?: string;
-} 
+}

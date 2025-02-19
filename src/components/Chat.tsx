@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import PartySocket from "partysocket";
+import type PartySocket from "partysocket";
 
 interface ChatMessage {
   id: string;
@@ -23,11 +23,17 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
 
   useEffect(() => {
     if (!socket) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "chat") {
-        setMessages(prev => [...prev, data.message]);
+    const handleMessage = (event: MessageEvent<string>) => {
+      try {
+        const data = JSON.parse(event.data) as {
+          type: string;
+          message: ChatMessage;
+        };
+        if (data.type === "chat") {
+          setMessages((prev) => [...prev, data.message]);
+        }
+      } catch (err) {
+        console.error("Failed to parse message:", err);
       }
     };
 
@@ -43,10 +49,12 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
     e.preventDefault();
     if (!socket || !inputText.trim()) return;
 
-    socket.send(JSON.stringify({
-      type: "chat",
-      text: inputText.trim()
-    }));
+    socket.send(
+      JSON.stringify({
+        type: "chat",
+        text: inputText.trim(),
+      }),
+    );
     setInputText("");
   };
 
@@ -68,7 +76,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
         ))}
         <div ref={messagesEndRef} />
       </div>
-      
+
       <form onSubmit={sendMessage} className="flex gap-2">
         <input
           type="text"

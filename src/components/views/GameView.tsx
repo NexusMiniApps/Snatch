@@ -1,8 +1,8 @@
 "use client";
 
 import CookieButton from "~/components/ui/CookieButton";
-import { Leaderboard, PlayerData } from "~/components/ui/Leaderboard";
-import PartySocket from "partysocket";
+import { Leaderboard, type PlayerData } from "~/components/ui/Leaderboard";
+import type PartySocket from "partysocket";
 
 interface GameViewProps {
   onGameComplete: () => void;
@@ -13,13 +13,13 @@ interface GameViewProps {
   setCurrentPlayerCount: (count: number) => void;
 }
 
-export function GameView({ 
+export function GameView({
   onGameComplete,
   socket,
   currentPlayerCount,
   currentPlayerId,
   players,
-  setCurrentPlayerCount
+  setCurrentPlayerCount,
 }: GameViewProps) {
   return (
     <>

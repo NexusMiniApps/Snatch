@@ -1,9 +1,9 @@
 "use client";
 
-import LeaderboardTable, { Player } from "~/components/ui/LeaderboardTable";
-import { PlayerData } from "~/components/ui/Leaderboard";
+import LeaderboardTable from "~/components/ui/LeaderboardTable";
+import { type PlayerData } from "~/components/ui/Leaderboard";
 import Chat from "~/components/Chat";
-import PartySocket from "partysocket";
+import type PartySocket from "partysocket";
 
 interface ResultsViewProps {
   palette: {
@@ -14,7 +14,12 @@ interface ResultsViewProps {
   currentPlayerId: string;
 }
 
-export function ResultsView({ palette, resultsPlayers, socket, currentPlayerId }: ResultsViewProps) {
+export function ResultsView({
+  palette,
+  resultsPlayers,
+  socket,
+  currentPlayerId,
+}: ResultsViewProps) {
   const connectionId = "Eva";
   const sortedPlayers = [...resultsPlayers].sort((a, b) => b.score - a.score);
   const myRank = sortedPlayers.findIndex(

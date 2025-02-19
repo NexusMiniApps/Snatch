@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "~/server/auth";
 import { LoginForm } from "~/components/LoginForm";
 import { HydrateClient } from "~/trpc/server";
+import Image from "next/image";
 
 export default async function Home() {
   const session = await auth();
@@ -15,14 +16,19 @@ export default async function Home() {
 
   return (
     <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Welcome
-          </h1>
+      <main className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-orange-200 to-orange-700">
+        <div className="container flex flex-col items-center justify-center gap-8 px-4 py-16">
+          <Image
+            src="/images/snatch.png"
+            alt="Snatch"
+            className="h-auto w-96"
+            width={1920}
+            height={500}
+          />
+
           <LoginForm />
         </div>
       </main>
     </HydrateClient>
-  )
+  );
 }
