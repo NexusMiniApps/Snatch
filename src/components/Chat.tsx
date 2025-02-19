@@ -30,6 +30,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
           message: ChatMessage;
         };
         if (data.type === "chat") {
+          console.log("RECEIVED MESSAGE:", data.message);
           setMessages((prev) => [...prev, data.message]);
         }
       } catch (err) {
@@ -49,12 +50,14 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
     e.preventDefault();
     if (!socket || !inputText.trim()) return;
 
+    console.log("Sending message:", inputText.trim());
     socket.send(
       JSON.stringify({
         type: "chat",
         text: inputText.trim(),
       }),
     );
+    console.log("Message sent:", inputText.trim());
     setInputText("");
   };
 
