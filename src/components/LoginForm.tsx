@@ -99,7 +99,7 @@ export function LoginForm() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               required
-              className="flex-1 rounded-md border-2 border-black px-4 py-2 text-black"
+              className="w-full rounded-md border-2 border-black px-4 py-2 text-black"
               placeholder="Phone number"
               pattern="[0-9]*"
             />

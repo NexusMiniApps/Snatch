@@ -15,7 +15,7 @@ interface InfoViewProps {
 
 export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   // Event info data
-  const imageSlug = process.env.NEXT_PUBLIC_BASE_URL 
+  const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/coffee.jpeg`
     : "/images/coffee.jpeg";
   const eventName = "Specialty Coffee Workshop";
@@ -27,7 +27,7 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   const countdownDate = "2025-02-21T00:00:00";
 
   return (
-    <>
+    <div className="flex flex-col items-center gap-y-4">
       <section className="z-10 h-60 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
         <div className="relative h-full w-full rounded-xl">
           <Image
@@ -79,6 +79,6 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
-} 
+}

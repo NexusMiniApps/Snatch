@@ -28,7 +28,7 @@ export function ResultsView({
   const isWinner = myRank >= 0 && myRank < 3;
 
   return (
-    <>
+    <div className="flex flex-col items-center gap-y-4">
       <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center p-4">
         {isWinner ? (
           <>
@@ -68,6 +68,6 @@ export function ResultsView({
           <span>Connect with the host to look out for future events!</span>
         )}
       </div>
-    </>
+    </div>
   );
 }

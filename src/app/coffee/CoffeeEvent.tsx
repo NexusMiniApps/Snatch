@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
@@ -19,11 +19,12 @@ type AuthSession = {
   };
 };
 
-type TabType = "info" | "game" | "results";
+type TabType = "info" | "game";
 
 // TODO: Should generalize to all events next time
 export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [activeTab, setActiveTab] = useState<TabType>("info");
+  const [isGameOver, setIsGameOver] = useState(false);
   const palette = useVibrantPalette("/images/coffee.jpeg");
   const {
     socket,
@@ -39,8 +40,18 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   };
 
   const handleGameComplete = () => {
-    setActiveTab("results");
+    setIsGameOver(true);
   };
+
+  useEffect(() => {
+    if (activeTab === "game" && !isGameOver) {
+      const timer = setTimeout(() => {
+        handleGameComplete();
+      }, 30000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, isGameOver]);
 
   return (
     <main
@@ -49,14 +60,14 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     >
       {/* Tab Navigation: To remove this once in prod, keep for debugging now */}
       <div className="z-20 flex w-full max-w-96 gap-2">
-        {(["info", "game", "results"] as const).map((tab) => (
+        {(["info", "game"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 rounded-t-lg border-2 border-b-0 border-black p-2 font-medium capitalize transition-colors ${
+            className={`flex-1 rounded-t-lg border-2 border-b-0 border-black bg-white p-2 font-medium capitalize transition-colors ${
               activeTab === tab
-                ? "bg-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "text-black"
+                : "text-gray-500 hover:bg-gray-200"
             }`}
           >
             {tab}
@@ -65,7 +76,9 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       </div>
 
       {/* Views */}
-      {activeTab === "info" && <InfoView palette={palette} onTimeUp={handleTimeUp} />}
+      {activeTab === "info" && (
+        <InfoView palette={palette} onTimeUp={handleTimeUp} />
+      )}
       {activeTab === "game" && (
         <GameView
           onGameComplete={handleGameComplete}
@@ -74,16 +87,10 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           currentPlayerId={currentPlayerId}
           players={players}
           setCurrentPlayerCount={setCurrentPlayerCount}
-        />
-      )}
-      {activeTab === "results" && (
-        <ResultsView 
-          palette={palette} 
-          resultsPlayers={players}
-          socket={socket}
-          currentPlayerId={currentPlayerId}
+          isGameOver={isGameOver}
+          palette={palette}
         />
       )}
     </main>
   );
-} 
+}
