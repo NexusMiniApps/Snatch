@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
+import { headers } from 'next/headers';
 import { db } from "./db";
 import { NextResponse } from "next/server";
-import { headers } from 'next/headers';
+
 
 export async function auth() {
   let sessionId: string | undefined;

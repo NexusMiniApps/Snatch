@@ -1,7 +1,6 @@
 import { EventStatus } from "@prisma/client";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
-import { cookies } from "next/headers";
 
 // model User {
 //   id              String            @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
