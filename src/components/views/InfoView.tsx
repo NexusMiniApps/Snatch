@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
 import { IoMdNotifications } from "react-icons/io";
@@ -13,18 +14,84 @@ interface InfoViewProps {
   onTimeUp: () => void;
 }
 
+interface EventData {
+  id: number;
+  name: string;
+  location: string;
+  startTime: Date;
+  description: string;
+  status: string;
+  ownerId: string;
+  // imageSlug: string;
+  // countdownDate: string;
+  // add any other fields that your event contains
+}
+
+
 export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/coffee.jpeg`
     : "/images/coffee.jpeg";
-  const eventName = "Specialty Coffee Workshop";
-  const eventLocation = "SUTD";
-  const eventDate = "21st February, Friday";
-  const eventTime = "10:00am";
-  const eventDescription =
-    "Learn how to make delicious filter coffee in this exclusive workshop (valued at $88)!";
-  const countdownDate = "2025-02-21T00:00:00";
+  // const eventName = "Specialty Coffee Workshop";
+  // const eventLocation = "SUTD";
+  // const eventDate = "21st February, Friday";
+  // const eventTime = "10:00am";
+  // const eventDescription =
+  //   "Learn how to make delicious filter coffee in this exclusive workshop (valued at $88)!";
+  // const countdownDate = "2025-02-21T00:00:00";
+
+  
+  const id = "7b68e108-1e71-4126-88a8-68a1f7e3b802";
+
+  const [eventData, setEventData] = useState<EventData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchEvent() {
+      try {
+        const res = await fetch(`/api/events/${id}`);
+        if (!res.ok) {
+          // print the response
+          console.log(res);
+          throw new Error("Failed to fetch event data");
+        }
+        const data: EventData = await res.json() as EventData;
+        
+        setEventData(data);
+        console.log("Fetched event data:", data); // Updated to log the fetched data
+      } catch (err: unknown) { // Changed from any to unknown
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unexpected error occurred");
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void fetchEvent(); // Added void to handle the promise
+  }, [id]);
+
+
+  if (loading) return <div>Loading...</div>;
+  if (error || !eventData)
+    return <div>Error loading event details: {error}</div>;
+
+  const {
+    name: eventName,
+    location: eventLocation,
+    startTime: eventStartTime,
+    description: eventDescription,
+    status: eventStatus,
+    ownerId: eventOwnerId,
+  } = eventData;
+
+  const countdownDate = new Date(eventStartTime).toISOString();
+  const eventDate = new Date(eventStartTime).toLocaleDateString();
+  const eventTime = new Date(eventStartTime).toLocaleTimeString();
 
   return (
     <div className="flex flex-col items-center gap-y-4">
