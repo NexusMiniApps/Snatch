@@ -22,8 +22,8 @@ interface EventData {
   description: string;
   status: string;
   ownerId: string;
+  snatchStartTime: Date;
   // imageSlug: string;
-  // countdownDate: string;
   // add any other fields that your event contains
 }
 
@@ -42,7 +42,7 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   // const countdownDate = "2025-02-21T00:00:00";
 
   
-  const id = "7b68e108-1e71-4126-88a8-68a1f7e3b802";
+  const id = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b";
 
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,9 +87,11 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
     description: eventDescription,
     status: eventStatus,
     ownerId: eventOwnerId,
+    snatchStartTime: eventSnatchStartTime,
   } = eventData;
 
-  const countdownDate = new Date(eventStartTime).toISOString();
+  const countdownDate = new Date(eventSnatchStartTime).toISOString();
+
   const eventDate = new Date(eventStartTime).toLocaleDateString();
   const eventTime = new Date(eventStartTime).toLocaleTimeString();
 

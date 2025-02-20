@@ -36,6 +36,7 @@ model Event {
   description     String?
   status          EventStatus
   startTime       DateTime          @db.Timestamptz(6)
+  snatchStartTime DateTime          @db.Timestamptz(6)
   createdAt       DateTime          @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
   ownerId         String            @db.Uuid

@@ -24,6 +24,7 @@ export const eventRouter = createTRPCRouter({
       status: z.nativeEnum(EventStatus), // Ensure this matches your Prisma Enum
       startTime: z.date(),
       location: z.string().optional(),
+      snatchStartTime: z.date(),
     })
   )
   .mutation(async ({ ctx, input }) => {
@@ -35,6 +36,7 @@ export const eventRouter = createTRPCRouter({
         owner: { connect: { id: ctx.session.user.id } }, // Link to the logged-in user
         startTime: input.startTime,
         location: input.location ?? null,
+        snatchStartTime: input.snatchStartTime,
       },
     });
   }),
