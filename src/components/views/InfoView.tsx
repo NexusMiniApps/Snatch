@@ -7,6 +7,7 @@ import { IoMdNotifications } from "react-icons/io";
 import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
 import { EventData } from "~/app/coffee/CoffeeEvent";
+import useGameSocket from "~/lib/useGameSocket";
 
 interface InfoViewProps {
   palette: {
@@ -17,6 +18,9 @@ interface InfoViewProps {
 }
 
 export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
+  // Use the useGameSocket hook to get players
+  const { players } = useGameSocket(); // Get players from the hook
+
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/coffee.jpeg`
@@ -80,7 +84,7 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
           onDisplayClick={onTimeUp}
         />
         <div className="px-2 py-4 text-lg font-light">
-          <span className="font-semibold">18</span> people currently waiting
+          <span className="font-semibold">{players.length}</span> people currently waiting
           here...
         </div>
       </section>
