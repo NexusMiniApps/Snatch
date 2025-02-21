@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
@@ -20,6 +20,18 @@ type AuthSession = {
 
 type TabType = "info" | "game";
 
+export interface EventData {
+  id: string;
+  name: string;
+  location: string;
+  startTime: Date;
+  description: string;
+  status: string;
+  ownerId: string;
+  snatchStartTime: Date;
+  // imageSlug: string;
+  // add any other fields that your event contains
+}
 // TODO: Should generalize to all events next time
 export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [activeTab, setActiveTab] = useState<TabType>("info");
@@ -33,7 +45,56 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     setCurrentPlayerCount,
   } = useGameSocket(session);
 
+  const eventId = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b";
+
+  const [eventData, setEventData] = useState<EventData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchEvent() {
+      try {
+        const res = await fetch(`/api/events/${eventId}`);
+        if (!res.ok) {
+          // print the response
+          console.log(res);
+          throw new Error("Failed to fetch event data");
+        }
+        const data: EventData = await res.json() as EventData;
+        
+        setEventData(data);
+        console.log("Fetched event data:", data); // Updated to log the fetched data
+      } catch (err: unknown) { // Changed from any to unknown
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unexpected error occurred");
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void fetchEvent(); // Added void to handle the promise
+  }, [eventId]);
+
+
+  if (loading) return <div>Loading...</div>;
+  if (error || !eventData)
+    return <div>Error loading event details: {error}</div>;
+
+  const {
+    name: eventName,
+    location: eventLocation,
+    startTime: eventStartTime,
+    description: eventDescription,
+    status: eventStatus,
+    ownerId: eventOwnerId,
+    snatchStartTime: eventSnatchStartTime,
+  } = eventData;
+
   console.log(session);
+
   const handleTimeUp = () => {
     setActiveTab("game");
   };
@@ -66,7 +127,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
 
       {/* Views */}
       {activeTab === "info" && (
-        <InfoView palette={palette} onTimeUp={handleTimeUp} />
+        <InfoView palette={palette} onTimeUp={handleTimeUp} eventData={eventData} />
       )}
       {activeTab === "game" && (
         <GameView
@@ -78,6 +139,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           isGameOver={isGameOver}
           setCurrentPlayerCount={setCurrentPlayerCount}
           palette={palette}
+          eventData={eventData}
         />
       )}
     </main>

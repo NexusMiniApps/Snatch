@@ -1,34 +1,27 @@
 // For fetching top scores for an event by eventId
 
 // Example of how to fetch top scores for an event:
-// async function addOrUpdateScore(eventId: string, userId: string, score: number) {
+// async function fetchTopScores(eventId: string, limit: number = 10) {
 //     try {
-//       const res = await fetch("/api/eventUserScore", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({ eventId, userId, score }),
-//       });
+//       const res = await fetch(`/api/eventUserScore/${eventId}?limit=${limit}`);
   
 //       if (!res.ok) {
 //         console.log(res); // Log the response in case of an error
-//         throw new Error("Failed to update score");
+//         throw new Error("Failed to fetch top scores");
 //       }
   
 //       const data = await res.json();
-//       console.log("Updated score:", data); // Log the updated data
+//       console.log("Fetched top scores:", data); // Log fetched data
   
 //       return data;
 //     } catch (err: unknown) {
 //       if (err instanceof Error) {
-//         console.error("Error updating score:", err.message);
+//         console.error("Error fetching top scores:", err.message);
 //       } else {
 //         console.error("An unexpected error occurred");
 //       }
 //     }
 //   }
-  
 
 import { NextResponse } from 'next/server';
 import prisma from '~/server/db/client';
@@ -39,7 +32,7 @@ export async function GET(
 ) {
   const eventId = (await params).eventId;
   const url = new URL(request.url);
-  const limit = Number(url.searchParams.get('limit')) || 10; // Default limit to 10
+  // const limit = Number(url.searchParams.get('limit')) || 10; // Default limit to 10
 
   try {
     const topScores = await prisma.eventUserScores.findMany({
@@ -49,7 +42,7 @@ export async function GET(
       orderBy: {
         score: 'desc',
       },
-      take: limit,
+      // take: limit,
       include: {
         user: {
           select: {

@@ -6,6 +6,7 @@ import type PartySocket from "partysocket";
 import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import { useTimer } from "react-timer-hook";
+import { EventData } from "~/app/coffee/CoffeeEvent";
 
 interface GameViewProps {
   onGameComplete: () => void;
@@ -16,6 +17,7 @@ interface GameViewProps {
   setCurrentPlayerCount: (count: number) => void;
   isGameOver: boolean;
   palette: { lightMuted: string };
+  eventData: EventData;
 }
 
 export function GameView({
@@ -27,10 +29,18 @@ export function GameView({
   setCurrentPlayerCount,
   isGameOver,
   palette,
+  eventData,
 }: GameViewProps) {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(isGameOver);
   const [expiryTimestamp, setExpiryTimestamp] = useState<Date | null>(null);
+  const [postingScores, setPostingScores] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
+
+  const eventSnatchStartTime = eventData.snatchStartTime;
+  console.log("eventSnatchStartTime", eventSnatchStartTime);
+
+  const eventId = eventData.id;
 
   const { seconds, start, pause, restart } = useTimer({
     expiryTimestamp: expiryTimestamp ?? new Date(),
@@ -55,6 +65,51 @@ export function GameView({
     newExpiryTimestamp.setSeconds(newExpiryTimestamp.getSeconds() + 10);
     setExpiryTimestamp(newExpiryTimestamp);
   };
+
+  // const postScoresToDatabase = async () => {
+  //   setPostingScores(true);
+  //   setPostError(null);
+  //   try {
+  //     const requests = players.map((player) =>
+  //       fetch("/api/eventUserScores", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           eventId,
+  //           userId: player.id,
+  //           score: player.score,
+  //         }),
+  //       })
+  //     );
+
+  //     const responses = await Promise.all(requests);
+
+  //     const failedResponses = responses.filter((res) => !res.ok);
+  //     if (failedResponses.length > 0) {
+  //       throw new Error(`Failed to post scores for ${failedResponses.length} players.`);
+  //     }
+
+  //     console.log("All scores successfully posted to the database.");
+  //   } catch (error: unknown) {
+  //     if (error instanceof Error) {
+  //       console.error("Error posting scores:", error.message);
+  //       setPostError(error.message);
+  //     } else {
+  //       console.error("An unexpected error occurred while posting scores.");
+  //       setPostError("An unexpected error occurred.");
+  //     }
+  //   } finally {
+  //     setPostingScores(false);
+  //   }
+  // };
+
+  useEffect(() => {
+    if (gameOver) {
+      // postScoresToDatabase();
+    }
+  }, [gameOver]);
 
   return (
     <div className="relative h-full w-full">
@@ -101,12 +156,19 @@ export function GameView({
           </div>
         </>
       ) : (
-        <ResultsView
-          palette={palette}
-          resultsPlayers={players}
-          socket={socket}
-          currentPlayerId={currentPlayerId}
-        />
+        <div>
+          {postingScores && <div>Posting scores to the database...</div>}
+          {postError && <div className="text-red-500">Error: {postError}</div>}
+          {!postingScores && !postError && (
+            <ResultsView
+              palette={palette}
+              resultsPlayers={players}
+              socket={socket}
+              currentPlayerId={currentPlayerId}
+              // eventId={eventId}
+            />
+          )}
+        </div>
       )}
     </div>
   );
