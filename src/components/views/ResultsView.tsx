@@ -68,7 +68,13 @@ export function ResultsView({
   const myRank = sortedPlayers.findIndex(
     (player) => player.id === connectionId,
   );
-  const isWinner = myRank >= 0 && myRank < 5;
+
+  // Get the player's score
+  const myScore =
+    sortedPlayers.find((player) => player.id === connectionId)?.score ?? 0;
+
+  // Player must be in top 5 AND have scored at least 1 point to win
+  const isWinner = myRank >= 0 && myRank < 5 && myScore > 0;
 
   // if (loading) {
   //   return <div>Loading results...</div>;
@@ -96,7 +102,7 @@ export function ResultsView({
               </a> */}
 
                 <a
-                  href="https://t.me/+ZDCen5H4XCoxOTI1"
+                  href="https://t.me/+WHVh-EWerUIxMzZl"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 rounded-lg bg-white px-4 py-2 text-black transition hover:bg-gray-200"

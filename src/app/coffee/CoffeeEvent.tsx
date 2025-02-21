@@ -81,11 +81,12 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     ? new Date(eventData.snatchStartTime).getTime() + 60000 < Date.now()
     : false;
 
-  // Modified useEffect to only set isGameOver
+  // Modified useEffect to set both isGameOver and activeTab
   useEffect(() => {
     if (hasSnatchTimePassed) {
       console.log("Snatch time plus one minute has passed, setting game over");
       setIsGameOver(true);
+      setActiveTab("results"); // Automatically switch to results tab
     }
   }, [hasSnatchTimePassed]);
 
@@ -114,7 +115,12 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   console.log(session);
   const handleTimeUp = () => {
     console.log("Time up handler called");
-    setActiveTab("game");
+    if (hasSnatchTimePassed) {
+      setActiveTab("results");
+      console.log("Setting active tab to results");
+    } else {
+      setActiveTab("game");
+    }
   };
 
   const handleGameComplete = () => {
@@ -131,7 +137,16 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
 
   return (
     <main
-      style={{ backgroundColor: palette.lightVibrant }}
+      style={{
+        backgroundColor: palette.lightVibrant,
+        WebkitTouchCallout: "none",
+        WebkitUserSelect: "none",
+        KhtmlUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
+        userSelect: "none",
+        touchAction: "manipulation",
+      }}
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
       {/* Tab Navigation */}

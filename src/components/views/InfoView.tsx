@@ -90,6 +90,9 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
           countdownDate={eventSnatchStartTime}
           onTimeUp={onTimeUp}
           onDisplayClick={onTimeUp}
+          hasSnatchTimeEnded={
+            new Date(eventSnatchStartTime).getTime() + 30000 < Date.now()
+          }
         />
         <div className="px-2 py-4 text-lg font-light">
           <span className="font-semibold">{players.length}</span> people

@@ -32,19 +32,31 @@ export function GameView({
   palette,
   snatchStartTime,
 }: GameViewProps) {
-  const [isGameStarted, setIsGameStarted] = useState(false);
+  // Initialize isGameStarted based on current time vs snatch time
+  const [isGameStarted, setIsGameStarted] = useState(
+    new Date(snatchStartTime).getTime() <= Date.now(),
+  );
   const [gameOver, setGameOver] = useState(isGameOver);
   const [gameEndTime] = useState(() => {
     const endTime = new Date(snatchStartTime);
-    endTime.setMinutes(endTime.getMinutes() + 1);
+    endTime.setSeconds(endTime.getSeconds() + 30);
     return endTime;
   });
-  const [displaySeconds, setDisplaySeconds] = useState(60);
+  const [displaySeconds, setDisplaySeconds] = useState(30);
   const [isActive, setIsActive] = useState(false);
 
-  const handleStartGame = () => {
-    setIsGameStarted(true);
-  };
+  // Auto-start game when snatch time begins
+  useEffect(() => {
+    const checkAndStartGame = () => {
+      if (new Date(snatchStartTime).getTime() <= Date.now()) {
+        setIsGameStarted(true);
+      }
+    };
+
+    checkAndStartGame();
+    const timer = setInterval(checkAndStartGame, 100);
+    return () => clearInterval(timer);
+  }, [snatchStartTime]);
 
   // Automatic timer update
   useEffect(() => {
@@ -103,72 +115,74 @@ export function GameView({
   }, [snatchStartTime]);
 
   return (
-    <div className="relative h-full w-full">
-      {!gameOver ? (
-        <>
-          {!isGameStarted &&
-            new Date(snatchStartTime).getTime() > Date.now() && (
-              <div className="fixed bottom-0 left-0 right-0 top-16 z-20 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
-                <div className="flex w-full max-w-96 items-center justify-center px-4">
-                  <CountdownDisplay
-                    countdownDate={snatchStartTime}
-                    onTimeUp={handleStartGame}
-                    variant="timer-only"
-                  />
+    <div className="flex w-full max-w-96 flex-col items-center gap-y-4">
+      <div className="relative h-full w-full">
+        {!gameOver ? (
+          <>
+            {!isGameStarted &&
+              new Date(snatchStartTime).getTime() > Date.now() && (
+                <div className="fixed bottom-0 left-0 right-0 top-16 z-20 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
+                  <div className="flex w-full max-w-96 items-center justify-center px-4">
+                    <CountdownDisplay
+                      countdownDate={snatchStartTime}
+                      onTimeUp={() => setIsGameStarted(true)}
+                      variant="timer-only"
+                    />
+                  </div>
                 </div>
+              )}
+            <section className="custom-box relative z-20 h-full w-full p-1 shadow-xl">
+              <div className="rounded-lg bg-yellow-950 p-4 text-white">
+                <h1 className="text-3xl font-semibold">Cookie Craze</h1>
+                <h1 className="pt-1 text-sm font-light">
+                  Tap the cookie as many times as you can!
+                </h1>
               </div>
-            )}
-          <section className="custom-box relative z-20 h-full w-full p-1 shadow-xl">
-            <div className="rounded-lg bg-yellow-950 p-4 text-white">
-              <h1 className="text-3xl font-semibold">Cookie Craze</h1>
-              <h1 className="pt-1 text-sm font-light">
-                Tap the cookie as many times as you can!
-              </h1>
-            </div>
-          </section>
+            </section>
 
-          <div className="relative flex w-full flex-col items-center">
-            <div className="pointer-events-none absolute bottom-[16.6rem] left-[-2rem] right-[-2rem] top-[-4rem] z-10 border-y-2 border-black bg-orange-100" />
-            <div className="z-20 flex flex-col items-center justify-center">
-              <p
-                className={`m-4 text-2xl font-semibold transition-opacity duration-300 ${
-                  new Date(snatchStartTime).getTime() <= Date.now()
-                    ? "opacity-100"
-                    : "opacity-0"
-                }`}
-              >
-                Time Left: {displaySeconds}s
-              </p>
-              <CookieButton
-                count={currentPlayerCount}
-                socket={socket}
-                onIncrement={(newCount) => {
-                  setCurrentPlayerCount(newCount);
-                }}
-                disabled={!isActive}
-              />
-              <Leaderboard
-                players={players}
-                currentPlayerId={currentPlayerId}
-              />
+            <div className="relative flex w-full flex-col items-center">
+              <div className="pointer-events-none absolute bottom-[16.6rem] left-[-2rem] right-[-2rem] top-[-4rem] z-10 border-y-2 border-black bg-orange-100" />
+              <div className="z-20 flex flex-col items-center justify-center">
+                <p
+                  className={`m-4 text-2xl font-semibold transition-opacity duration-300 ${
+                    new Date(snatchStartTime).getTime() <= Date.now()
+                      ? "opacity-100"
+                      : "opacity-0"
+                  }`}
+                >
+                  Time Left: {displaySeconds}s
+                </p>
+                <CookieButton
+                  count={currentPlayerCount}
+                  socket={socket}
+                  onIncrement={(newCount) => {
+                    setCurrentPlayerCount(newCount);
+                  }}
+                  disabled={!isActive}
+                />
+                <Leaderboard
+                  players={players}
+                  currentPlayerId={currentPlayerId}
+                />
+              </div>
             </div>
-          </div>
-        </>
-      ) : (
-        <ResultsView
-          palette={{
-            lightMuted: palette.lightMuted,
-            lightVibrant: palette.lightMuted, // Fallback to lightMuted
-            darkMuted: palette.lightMuted, // Fallback to lightMuted
-            darkVibrant: palette.lightMuted, // Fallback to lightMuted
-            muted: palette.lightMuted, // Fallback to lightMuted
-            vibrant: palette.lightMuted, // Fallback to lightMuted
-          }}
-          resultsPlayers={players}
-          socket={socket}
-          currentPlayerId={currentPlayerId}
-        />
-      )}
+          </>
+        ) : (
+          <ResultsView
+            palette={{
+              lightMuted: palette.lightMuted,
+              lightVibrant: palette.lightMuted, // Fallback to lightMuted
+              darkMuted: palette.lightMuted, // Fallback to lightMuted
+              darkVibrant: palette.lightMuted, // Fallback to lightMuted
+              muted: palette.lightMuted, // Fallback to lightMuted
+              vibrant: palette.lightMuted, // Fallback to lightMuted
+            }}
+            resultsPlayers={players}
+            socket={socket}
+            currentPlayerId={currentPlayerId}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -62,7 +62,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
   };
 
   return (
-    <div className="flex h-96 w-full flex-col rounded-lg bg-white p-4">
+    <div className="flex h-64 w-full flex-col rounded-lg bg-white p-4">
       <div ref={chatContainerRef} className="mb-4 flex-1 overflow-y-auto">
         {messages.map((msg) => (
           <div
