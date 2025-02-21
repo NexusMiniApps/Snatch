@@ -4,7 +4,7 @@ import { useState } from "react";
 import CountdownTimer from "~/components/ui/countdown";
 
 interface CountdownDisplayProps {
-  countdownDate: string;
+  countdownDate: Date;
   onTimeUp?: () => void;
   onDisplayClick?: () => void;
   variant?: "full" | "timer-only";

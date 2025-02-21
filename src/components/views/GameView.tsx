@@ -18,7 +18,7 @@ interface GameViewProps {
   setCurrentPlayerCount: (count: number) => void;
   isGameOver: boolean;
   palette: { lightMuted: string };
-  snatchStartTime: string;
+  snatchStartTime: Date;
   eventData: EventData;
 }
 
@@ -80,7 +80,7 @@ export function GameView({
             <div className="fixed bottom-0 left-0 right-0 top-16 z-20 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
               <div className="flex w-full max-w-96 items-center justify-center px-4">
                 <CountdownDisplay
-                  countdownDate={countdownDate}
+                  countdownDate={snatchStartTime}
                   onTimeUp={handleStartGame}
                   onDisplayClick={handleStartGame}
                   variant="timer-only"

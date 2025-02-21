@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 
 interface CountdownTimerInnerProps {
-  targetDate: string;
+  targetDate: Date;
   onTimeUp?: () => void; // optional callback for when timer hits 0
 }
 
