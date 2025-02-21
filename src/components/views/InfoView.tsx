@@ -12,7 +12,7 @@ interface InfoViewProps {
   palette: {
     lightMuted: string;
   };
-  onTimeUp: (countdownDate: string) => void;
+  onTimeUp: () => void;
   eventData: EventData;
 }
 
@@ -34,8 +34,6 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
   const eventName = eventData.name;
   const eventLocation = eventData.location;
   const eventDescription = eventData.description;
-
-  const countdownDate = new Date(eventSnatchStartTime).toISOString();
 
   const eventDate = new Date(eventStartTime).toLocaleDateString();
   const eventTime = new Date(eventStartTime).toLocaleTimeString();
@@ -77,9 +75,9 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
         <CountdownDisplay
-          countdownDate={countdownDate}
-          onTimeUp={() => onTimeUp(countdownDate)}
-          onDisplayClick={() => onTimeUp(countdownDate)}
+          countdownDate={eventSnatchStartTime}
+          onTimeUp={onTimeUp}
+          onDisplayClick={onTimeUp}
         />
         <div className="px-2 py-4 text-lg font-light">
           <span className="font-semibold">18</span> people currently waiting

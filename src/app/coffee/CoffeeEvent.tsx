@@ -182,7 +182,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
             isGameOver={isGameOver}
             setCurrentPlayerCount={setCurrentPlayerCount}
             palette={palette}
-            snatchStartTime={eventData.snatchStartTime.toISOString()}
+            snatchStartTime={new Date(eventData.snatchStartTime)}
             eventData={eventData}
           />
         )}
