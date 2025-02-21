@@ -90,6 +90,7 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
     snatchStartTime: eventSnatchStartTime,
   } = eventData;
 
+  console.log(eventData);
   const countdownDate = new Date(eventSnatchStartTime).toISOString();
 
   const eventDate = new Date(eventStartTime).toLocaleDateString();

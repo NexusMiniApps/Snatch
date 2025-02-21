@@ -2,21 +2,20 @@
 
 import { useEffect, useState } from "react";
 import PartySocket from "partysocket";
-import { unknown } from "zod";
 
-const GENERIC_NAMES = [
-  "ryan",
-  "jan",
-  "jo",
-  "sx",
-  "matt",
-  "dan",
-  "alex",
-  "chris",
-  "jeff",
-  "zz",
-  "yk",
-];
+// const GENERIC_NAMES = [
+//   "ryan",
+//   "jan",
+//   "jo",
+//   "sx",
+//   "matt",
+//   "dan",
+//   "alex",
+//   "chris",
+//   "jeff",
+//   "zz",
+//   "yk",
+// ];
 
 type AuthSession = {
   user: {
@@ -31,7 +30,8 @@ type AuthSession = {
 };
 
 export interface PlayerData {
-  id: string;
+  // This is the userId from the database
+  userId: string;
   name: string;
   score: number;
 }
@@ -137,7 +137,7 @@ export default function useGameSocket(session?: AuthSession) {
       console.log("CLOSING SOCKET");
       partySocket.close();
     };
-  }, []);
+  }, [session]);
 
   const updatePlayerName = (name: string) => {
     if (socket && name.trim()) {
@@ -152,6 +152,15 @@ export default function useGameSocket(session?: AuthSession) {
     }
   };
 
+  const sendChatMessage = (text: string) => {
+    if (socket) {
+      socket.send(JSON.stringify({ 
+        type: "chat",
+        text: text
+      }));
+    }
+  };
+
   return {
     socket,
     currentPlayerCount,
@@ -161,5 +170,6 @@ export default function useGameSocket(session?: AuthSession) {
     playerName,
     updatePlayerName,
     incrementScore,
+    sendChatMessage,
   };
 }

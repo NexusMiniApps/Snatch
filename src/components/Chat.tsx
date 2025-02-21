@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type PartySocket from "partysocket";
+import useGameSocket from "~/lib/useGameSocket";
 
 interface ChatMessage {
   id: string;
@@ -20,6 +21,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { sendChatMessage } = useGameSocket();
 
   useEffect(() => {
     if (!socket) return;
@@ -51,12 +53,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
     if (!socket || !inputText.trim()) return;
 
     console.log("Sending message:", inputText.trim());
-    socket.send(
-      JSON.stringify({
-        type: "chat",
-        text: inputText.trim(),
-      }),
-    );
+    sendChatMessage(inputText.trim());
     console.log("Message sent:", inputText.trim());
     setInputText("");
   };

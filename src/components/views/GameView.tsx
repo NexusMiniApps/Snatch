@@ -1,11 +1,12 @@
 "use client";
 
 import CookieButton from "~/components/ui/CookieButton";
-import { Leaderboard, type PlayerData } from "~/components/ui/Leaderboard";
+import { Leaderboard } from "~/components/ui/Leaderboard";
 import type PartySocket from "partysocket";
 import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import { useTimer } from "react-timer-hook";
+import { PlayerData } from "@/lib/useGameSocket";
 
 interface GameViewProps {
   onGameComplete: () => void;

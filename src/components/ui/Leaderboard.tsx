@@ -1,12 +1,7 @@
 "use client";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-export interface PlayerData {
-  id: string;
-  name: string;
-  score: number;
-}
+import { PlayerData } from "@/lib/useGameSocket";
 
 interface LeaderboardProps {
   players: PlayerData[];

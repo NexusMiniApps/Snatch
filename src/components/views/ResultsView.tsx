@@ -1,7 +1,7 @@
 "use client";
 
 import LeaderboardTable from "~/components/ui/LeaderboardTable";
-import { type PlayerData } from "~/components/ui/Leaderboard";
+import { PlayerData } from "@/lib/useGameSocket";
 import Chat from "~/components/Chat";
 import type PartySocket from "partysocket";
 

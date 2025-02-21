@@ -1,23 +1,36 @@
 import type * as Party from "partykit/server";
 
 interface PlayerData {
-  id: string;
+  userId: string;
   name: string;
   score: number;
+  socketId: string;
 }
 
 interface ChatMessage {
-  id: string;
+  messageId: string;
   sender: string;
   text: string;
   timestamp: number;
 }
 
+interface SessionData {
+  userId: string;
+  name: string;
+}
+
+interface ConnectionContext extends Party.ConnectionContext {
+  initial?: {
+    session: SessionData | null;
+  };
+}
+
 export default class Server implements Party.Server {
-  // The string should be the players UUID session id
+  // The string key is the player userId
   private players: Record<string, PlayerData> = {};
   private messages: ChatMessage[] = [];
   constructor(readonly room: Party.Room) {}
+
 
   private broadcastState() {
     const connections = Array.from(this.room.getConnections());
@@ -33,19 +46,28 @@ export default class Server implements Party.Server {
     );
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    this.players[conn.id] = {
-      id: conn.id,
-      name: "",
-      score: 0
+  //  UserID is the userId from the database
+  onConnect(conn: Party.Connection, ctx: ConnectionContext) {
+    const sessionData = ctx.initial?.session;
+    const userId = sessionData?.userId ?? 'ID NOT FOUND';
+
+    this.players[userId] = {
+      userId: sessionData?.userId ?? 'ID NOT FOUND',
+      name: sessionData?.name ?? "",
+      score: 0,
+      socketId: conn.id
     };
-    conn.send(JSON.stringify({ type: "connection", id: conn.id }));
+
+    // Send back confirmed connection with userId not socketId
+    conn.send(JSON.stringify({ type: "connection", id: userId }));
     this.broadcastState();
   }
 
   onClose(conn: Party.Connection) {
-    delete this.players[conn.id];
-    this.broadcastState();
+    // Used to delete the players from the players object, but dont do anything for persistance on browser close
+    
+    // delete this.players[conn.id];
+    // this.broadcastState();
   }
 
   onMessage(message: string, sender: Party.Connection) {
@@ -53,7 +75,7 @@ export default class Server implements Party.Server {
     
     if (data.type === "chat") {
       const chatMessage: ChatMessage = {
-        id: crypto.randomUUID(),
+        messageId: crypto.randomUUID(),
         sender: this.players[sender.id]?.name || sender.id,
         text: data.text,
         timestamp: Date.now()
