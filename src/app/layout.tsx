@@ -1,7 +1,8 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Poppins } from "next/font/google"
+import { Poppins } from "next/font/google";
+import { FeedbackButton } from "~/components/ui/FeedbackButton";
 
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -23,8 +24,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body >
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+      <body>
+        <TRPCReactProvider>
+          {children}
+          <FeedbackButton />
+        </TRPCReactProvider>
       </body>
     </html>
   );
