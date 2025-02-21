@@ -5,6 +5,7 @@ import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
 import useGameSocket from "~/lib/useGameSocket";
+import { ResultsView } from "~/components/views/ResultsView";
 
 type AuthSession = {
   user: {
@@ -18,12 +19,13 @@ type AuthSession = {
   };
 };
 
-type TabType = "info" | "game";
+type TabType = "info" | "game" | "results";
 
 // TODO: Should generalize to all events next time
 export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [activeTab, setActiveTab] = useState<TabType>("info");
   const [isGameOver, setIsGameOver] = useState(false);
+  const [snatchStartTime, setSnatchStartTime] = useState<string | null>(null);
   const palette = useVibrantPalette("/images/coffee.jpeg");
   const {
     socket,
@@ -34,22 +36,27 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   } = useGameSocket(session);
 
   console.log(session);
-  const handleTimeUp = () => {
+  const handleTimeUp = (countdownDate: string) => {
+    setSnatchStartTime(countdownDate);
     setActiveTab("game");
   };
 
   const handleGameComplete = () => {
     setIsGameOver(true);
+    setActiveTab("results");
   };
+
+  // Get available tabs based on game state
+  const availableTabs = isGameOver ? ["info", "results"] : ["info", "game"];
 
   return (
     <main
       style={{ backgroundColor: palette.lightVibrant }}
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
-      {/* Tab Navigation: To remove this once in prod, keep for debugging now */}
+      {/* Tab Navigation */}
       <div className="z-20 flex w-full max-w-96 gap-2">
-        {(["info", "game"] as const).map((tab) => (
+        {(availableTabs as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -68,7 +75,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       {activeTab === "info" && (
         <InfoView palette={palette} onTimeUp={handleTimeUp} />
       )}
-      {activeTab === "game" && (
+      {activeTab === "game" && !isGameOver && snatchStartTime && (
         <GameView
           socket={socket}
           currentPlayerCount={currentPlayerCount}
@@ -78,6 +85,15 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           isGameOver={isGameOver}
           setCurrentPlayerCount={setCurrentPlayerCount}
           palette={palette}
+          snatchStartTime={snatchStartTime}
+        />
+      )}
+      {activeTab === "results" && isGameOver && (
+        <ResultsView
+          palette={palette}
+          resultsPlayers={players}
+          socket={socket}
+          currentPlayerId={currentPlayerId}
         />
       )}
     </main>

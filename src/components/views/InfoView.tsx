@@ -11,7 +11,7 @@ interface InfoViewProps {
   palette: {
     lightMuted: string;
   };
-  onTimeUp: () => void;
+  onTimeUp: (countdownDate: string) => void;
 }
 
 interface EventData {
@@ -27,7 +27,6 @@ interface EventData {
   // add any other fields that your event contains
 }
 
-
 export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
@@ -41,7 +40,6 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   //   "Learn how to make delicious filter coffee in this exclusive workshop (valued at $88)!";
   // const countdownDate = "2025-02-21T00:00:00";
 
-  
   const id = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b";
 
   const [eventData, setEventData] = useState<EventData | null>(null);
@@ -53,15 +51,14 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
       try {
         const res = await fetch(`/api/events/${id}`);
         if (!res.ok) {
-          // print the response
           console.log(res);
           throw new Error("Failed to fetch event data");
         }
-        const data: EventData = await res.json() as EventData;
-        
+        const data: EventData = (await res.json()) as EventData;
+
         setEventData(data);
-        console.log("Fetched event data:", data); // Updated to log the fetched data
-      } catch (err: unknown) { // Changed from any to unknown
+        console.log("Fetched event data:", data);
+      } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
         } else {
@@ -72,9 +69,8 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
       }
     }
 
-    void fetchEvent(); // Added void to handle the promise
+    void fetchEvent();
   }, [id]);
-
 
   if (loading) return <div>Loading...</div>;
   if (error || !eventData)
@@ -131,21 +127,14 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
       </section>
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
-        <CountdownDisplay countdownDate={countdownDate} onTimeUp={onTimeUp} />
+        <CountdownDisplay
+          countdownDate={countdownDate}
+          onTimeUp={() => onTimeUp(countdownDate)}
+          onDisplayClick={() => onTimeUp(countdownDate)}
+        />
         <div className="px-2 py-4 text-lg font-light">
           <span className="font-semibold">18</span> people currently waiting
           here...
-        </div>
-        <div className="relative flex w-full items-center justify-between gap-x-2 px-2 sm:justify-center">
-          <div className="z-10 flex w-full flex-col font-light">
-            <div>Don&apos;t lose out on the Snatch!</div>
-            <div className="text-xs font-light">
-              54 people have turned on notifications.
-            </div>
-          </div>
-          <div className="z-10 flex w-20 items-center justify-center rounded-md rounded-xl border-2 border-black bg-white p-4 shadow-xl">
-            <IoMdNotifications className="fill-current text-3xl" />
-          </div>
         </div>
       </section>
     </div>

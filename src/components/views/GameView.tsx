@@ -6,6 +6,7 @@ import type PartySocket from "partysocket";
 import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import { useTimer } from "react-timer-hook";
+import CountdownDisplay from "~/components/ui/CountdownDisplay";
 
 interface GameViewProps {
   onGameComplete: () => void;
@@ -16,6 +17,7 @@ interface GameViewProps {
   setCurrentPlayerCount: (count: number) => void;
   isGameOver: boolean;
   palette: { lightMuted: string };
+  snatchStartTime: string;
 }
 
 export function GameView({
@@ -27,6 +29,7 @@ export function GameView({
   setCurrentPlayerCount,
   isGameOver,
   palette,
+  snatchStartTime,
 }: GameViewProps) {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(isGameOver);
@@ -56,18 +59,23 @@ export function GameView({
     setExpiryTimestamp(newExpiryTimestamp);
   };
 
+  // Use the snatchStartTime instead of creating a new countdown date
+  const countdownDate = snatchStartTime;
+
   return (
     <div className="relative h-full w-full">
       {!gameOver ? (
         <>
           {!isGameStarted && (
             <div className="fixed bottom-0 left-0 right-0 top-16 z-20 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
-              <button
-                onClick={handleStartGame}
-                className="rounded-lg bg-yellow-950 px-4 py-2 text-white shadow-lg"
-              >
-                Start Game
-              </button>
+              <div className="flex w-full max-w-96 items-center justify-center px-4">
+                <CountdownDisplay
+                  countdownDate={countdownDate}
+                  onTimeUp={handleStartGame}
+                  onDisplayClick={handleStartGame}
+                  variant="timer-only"
+                />
+              </div>
             </div>
           )}
           <section className="custom-box relative z-20 h-full w-full p-1 shadow-xl">

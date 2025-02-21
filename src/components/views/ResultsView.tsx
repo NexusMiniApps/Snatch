@@ -20,7 +20,7 @@ export function ResultsView({
   socket,
   currentPlayerId,
 }: ResultsViewProps) {
-  const connectionId = "Eva";
+  const connectionId = "930df21f-87cd-4a34-a5a3-4a78855fd075";
   const sortedPlayers = [...resultsPlayers].sort((a, b) => b.score - a.score);
   const myRank = sortedPlayers.findIndex(
     (player) => player.id === connectionId,
@@ -57,16 +57,38 @@ export function ResultsView({
         </div>
       </section>
 
-      <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center p-2">
+      <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center">
         <Chat socket={socket} currentPlayerId={currentPlayerId} />
       </div>
 
-      <div className="z-10 px-2 py-2 text-sm font-light">
+      <div className="z-10 px-2 py-2 text-center text-sm font-light">
         {isWinner ? (
-          <span>Join the Winners Telegram group for more information!</span>
+          <span>
+            Join the Winners Telegram group at{" "}
+            <a
+              href="https://t.me/+WHVh-EWerUIxMzZl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              https://t.me/+WHVh-EWerUIxMzZl
+            </a>{" "}
+            for the event details!
+          </span>
         ) : (
-          <span>Connect with the host to look out for future events!</span>
+          <span>Connect with the host for future events!</span>
         )}
+      </div>
+
+      <div className="z-10 px-2 text-sm">
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSedDsfStaFelCNLCNinPU_MGUlvEcmpFTXpftlH78A6HZVamA/viewform?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+        >
+          Help us improve - Share your feedback!
+        </a>
       </div>
     </div>
   );
