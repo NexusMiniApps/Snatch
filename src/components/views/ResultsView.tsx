@@ -27,7 +27,7 @@ export function ResultsView({
   // const [loading, setLoading] = useState<boolean>(true);
   // const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // const connectionId = currentPlayerId;
+  const connectionId = currentPlayerId;
 
   // useEffect(() => {
   //   async function fetchScores() {
@@ -59,8 +59,7 @@ export function ResultsView({
   // }, [eventId]);
 
   // const sortedPlayers = [...fetchedPlayers].sort((a, b) => b.score - a.score);
-  const connectionId = "Eva";
-  const connectionId = "930df21f-87cd-4a34-a5a3-4a78855fd075";
+  // const connectionId = "930df21f-87cd-4a34-a5a3-4a78855fd075";
   const sortedPlayers = [...resultsPlayers].sort((a, b) => b.score - a.score);
 
   const myRank = sortedPlayers.findIndex(

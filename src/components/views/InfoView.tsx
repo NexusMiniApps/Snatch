@@ -12,7 +12,7 @@ interface InfoViewProps {
   palette: {
     lightMuted: string;
   };
-  onTimeUp: () => void;
+  onTimeUp: (countdownDate: string) => void;
   eventData: EventData;
 }
 
