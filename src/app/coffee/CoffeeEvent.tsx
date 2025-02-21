@@ -78,7 +78,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   }, [eventId]);
 
   const hasSnatchTimePassed = eventData
-    ? new Date(eventData.snatchStartTime).getTime() + 60000 < Date.now()
+    ? new Date(eventData.snatchStartTime).getTime() + 30000 < Date.now()
     : false;
 
   // Modified useEffect to set both isGameOver and activeTab

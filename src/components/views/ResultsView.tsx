@@ -85,7 +85,7 @@ export function ResultsView({
   // }
 
   return (
-    <div className="flex flex-col items-center gap-y-4">
+    <div className="flex max-w-full flex-col items-center gap-y-4">
       <div className="custom-box sticky top-0 z-10 flex w-full max-w-96 flex-col items-center p-1">
         <div className="flex w-full flex-col items-center justify-center rounded-lg bg-gray-900 p-3 text-white">
           {isWinner ? (
@@ -120,13 +120,7 @@ export function ResultsView({
         </div>
       </div>
 
-      <section className="relative flex w-full max-w-96 flex-col px-2 py-2">
-        <div
-          style={{
-            backgroundColor: palette.lightMuted,
-          }}
-          className="pointer-events-none absolute bottom-[-2.5rem] left-[-1.5rem] right-[-1.5rem] top-[-2.5rem] border-y-2 border-black"
-        />
+      <section className="flex w-full max-w-full flex-col overflow-x-auto px-2 py-2">
         <div className="z-10 flex w-full max-w-96 flex-col gap-y-4 px-2">
           <LeaderboardTable
             // players={sortedPlayers}

@@ -85,7 +85,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 rounded-lg border border-gray-300 p-2"
+          className="w-full flex-1 rounded-lg border border-gray-300 p-2"
         />
         <button
           type="submit"
