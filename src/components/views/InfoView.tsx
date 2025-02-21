@@ -12,10 +12,9 @@ interface InfoViewProps {
   palette: {
     lightMuted: string;
   };
-  onTimeUp: () => void;
+  onTimeUp: (countdownDate: string) => void;
   eventData: EventData;
 }
-
 
 export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
   // Event info data
@@ -35,7 +34,6 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
   const eventName = eventData.name;
   const eventLocation = eventData.location;
   const eventDescription = eventData.description;
-
 
   const countdownDate = new Date(eventSnatchStartTime).toISOString();
 
@@ -78,21 +76,14 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
       </section>
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
-        <CountdownDisplay countdownDate={countdownDate} onTimeUp={onTimeUp} />
+        <CountdownDisplay
+          countdownDate={countdownDate}
+          onTimeUp={() => onTimeUp(countdownDate)}
+          onDisplayClick={() => onTimeUp(countdownDate)}
+        />
         <div className="px-2 py-4 text-lg font-light">
           <span className="font-semibold">18</span> people currently waiting
           here...
-        </div>
-        <div className="relative flex w-full items-center justify-between gap-x-2 px-2 sm:justify-center">
-          <div className="z-10 flex w-full flex-col font-light">
-            <div>Don&apos;t lose out on the Snatch!</div>
-            <div className="text-xs font-light">
-              54 people have turned on notifications.
-            </div>
-          </div>
-          <div className="z-10 flex w-20 items-center justify-center rounded-md rounded-xl border-2 border-black bg-white p-4 shadow-xl">
-            <IoMdNotifications className="fill-current text-3xl" />
-          </div>
         </div>
       </section>
     </div>

@@ -25,11 +25,16 @@ export default class Server implements Party.Server {
       JSON.stringify({
         type: "state",
         state: {
-          connections: connections.map((conn: Party.Connection) => 
-            this.players[conn.id] || { id: conn.id, name: "Anonymous", score: 0 }
-          )
-        }
-      })
+          connections: connections.map(
+            (conn: Party.Connection) =>
+              this.players[conn.id] || {
+                id: conn.id,
+                name: "Anonymous",
+                score: 0,
+              },
+          ),
+        },
+      }),
     );
   }
 
@@ -37,32 +42,35 @@ export default class Server implements Party.Server {
     this.players[conn.id] = {
       id: conn.id,
       name: "",
-      score: 0
+      score: 0,
     };
     conn.send(JSON.stringify({ type: "connection", id: conn.id }));
     this.broadcastState();
   }
 
   onClose(conn: Party.Connection) {
-    delete this.players[conn.id];
+    // dont delete player data on disconnect
+    // delete this.players[conn.id];
     this.broadcastState();
   }
 
   onMessage(message: string, sender: Party.Connection) {
     const data = JSON.parse(message);
-    
+
     if (data.type === "chat") {
       const chatMessage: ChatMessage = {
         id: crypto.randomUUID(),
         sender: this.players[sender.id]?.name || sender.id,
         text: data.text,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
       this.messages.push(chatMessage);
-      this.room.broadcast(JSON.stringify({ 
-        type: "chat",
-        message: chatMessage
-      }));
+      this.room.broadcast(
+        JSON.stringify({
+          type: "chat",
+          message: chatMessage,
+        }),
+      );
     } else if (data.type === "counter") {
       const player = this.players[sender.id];
       if (player) {

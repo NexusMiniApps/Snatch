@@ -5,6 +5,7 @@ import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
 import useGameSocket from "~/lib/useGameSocket";
+import { ResultsView } from "~/components/views/ResultsView";
 
 type AuthSession = {
   user: {
@@ -18,7 +19,7 @@ type AuthSession = {
   };
 };
 
-type TabType = "info" | "game";
+type TabType = "info" | "game" | "results";
 
 export interface EventData {
   id: string;
@@ -36,6 +37,10 @@ export interface EventData {
 export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [activeTab, setActiveTab] = useState<TabType>("info");
   const [isGameOver, setIsGameOver] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [eventData, setEventData] = useState<EventData | null>(null);
+
   const palette = useVibrantPalette("/images/coffee.jpeg");
   const {
     socket,
@@ -45,43 +50,66 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     setCurrentPlayerCount,
   } = useGameSocket(session);
 
-  const eventId = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b";
+  const eventId = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b"; // Make sure this is correct
 
-  const [eventData, setEventData] = useState<EventData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  // Add loading state check
   useEffect(() => {
     async function fetchEvent() {
       try {
         const res = await fetch(`/api/events/${eventId}`);
         if (!res.ok) {
-          // print the response
-          console.log(res);
+          console.log("Response error:", res);
           throw new Error("Failed to fetch event data");
         }
-        const data: EventData = await res.json() as EventData;
-        
+        const data = (await res.json()) as EventData;
+        console.log("Fetched event data:", data);
         setEventData(data);
-        console.log("Fetched event data:", data); // Updated to log the fetched data
-      } catch (err: unknown) { // Changed from any to unknown
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unexpected error occurred");
-        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError(
+          err instanceof Error ? err.message : "An unexpected error occurred",
+        );
       } finally {
         setLoading(false);
       }
     }
 
-    void fetchEvent(); // Added void to handle the promise
+    void fetchEvent();
   }, [eventId]);
 
+  const hasSnatchTimePassed = eventData
+    ? new Date(eventData.snatchStartTime).getTime() < Date.now()
+    : false;
 
-  if (loading) return <div>Loading...</div>;
-  if (error || !eventData)
+  // Debug logs
+  console.log("Render state:", {
+    loading,
+    error,
+    eventData,
+    snatchStartTime: eventData?.snatchStartTime,
+    activeTab,
+    isGameOver,
+    hasSnatchTimePassed,
+    currentTime: new Date().toISOString(),
+  });
+
+  useEffect(() => {
+    if (hasSnatchTimePassed) {
+      console.log("Snatch time has passed, switching to results view");
+      setIsGameOver(true);
+      setActiveTab("results");
+    }
+  }, [hasSnatchTimePassed]);
+
+  // Loading state
+  if (loading) {
+    return <div>Loading event details...</div>;
+  }
+
+  // Error state
+  if (error || !eventData) {
     return <div>Error loading event details: {error}</div>;
+  }
 
   const {
     name: eventName,
@@ -94,26 +122,34 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   } = eventData;
 
   console.log(session);
-
   const handleTimeUp = () => {
+    console.log("Time up handler called");
     setActiveTab("game");
   };
 
   const handleGameComplete = () => {
+    console.log("Game complete handler called");
     setIsGameOver(true);
+    setActiveTab("results");
   };
+
+  // Get available tabs based on game state and snatch time
+  const availableTabs =
+    hasSnatchTimePassed || isGameOver ? ["info", "results"] : ["info", "game"];
+
+  console.log("Available tabs:", availableTabs);
 
   return (
     <main
       style={{ backgroundColor: palette.lightVibrant }}
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
-      {/* Tab Navigation: To remove this once in prod, keep for debugging now */}
+      {/* Tab Navigation */}
       <div className="z-20 flex w-full max-w-96 gap-2">
-        {(["info", "game"] as const).map((tab) => (
+        {availableTabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => setActiveTab(tab as TabType)}
             className={`flex-1 rounded-t-lg border-2 border-b-0 border-black bg-white p-2 font-medium capitalize transition-colors ${
               activeTab === tab
                 ? "text-black"
@@ -126,20 +162,36 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       </div>
 
       {/* Views */}
-      {activeTab === "info" && (
-        <InfoView palette={palette} onTimeUp={handleTimeUp} eventData={eventData} />
-      )}
-      {activeTab === "game" && (
-        <GameView
-          socket={socket}
-          currentPlayerCount={currentPlayerCount}
-          currentPlayerId={currentPlayerId}
-          players={players}
-          onGameComplete={handleGameComplete}
-          isGameOver={isGameOver}
-          setCurrentPlayerCount={setCurrentPlayerCount}
+      {activeTab === "info" && eventData && (
+        <InfoView
           palette={palette}
+          onTimeUp={handleTimeUp}
           eventData={eventData}
+        />
+      )}
+      {activeTab === "game" &&
+        !isGameOver &&
+        !hasSnatchTimePassed &&
+        eventData && (
+          <GameView
+            socket={socket}
+            currentPlayerCount={currentPlayerCount}
+            currentPlayerId={currentPlayerId}
+            players={players}
+            onGameComplete={handleGameComplete}
+            isGameOver={isGameOver}
+            setCurrentPlayerCount={setCurrentPlayerCount}
+            palette={palette}
+            snatchStartTime={eventData.snatchStartTime}
+            eventData={eventData}
+          />
+        )}
+      {(activeTab === "results" || hasSnatchTimePassed) && eventData && (
+        <ResultsView
+          palette={palette}
+          resultsPlayers={players}
+          socket={socket}
+          currentPlayerId={currentPlayerId}
         />
       )}
     </main>

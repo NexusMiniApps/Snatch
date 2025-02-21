@@ -2,47 +2,66 @@
 
 import { useState } from "react";
 import CountdownTimer from "~/components/ui/countdown";
-import Link from "next/link";
 
 interface CountdownDisplayProps {
-    countdownDate: string;
-    onTimeUp?: () => void;
+  countdownDate: string;
+  onTimeUp?: () => void;
+  onDisplayClick?: () => void;
+  variant?: "full" | "timer-only";
 }
 
-export default function CountdownDisplay({ countdownDate, onTimeUp }: CountdownDisplayProps) {
-    const initialTimeIsUp = new Date(countdownDate).getTime() - Date.now() <= 0;
-    const [timeIsUp, setTimeIsUp] = useState(initialTimeIsUp);
+export default function CountdownDisplay({
+  countdownDate,
+  onTimeUp,
+  onDisplayClick,
+  variant = "full", // default to full display
+}: CountdownDisplayProps) {
+  const initialTimeIsUp = new Date(countdownDate).getTime() - Date.now() <= 0;
+  const [timeIsUp, setTimeIsUp] = useState(initialTimeIsUp);
 
-    const handleTimeUp = () => {
-        setTimeIsUp(true);
-        onTimeUp?.();
-    };
+  const handleTimeUp = () => {
+    setTimeIsUp(true);
+    onTimeUp?.();
+  };
 
+  // Timer-only variant
+  if (variant === "timer-only") {
     return (
-        <section className="w-full flex flex-col items-center max-w-96 rounded-xl shadow-lg">
-            {!timeIsUp && (
-
-                <div className="w-full custom-box p-1">
-                    <div className="flex w-full rounded-xl bg-gray-100 items-center justify-between">
-                        <div className="flex flex-1 text-lg font-medium justify-center">
-                            Snatch! starts in
-                        </div>
-                        <div className="flex px-4 py-3 text-4xl justify-center font-medium bg-gray-800 text-white rounded-lg w-48">
-                            <CountdownTimer targetDate={countdownDate} onTimeUp={handleTimeUp} />
-                        </div>
-                    </div>
-                </div>
-
-            )}
-
-            {/* If the countdown hits 0, show a different UI */}
-            {timeIsUp && (
-                <Link href="gamepage" className="w-full custom-box p-1">
-                    <div className="flex py-3 px-4 w-full text-4xl font-medium text-white rounded-xl bg-gray-800 items-center justify-center">
-                        Snatch!
-                    </div>
-                </Link>
-            )}
-        </section>
+      <button
+        onClick={onDisplayClick}
+        className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white"
+      >
+        {!timeIsUp ? (
+          <CountdownTimer targetDate={countdownDate} onTimeUp={handleTimeUp} />
+        ) : (
+          "Start!"
+        )}
+      </button>
     );
+  }
+
+  // Full display variant
+  return (
+    <section className="flex w-full max-w-96 flex-col items-center rounded-xl shadow-lg">
+      <button onClick={onDisplayClick} className="custom-box w-full p-1">
+        {!timeIsUp ? (
+          <div className="flex w-full items-center justify-between rounded-xl bg-gray-100">
+            <div className="flex flex-1 justify-center text-lg font-medium">
+              Snatch! starts in
+            </div>
+            <div className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
+              <CountdownTimer
+                targetDate={countdownDate}
+                onTimeUp={handleTimeUp}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
+            Snatch!
+          </div>
+        )}
+      </button>
+    </section>
+  );
 }
