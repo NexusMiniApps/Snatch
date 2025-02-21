@@ -2,21 +2,6 @@
 
 import { useEffect, useState } from "react";
 import PartySocket from "partysocket";
-import { unknown } from "zod";
-
-const GENERIC_NAMES = [
-  "ryan",
-  "jan",
-  "jo",
-  "sx",
-  "matt",
-  "dan",
-  "alex",
-  "chris",
-  "jeff",
-  "zz",
-  "yk",
-];
 
 type AuthSession = {
   user: {
@@ -42,6 +27,7 @@ export default function useGameSocket(session?: AuthSession) {
   const [currentPlayerId, setCurrentPlayerId] = useState<string>("");
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [playerName, setPlayerName] = useState<string>("Anonymous");
+  const [userPhone, setUserPhone] = useState<string>("");
 
   useEffect(() => {
     console.log("CONNECTING TO SOCKET");
@@ -55,19 +41,26 @@ export default function useGameSocket(session?: AuthSession) {
       room: "my-room",
     });
 
-    let userName;
+    let userName, userPhone;
 
     if (session?.user) {
       userName = session.user.name;
+      userPhone = `${session.user.countryCode.toString()}${session.user.phoneNo.toString()}`;
     } else {
       userName = "Anonymous";
+      userPhone = "";
     }
 
     setPlayerName(userName);
+    setUserPhone(userPhone);
 
     partySocket.addEventListener("open", () => {
       partySocket.send(
-        JSON.stringify({ type: "updateName", name: userName }),
+        JSON.stringify({
+          type: "updateName",
+          name: userName,
+          phone: userPhone,
+        }),
       );
     });
 
@@ -111,7 +104,7 @@ export default function useGameSocket(session?: AuthSession) {
           console.log("setting player id", data.id);
           setCurrentPlayerId(data.id);
           // I dont think need to update name here as we set it on connection? leaving it commented out for now
-          
+
           // partySocket.send(
           //   JSON.stringify({
           //     type: "updateName",
@@ -137,7 +130,7 @@ export default function useGameSocket(session?: AuthSession) {
       console.log("CLOSING SOCKET");
       partySocket.close();
     };
-  }, []);
+  }, [currentPlayerId, session?.user]);
 
   const updatePlayerName = (name: string) => {
     if (socket && name.trim()) {
@@ -159,6 +152,7 @@ export default function useGameSocket(session?: AuthSession) {
     currentPlayerId,
     players,
     playerName,
+    userPhone,
     updatePlayerName,
     incrementScore,
   };

@@ -19,7 +19,7 @@ interface ChatProps {
 export default function Chat({ socket, currentPlayerId }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!socket) return;
@@ -30,8 +30,14 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
           message: ChatMessage;
         };
         if (data.type === "chat") {
-          console.log("RECEIVED MESSAGE:", data.message);
           setMessages((prev) => [...prev, data.message]);
+          // Scroll chat container instead of entire page
+          setTimeout(() => {
+            if (chatContainerRef.current) {
+              chatContainerRef.current.scrollTop =
+                chatContainerRef.current.scrollHeight;
+            }
+          }, 100);
         }
       } catch (err) {
         console.error("Failed to parse message:", err);
@@ -42,28 +48,22 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
     return () => socket.removeEventListener("message", handleMessage);
   }, [socket]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!socket || !inputText.trim()) return;
 
-    console.log("Sending message:", inputText.trim());
     socket.send(
       JSON.stringify({
         type: "chat",
         text: inputText.trim(),
       }),
     );
-    console.log("Message sent:", inputText.trim());
     setInputText("");
   };
 
   return (
     <div className="flex h-96 flex-col rounded-lg bg-white p-4 shadow-md">
-      <div className="mb-4 flex-1 overflow-y-auto">
+      <div ref={chatContainerRef} className="mb-4 flex-1 overflow-y-auto">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -77,7 +77,6 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
             <div>{msg.text}</div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={sendMessage} className="flex gap-2">

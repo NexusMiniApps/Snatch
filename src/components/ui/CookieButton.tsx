@@ -8,17 +8,21 @@ interface CookieButtonProps {
   count: number;
   socket: PartySocket | null;
   onIncrement: (newCount: number) => void;
+  disabled?: boolean;
 }
 
 export default function CookieButton({
   count,
   socket,
   onIncrement,
+  disabled = false,
 }: CookieButtonProps) {
   const [isPulsing, setIsPulsing] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleClick = useCallback(() => {
+    if (disabled) return;
+
     // Process the click immediately:
     const newCount = count + 1;
     onIncrement(newCount);
@@ -34,10 +38,10 @@ export default function CookieButton({
         setIsAnimating(false);
       }, 200);
     }
-  }, [isAnimating, count, onIncrement, socket]);
+  }, [isAnimating, count, onIncrement, socket, disabled]);
 
   return (
-    <div className="animate-spin-slow">
+    <div className={`animate-spin-slow ${disabled ? "opacity-50" : ""}`}>
       <Image
         src="/misc/cookie.svg"
         alt="Cookie"
@@ -46,7 +50,7 @@ export default function CookieButton({
         className={`h-56 w-56 ${isPulsing ? "animate-pulse-once" : ""}`}
         onClick={handleClick}
         style={{
-          cursor: "pointer",
+          cursor: disabled ? "not-allowed" : "pointer",
           filter: "drop-shadow(0 0px 10px rgba(0, 0, 0, 0.3))",
         }}
       />

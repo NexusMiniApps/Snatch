@@ -4,6 +4,7 @@ interface PlayerData {
   id: string;
   name: string;
   score: number;
+  phone: string;
 }
 
 interface ChatMessage {
@@ -20,48 +21,59 @@ export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) {}
 
   private broadcastState() {
-    const connections = Array.from(this.room.getConnections());
+    // Convert players object to array
+    const allPlayers = Object.values(this.players);
+
     this.room.broadcast(
       JSON.stringify({
         type: "state",
         state: {
-          connections: connections.map(
-            (conn: Party.Connection) =>
-              this.players[conn.id] || {
-                id: conn.id,
-                name: "Anonymous",
-                score: 0,
-              },
-          ),
+          connections: allPlayers,
         },
       }),
     );
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  onConnect(conn: Party.Connection, _ctx: Party.ConnectionContext) {
     this.players[conn.id] = {
       id: conn.id,
       name: "",
       score: 0,
+      phone: "",
     };
     conn.send(JSON.stringify({ type: "connection", id: conn.id }));
     this.broadcastState();
   }
 
-  onClose(conn: Party.Connection) {
+  onClose(_conn: Party.Connection) {
     // dont delete player data on disconnect
     // delete this.players[conn.id];
     this.broadcastState();
   }
-
   onMessage(message: string, sender: Party.Connection) {
-    const data = JSON.parse(message);
+    let data: {
+      type: string;
+      text?: string;
+      name?: string;
+      phone?: string;
+    };
+    try {
+      data = JSON.parse(message) as {
+        type: string;
+        text?: string;
+        name?: string;
+        phone?: string;
+      };
+    } catch (err) {
+      console.error("Failed to parse message:", err);
+      return;
+    }
 
     if (data.type === "chat") {
       const chatMessage: ChatMessage = {
         id: crypto.randomUUID(),
-        sender: this.players[sender.id]?.name || sender.id,
-        text: data.text,
+        sender: this.players[sender.id]?.name ?? sender.id,
+        text: data.text ?? "",
         timestamp: Date.now(),
       };
       this.messages.push(chatMessage);
@@ -79,8 +91,9 @@ export default class Server implements Party.Server {
       }
     } else if (data.type === "updateName") {
       const player = this.players[sender.id];
-      if (player && data.name) {
+      if (player && typeof data.name === "string") {
         player.name = data.name;
+        player.phone = typeof data.phone === "string" ? data.phone : "";
         this.broadcastState();
       }
     }

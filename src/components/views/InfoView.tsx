@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
-import { IoMdNotifications } from "react-icons/io";
 import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
-import { EventData } from "~/app/coffee/CoffeeEvent";
+import { type EventData } from "~/app/coffee/CoffeeEvent";
 import useGameSocket from "~/lib/useGameSocket";
 
 interface InfoViewProps {
@@ -39,8 +37,18 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
   const eventLocation = eventData.location;
   const eventDescription = eventData.description;
 
-  const eventDate = new Date(eventStartTime).toLocaleDateString();
-  const eventTime = new Date(eventStartTime).toLocaleTimeString();
+  const eventDate = new Date(eventStartTime).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  });
+  const eventTime = new Date(eventStartTime)
+    .toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true, // Enable 12-hour format with AM/PM
+    })
+    .toLowerCase(); // Make am/pm lowercase
 
   return (
     <div className="flex flex-col items-center gap-y-4">
@@ -84,8 +92,8 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
           onDisplayClick={onTimeUp}
         />
         <div className="px-2 py-4 text-lg font-light">
-          <span className="font-semibold">{players.length}</span> people currently waiting
-          here...
+          <span className="font-semibold">{players.length}</span> people
+          currently waiting here...
         </div>
       </section>
     </div>

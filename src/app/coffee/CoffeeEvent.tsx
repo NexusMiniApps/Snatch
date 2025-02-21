@@ -78,8 +78,16 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   }, [eventId]);
 
   const hasSnatchTimePassed = eventData
-    ? new Date(eventData.snatchStartTime).getTime() < Date.now()
+    ? new Date(eventData.snatchStartTime).getTime() + 60000 < Date.now()
     : false;
+
+  // Modified useEffect to only set isGameOver
+  useEffect(() => {
+    if (hasSnatchTimePassed) {
+      console.log("Snatch time plus one minute has passed, setting game over");
+      setIsGameOver(true);
+    }
+  }, [hasSnatchTimePassed]);
 
   // Debug logs
   console.log("Render state:", {
@@ -93,14 +101,6 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     currentTime: new Date().toISOString(),
   });
 
-  useEffect(() => {
-    if (hasSnatchTimePassed) {
-      console.log("Snatch time has passed, switching to results view");
-      setIsGameOver(true);
-      setActiveTab("results");
-    }
-  }, [hasSnatchTimePassed]);
-
   // Loading state
   if (loading) {
     return <div>Loading event details...</div>;
@@ -110,16 +110,6 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   if (error || !eventData) {
     return <div>Error loading event details: {error}</div>;
   }
-
-  const {
-    name: eventName,
-    location: eventLocation,
-    startTime: eventStartTime,
-    description: eventDescription,
-    status: eventStatus,
-    ownerId: eventOwnerId,
-    snatchStartTime: eventSnatchStartTime,
-  } = eventData;
 
   console.log(session);
   const handleTimeUp = () => {
@@ -134,7 +124,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   };
 
   // Get available tabs based on game state and snatch time
-  const availableTabs =
+  const availableTabs: TabType[] =
     hasSnatchTimePassed || isGameOver ? ["info", "results"] : ["info", "game"];
 
   console.log("Available tabs:", availableTabs);
@@ -149,7 +139,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         {availableTabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab as TabType)}
+            onClick={() => setActiveTab(tab)}
             className={`flex-1 rounded-t-lg border-2 border-b-0 border-black bg-white p-2 font-medium capitalize transition-colors ${
               activeTab === tab
                 ? "text-black"
@@ -162,6 +152,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       </div>
 
       {/* Views */}
+      {/* Show Info View */}
       {activeTab === "info" && eventData && (
         <InfoView
           palette={palette}
@@ -169,6 +160,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           eventData={eventData}
         />
       )}
+      {/* Show Game View */}
       {activeTab === "game" &&
         !isGameOver &&
         !hasSnatchTimePassed &&
@@ -186,7 +178,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
             eventData={eventData}
           />
         )}
-      {(activeTab === "results" || hasSnatchTimePassed) && eventData && (
+      {/* Show Results View */}
+      {activeTab === "results" && eventData && (
         <ResultsView
           palette={palette}
           resultsPlayers={players}

@@ -5,9 +5,8 @@ import { Leaderboard, type PlayerData } from "~/components/ui/Leaderboard";
 import type PartySocket from "partysocket";
 import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
-import { useTimer } from "react-timer-hook";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
-import { EventData } from "~/app/coffee/CoffeeEvent";
+import { type EventData } from "~/app/coffee/CoffeeEvent";
 
 interface GameViewProps {
   onGameComplete: () => void;
@@ -32,62 +31,93 @@ export function GameView({
   isGameOver,
   palette,
   snatchStartTime,
-  eventData,
 }: GameViewProps) {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(isGameOver);
-  const [expiryTimestamp, setExpiryTimestamp] = useState<Date | null>(null);
-  const [postingScores, setPostingScores] = useState(false);
-  const [postError, setPostError] = useState<string | null>(null);
-
-  const eventSnatchStartTime = eventData.snatchStartTime;
-  console.log("eventSnatchStartTime", eventSnatchStartTime);
-
-  const eventId = eventData.id;
-
-  const { seconds, start, pause, restart } = useTimer({
-    expiryTimestamp: expiryTimestamp ?? new Date(),
-    onExpire: () => {
-      setGameOver(true);
-      onGameComplete();
-    },
-    autoStart: false,
+  const [gameEndTime] = useState(() => {
+    const endTime = new Date(snatchStartTime);
+    endTime.setMinutes(endTime.getMinutes() + 1);
+    return endTime;
   });
-
-  useEffect(() => {
-    if (isGameStarted && !gameOver && expiryTimestamp) {
-      restart(expiryTimestamp);
-    } else {
-      pause();
-    }
-  }, [isGameStarted, gameOver, expiryTimestamp, restart, pause]);
+  const [displaySeconds, setDisplaySeconds] = useState(60);
+  const [isActive, setIsActive] = useState(false);
 
   const handleStartGame = () => {
     setIsGameStarted(true);
-    const newExpiryTimestamp = new Date();
-    newExpiryTimestamp.setSeconds(newExpiryTimestamp.getSeconds() + 10);
-    setExpiryTimestamp(newExpiryTimestamp);
   };
 
-  // Use the snatchStartTime instead of creating a new countdown date
-  const countdownDate = snatchStartTime;
+  // Automatic timer update
+  useEffect(() => {
+    if (new Date(snatchStartTime).getTime() > Date.now()) return;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = Math.max(
+        0,
+        Math.ceil((gameEndTime.getTime() - now) / 1000),
+      );
+      setDisplaySeconds(remaining);
+    };
+
+    // Update immediately and then every 100ms
+    updateTimer();
+    const timer = setInterval(updateTimer, 100);
+    return () => clearInterval(timer);
+  }, [snatchStartTime, gameEndTime]);
+
+  // Game over check
+  useEffect(() => {
+    const checkGameOver = () => {
+      const now = new Date();
+      const timeDiff = gameEndTime.getTime() - now.getTime();
+      if (timeDiff <= 0) {
+        console.log("Game Over at:", now.toISOString());
+        console.log("Time difference was:", timeDiff);
+        setGameOver(true);
+        onGameComplete();
+      }
+    };
+
+    const timer = setInterval(checkGameOver, 100);
+    return () => clearInterval(timer);
+  }, [gameEndTime, onGameComplete]);
+
+  useEffect(() => {
+    if (gameOver) {
+      console.log("Switching to Results View at:", new Date().toISOString());
+    }
+  }, [gameOver]);
+
+  // Check if game should be active
+  useEffect(() => {
+    const checkGameActive = () => {
+      const now = Date.now();
+      const isGameTime = new Date(snatchStartTime).getTime() <= now;
+      setIsActive(isGameTime);
+    };
+
+    // Check immediately and then every 100ms
+    checkGameActive();
+    const timer = setInterval(checkGameActive, 100);
+    return () => clearInterval(timer);
+  }, [snatchStartTime]);
 
   return (
     <div className="relative h-full w-full">
       {!gameOver ? (
         <>
-          {!isGameStarted && (
-            <div className="fixed bottom-0 left-0 right-0 top-16 z-20 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
-              <div className="flex w-full max-w-96 items-center justify-center px-4">
-                <CountdownDisplay
-                  countdownDate={snatchStartTime}
-                  onTimeUp={handleStartGame}
-                  onDisplayClick={handleStartGame}
-                  variant="timer-only"
-                />
+          {!isGameStarted &&
+            new Date(snatchStartTime).getTime() > Date.now() && (
+              <div className="fixed bottom-0 left-0 right-0 top-16 z-20 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
+                <div className="flex w-full max-w-96 items-center justify-center px-4">
+                  <CountdownDisplay
+                    countdownDate={snatchStartTime}
+                    onTimeUp={handleStartGame}
+                    variant="timer-only"
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
           <section className="custom-box relative z-20 h-full w-full p-1 shadow-xl">
             <div className="rounded-lg bg-yellow-950 p-4 text-white">
               <h1 className="text-3xl font-semibold">Cookie Craze</h1>
@@ -98,18 +128,24 @@ export function GameView({
           </section>
 
           <div className="relative flex w-full flex-col items-center">
-            <div className="pointer-events-none absolute bottom-[15rem] left-[-2rem] right-[-2rem] top-[-4rem] z-10 border-y-2 border-black bg-orange-100" />
+            <div className="pointer-events-none absolute bottom-[16.6rem] left-[-2rem] right-[-2rem] top-[-4rem] z-10 border-y-2 border-black bg-orange-100" />
             <div className="z-20 flex flex-col items-center justify-center">
-              <p className="m-4 text-2xl font-semibold">
-                Time Left: {seconds}s
+              <p
+                className={`m-4 text-2xl font-semibold transition-opacity duration-300 ${
+                  new Date(snatchStartTime).getTime() <= Date.now()
+                    ? "opacity-100"
+                    : "opacity-0"
+                }`}
+              >
+                Time Left: {displaySeconds}s
               </p>
               <CookieButton
                 count={currentPlayerCount}
                 socket={socket}
                 onIncrement={(newCount) => {
                   setCurrentPlayerCount(newCount);
-                  if (newCount >= 100) onGameComplete(); // Example threshold
                 }}
+                disabled={!isActive}
               />
               <Leaderboard
                 players={players}
@@ -119,19 +155,19 @@ export function GameView({
           </div>
         </>
       ) : (
-        <div>
-          {postingScores && <div>Posting scores to the database...</div>}
-          {postError && <div className="text-red-500">Error: {postError}</div>}
-          {!postingScores && !postError && (
-            <ResultsView
-              palette={palette}
-              resultsPlayers={players}
-              socket={socket}
-              currentPlayerId={currentPlayerId}
-              // eventId={eventId}
-            />
-          )}
-        </div>
+        <ResultsView
+          palette={{
+            lightMuted: palette.lightMuted,
+            lightVibrant: palette.lightMuted, // Fallback to lightMuted
+            darkMuted: palette.lightMuted, // Fallback to lightMuted
+            darkVibrant: palette.lightMuted, // Fallback to lightMuted
+            muted: palette.lightMuted, // Fallback to lightMuted
+            vibrant: palette.lightMuted, // Fallback to lightMuted
+          }}
+          resultsPlayers={players}
+          socket={socket}
+          currentPlayerId={currentPlayerId}
+        />
       )}
     </div>
   );

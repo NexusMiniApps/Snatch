@@ -4,11 +4,14 @@ import LeaderboardTable from "~/components/ui/LeaderboardTable";
 import { type PlayerData } from "~/components/ui/Leaderboard";
 import Chat from "~/components/Chat";
 import type PartySocket from "partysocket";
-import { useState, useEffect } from "react";
-
 interface ResultsViewProps {
   palette: {
     lightMuted: string;
+    lightVibrant: string;
+    darkMuted: string;
+    darkVibrant: string;
+    muted: string;
+    vibrant: string;
   };
   resultsPlayers: PlayerData[];
   socket: PartySocket | null;
@@ -65,7 +68,7 @@ export function ResultsView({
   const myRank = sortedPlayers.findIndex(
     (player) => player.id === connectionId,
   );
-  const isWinner = myRank >= 0 && myRank < 3;
+  const isWinner = myRank >= 0 && myRank < 5;
 
   // if (loading) {
   //   return <div>Loading results...</div>;
@@ -77,27 +80,38 @@ export function ResultsView({
 
   return (
     <div className="flex flex-col items-center gap-y-4">
-      <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center p-4">
-        {isWinner ? (
-          <>
-            <h1 className="z-10 text-3xl">You won the Snatch!</h1>
-            <div className="text-center text-sm mt-2">
-              <a 
-                href="https://t.me/+WHVh-EWerUIxMzZl" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+      <div className="custom-box sticky top-0 z-10 flex w-full max-w-96 flex-col items-center p-1">
+        <div className="flex w-full flex-col items-center justify-center rounded-lg bg-gray-900 p-3 text-white">
+          {isWinner ? (
+            <>
+              <h1 className="z-10 text-3xl">You won the Snatch!</h1>
+              <div className="mt-2 p-4 text-center text-sm">
+                {/* <a
+                href="https://t.me/+WHVh-EWerUIxMzZl"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-blue-500 underline"
               >
                 Join the Telegram Group for WINNERS
-              </a>
-            </div>
-          </>
-        ) : (
-          <>
-            <h1 className="text-3xl">Snatch over!</h1>
-            <div>Try again next time!</div>
-          </>
-        )}
+              </a> */}
+
+                <a
+                  href="https://t.me/+ZDCen5H4XCoxOTI1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 rounded-lg bg-white px-4 py-2 text-black transition hover:bg-gray-200"
+                >
+                  Claim Prize
+                </a>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl">Snatch over!</h1>
+              <div>Try again next time!</div>
+            </>
+          )}
+        </div>
       </div>
 
       <section className="relative flex w-full max-w-96 flex-col px-2 py-2">
@@ -120,20 +134,48 @@ export function ResultsView({
         <Chat socket={socket} currentPlayerId={currentPlayerId} />
       </div>
 
-      <div className="text-center text-sm mt-2">
-        <div className="flex flex-col items-center justify-center p-4 border border-gray-300 rounded-lg shadow-md w-full max-w-xs bg-white">
-          <h2 className="text-lg">
-            Stay tuned for future events!</h2>
-          <a 
-            href="https://t.me/+ZDCen5H4XCoxOTI1"
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+      <section className="relative flex w-full max-w-96 flex-col">
+        <div
+          style={{
+            backgroundColor: palette.muted,
+          }}
+          className="pointer-events-none absolute bottom-[-2.6rem] left-[-1.5rem] right-[-1.5rem] top-[-2.5rem] border-y-2 border-black"
+        />
+
+        <div className="custom-box z-10 mt-2 w-full items-center justify-center p-1 text-center text-sm">
+          <div
+            style={{
+              backgroundColor: palette.lightMuted,
+            }}
+            className="flex w-full flex-col items-center justify-center rounded-lg"
           >
-            Join Group
-          </a>
+            <div className="flex w-full flex-col items-center p-4">
+              <h2 className="text-xl text-black">
+                Stay tuned for future events!
+              </h2>
+              <a
+                href="https://t.me/+ZDCen5H4XCoxOTI1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 w-full rounded-lg border-2 border-black bg-gray-900 px-4 py-2 text-lg text-white transition hover:bg-gray-200"
+              >
+                Join our Telegram Group
+              </a>
+
+              <div className="mt-2 text-center text-sm">
+                <a
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSedDsfStaFelCNLCNinPU_MGUlvEcmpFTXpftlH78A6HZVamA/viewform?usp=sharing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  Help us improve - Share your feedback!
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* <div className="z-10 px-2 text-sm">
         <a
@@ -146,16 +188,6 @@ export function ResultsView({
         </a>
       </div> */}
 
-      <div className="z-10 px-2 text-sm">
-        <a
-          href="https://docs.google.com/forms/d/e/1FAIpQLSedDsfStaFelCNLCNinPU_MGUlvEcmpFTXpftlH78A6HZVamA/viewform?usp=sharing"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
-        >
-          Help us improve - Share your feedback!
-        </a>
-      </div>
       <br />
     </div>
   );
