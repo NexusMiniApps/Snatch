@@ -7,6 +7,7 @@ import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import { useTimer } from "react-timer-hook";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
+import { EventData } from "~/app/coffee/CoffeeEvent";
 
 interface GameViewProps {
   onGameComplete: () => void;
@@ -18,6 +19,7 @@ interface GameViewProps {
   isGameOver: boolean;
   palette: { lightMuted: string };
   snatchStartTime: string;
+  eventData: EventData;
 }
 
 export function GameView({
@@ -30,10 +32,18 @@ export function GameView({
   isGameOver,
   palette,
   snatchStartTime,
+  eventData,
 }: GameViewProps) {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(isGameOver);
   const [expiryTimestamp, setExpiryTimestamp] = useState<Date | null>(null);
+  const [postingScores, setPostingScores] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
+
+  const eventSnatchStartTime = eventData.snatchStartTime;
+  console.log("eventSnatchStartTime", eventSnatchStartTime);
+
+  const eventId = eventData.id;
 
   const { seconds, start, pause, restart } = useTimer({
     expiryTimestamp: expiryTimestamp ?? new Date(),
@@ -109,12 +119,19 @@ export function GameView({
           </div>
         </>
       ) : (
-        <ResultsView
-          palette={palette}
-          resultsPlayers={players}
-          socket={socket}
-          currentPlayerId={currentPlayerId}
-        />
+        <div>
+          {postingScores && <div>Posting scores to the database...</div>}
+          {postError && <div className="text-red-500">Error: {postError}</div>}
+          {!postingScores && !postError && (
+            <ResultsView
+              palette={palette}
+              resultsPlayers={players}
+              socket={socket}
+              currentPlayerId={currentPlayerId}
+              // eventId={eventId}
+            />
+          )}
+        </div>
       )}
     </div>
   );

@@ -6,28 +6,17 @@ import { IoTime } from "react-icons/io5";
 import { IoMdNotifications } from "react-icons/io";
 import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
+import { EventData } from "~/app/coffee/CoffeeEvent";
 
 interface InfoViewProps {
   palette: {
     lightMuted: string;
   };
-  onTimeUp: (countdownDate: string) => void;
+  onTimeUp: () => void;
+  eventData: EventData;
 }
 
-interface EventData {
-  id: number;
-  name: string;
-  location: string;
-  startTime: Date;
-  description: string;
-  status: string;
-  ownerId: string;
-  snatchStartTime: Date;
-  // imageSlug: string;
-  // add any other fields that your event contains
-}
-
-export function InfoView({ palette, onTimeUp }: InfoViewProps) {
+export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/coffee.jpeg`
@@ -40,51 +29,11 @@ export function InfoView({ palette, onTimeUp }: InfoViewProps) {
   //   "Learn how to make delicious filter coffee in this exclusive workshop (valued at $88)!";
   // const countdownDate = "2025-02-21T00:00:00";
 
-  const id = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b";
-
-  const [eventData, setEventData] = useState<EventData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchEvent() {
-      try {
-        const res = await fetch(`/api/events/${id}`);
-        if (!res.ok) {
-          console.log(res);
-          throw new Error("Failed to fetch event data");
-        }
-        const data: EventData = (await res.json()) as EventData;
-
-        setEventData(data);
-        console.log("Fetched event data:", data);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unexpected error occurred");
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void fetchEvent();
-  }, [id]);
-
-  if (loading) return <div>Loading...</div>;
-  if (error || !eventData)
-    return <div>Error loading event details: {error}</div>;
-
-  const {
-    name: eventName,
-    location: eventLocation,
-    startTime: eventStartTime,
-    description: eventDescription,
-    status: eventStatus,
-    ownerId: eventOwnerId,
-    snatchStartTime: eventSnatchStartTime,
-  } = eventData;
+  const eventSnatchStartTime = eventData.snatchStartTime;
+  const eventStartTime = eventData.startTime;
+  const eventName = eventData.name;
+  const eventLocation = eventData.location;
+  const eventDescription = eventData.description;
 
   const countdownDate = new Date(eventSnatchStartTime).toISOString();
 

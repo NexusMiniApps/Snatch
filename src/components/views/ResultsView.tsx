@@ -4,6 +4,7 @@ import LeaderboardTable from "~/components/ui/LeaderboardTable";
 import { type PlayerData } from "~/components/ui/Leaderboard";
 import Chat from "~/components/Chat";
 import type PartySocket from "partysocket";
+import { useState, useEffect } from "react";
 
 interface ResultsViewProps {
   palette: {
@@ -12,6 +13,7 @@ interface ResultsViewProps {
   resultsPlayers: PlayerData[];
   socket: PartySocket | null;
   currentPlayerId: string;
+  // eventId: string;
 }
 
 export function ResultsView({
@@ -19,13 +21,60 @@ export function ResultsView({
   resultsPlayers,
   socket,
   currentPlayerId,
+  // eventId,
 }: ResultsViewProps) {
+  // const [fetchedPlayers, setFetchedPlayers] = useState<PlayerData[]>([]);
+  // const [loading, setLoading] = useState<boolean>(true);
+  // const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // const connectionId = currentPlayerId;
+
+  // useEffect(() => {
+  //   async function fetchScores() {
+  //     setLoading(true);
+  //     setFetchError(null);
+  //     try {
+  //       const res = await fetch(`/api/eventUserScores/${eventId}`);
+  //       if (!res.ok) {
+  //         const errorData = await res.json();
+  //         throw new Error(errorData.error || 'Failed to fetch top scores');
+  //       }
+  //       const data: PlayerData[] = await res.json();
+  //       setFetchedPlayers(data);
+  //       console.log("Fetched top scores:", data);
+  //     } catch (error: unknown) {
+  //       if (error instanceof Error) {
+  //         console.error("Error fetching top scores:", error.message);
+  //         setFetchError(error.message);
+  //       } else {
+  //         console.error("An unexpected error occurred");
+  //         setFetchError("An unexpected error occurred");
+  //       }
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   fetchScores();
+  // }, [eventId]);
+
+  // const sortedPlayers = [...fetchedPlayers].sort((a, b) => b.score - a.score);
+  const connectionId = "Eva";
   const connectionId = "930df21f-87cd-4a34-a5a3-4a78855fd075";
   const sortedPlayers = [...resultsPlayers].sort((a, b) => b.score - a.score);
+
   const myRank = sortedPlayers.findIndex(
     (player) => player.id === connectionId,
   );
   const isWinner = myRank >= 0 && myRank < 3;
+
+  // if (loading) {
+  //   return <div>Loading results...</div>;
+  // }
+
+  // if (fetchError) {
+  //   return <div className="text-red-500">Error: {fetchError}</div>;
+  // }
 
   return (
     <div className="flex flex-col items-center gap-y-4">
@@ -51,6 +100,7 @@ export function ResultsView({
         />
         <div className="z-10 flex w-full max-w-96 flex-col gap-y-4 px-2">
           <LeaderboardTable
+            // players={sortedPlayers}
             players={resultsPlayers}
             connectionId={connectionId}
           />
