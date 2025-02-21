@@ -27,7 +27,7 @@ export function ResultsView({
   // const [loading, setLoading] = useState<boolean>(true);
   // const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // const connectionId = currentPlayerId;
+  const connectionId = currentPlayerId;
 
   // useEffect(() => {
   //   async function fetchScores() {
@@ -59,7 +59,7 @@ export function ResultsView({
   // }, [eventId]);
 
   // const sortedPlayers = [...fetchedPlayers].sort((a, b) => b.score - a.score);
-  const connectionId = "Eva";
+  // const connectionId = "Eva";
   const sortedPlayers = [...resultsPlayers].sort((a, b) => b.score - a.score);
 
   const myRank = sortedPlayers.findIndex(
@@ -81,6 +81,16 @@ export function ResultsView({
         {isWinner ? (
           <>
             <h1 className="z-10 text-3xl">You won the Snatch!</h1>
+            <div className="text-center text-sm mt-2">
+              <a 
+                href="https://t.me/+WHVh-EWerUIxMzZl" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-blue-500 underline"
+              >
+                Join the Telegram Group for WINNERS
+              </a>
+            </div>
           </>
         ) : (
           <>
