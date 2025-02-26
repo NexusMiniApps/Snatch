@@ -31,3 +31,36 @@ export async function GET(
     );
   }
 }
+
+export async function POST(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { snatchStartTime } = await request.json();
+    
+    if (!snatchStartTime) {
+      return NextResponse.json(
+        { error: 'snatchStartTime is required' },
+        { status: 400 }
+      );
+    }
+
+    const updatedEvent = await prisma.event.update({
+      where: {
+        id: params.id
+      },
+      data: {
+        snatchStartTime: new Date(snatchStartTime)
+      }
+    });
+
+    return NextResponse.json(updatedEvent, { status: 200 });
+  } catch (error) {
+    console.error('Error updating snatchStartTime:', error);
+    return NextResponse.json(
+      { error: 'Error updating snatchStartTime' },
+      { status: 500 }
+    );
+  }
+}

@@ -41,7 +41,7 @@ export default function useGameSocket(session?: AuthSession) {
   const [currentPlayerCount, setCurrentPlayerCount] = useState(0);
   const [currentPlayerId, setCurrentPlayerId] = useState<string>("");
   const [players, setPlayers] = useState<PlayerData[]>([]);
-  const [playerName, setPlayerName] = useState<string>("Anonymous");
+  const [playerName, setPlayerName] = useState<string>("BULLSHIT");
 
   useEffect(() => {
     console.log("CONNECTING TO SOCKET");

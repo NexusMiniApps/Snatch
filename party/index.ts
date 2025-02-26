@@ -47,7 +47,7 @@ export default class Server implements Party.Server {
 
   onClose(_conn: Party.Connection) {
     // dont delete player data on disconnect
-    // delete this.players[conn.id];
+    delete this.players[_conn.id];
     this.broadcastState();
   }
   onMessage(message: string, sender: Party.Connection) {
