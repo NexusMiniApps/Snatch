@@ -34,10 +34,12 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const { snatchStartTime } = await request.json();
+    const body = await request.json() as { snatchStartTime?: string };
+    const snatchStartTime = body.snatchStartTime;
     
     if (!snatchStartTime) {
       return NextResponse.json(
@@ -48,7 +50,7 @@ export async function POST(
 
     const updatedEvent = await prisma.event.update({
       where: {
-        id: params.id
+        id: id
       },
       data: {
         snatchStartTime: new Date(snatchStartTime)

@@ -17,7 +17,11 @@ function AdminPanel() {
         throw new Error('Failed to update snatch start time');
       }
     
-      return response.json();
+      const data = await response.json() as { snatchStartTime?: string; error?: string };
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      return data;
     } catch (error) {
       console.error('Error updating start time:', error);
       alert('Failed to update start time');
@@ -31,6 +35,9 @@ function AdminPanel() {
     updateSnatchStartTime(eventId, newStartTime)
       .then(() => {
         alert(`Snatch scheduled for: ${newStartTime.toLocaleTimeString()}`);
+      }).catch((error) => {
+        console.error('Error scheduling snatch:', error);
+        alert('Failed to schedule snatch. Please try again.');
       });
   };
 

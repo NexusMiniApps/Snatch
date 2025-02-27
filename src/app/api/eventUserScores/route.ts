@@ -32,7 +32,6 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '~/server/db/client';
-import { NextApiRequest, NextApiResponse } from 'next';
 
 interface UserScore {
   userId: string;
@@ -40,11 +39,11 @@ interface UserScore {
   eventId: string;
 }
 
-interface EventUserScoresResponse {
-  success: boolean;
-  data?: UserScore[];
-  error?: string;
-}
+// interface EventUserScoresResponse {
+//   success: boolean;
+//   data?: UserScore[];
+//   error?: string;
+// }
 
 export async function POST(request: Request) {
   try {

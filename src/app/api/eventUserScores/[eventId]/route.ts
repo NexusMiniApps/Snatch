@@ -31,7 +31,7 @@ export async function GET(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   const eventId = (await params).eventId;
-  const url = new URL(request.url);
+  // const url = new URL(request.url);
   // const limit = Number(url.searchParams.get('limit')) || 10; // Default limit to 10
 
   try {
