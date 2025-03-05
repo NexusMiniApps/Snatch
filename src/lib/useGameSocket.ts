@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PartySocket from "partysocket";
-import { unknown } from "zod";
+import { set, unknown } from "zod";
 
 const GENERIC_NAMES = [
   "ryan",
@@ -50,9 +50,17 @@ export default function useGameSocket(session?: AuthSession) {
         ? "snatch-party.shilohgreen.partykit.dev"
         : "localhost:1999";
 
+    // Check if session exists
+    console.log("Current Session is: ", session);
+
+    let playerId = session?.user?.id ?? "";
+    console.log("Current Player ID is: ", playerId);
+    setCurrentPlayerId(playerId);
+    
     const partySocket = new PartySocket({
       host,
       room: "my-room",
+      id: currentPlayerId ?? "",
     });
 
     let userName;
@@ -106,8 +114,8 @@ export default function useGameSocket(session?: AuthSession) {
         }
       } else if (data.type === "connection") {
         if (typeof data.id === "string") {
-          console.log("setting player id", data.id);
-          setCurrentPlayerId(data.id);
+          console.log("Player ID from Server is: ", data.id);
+          // setCurrentPlayerId(data.id);
           // I dont think need to update name here as we set it on connection? leaving it commented out for now
 
           // partySocket.send(

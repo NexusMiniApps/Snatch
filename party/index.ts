@@ -1,30 +1,23 @@
 import type * as Party from "partykit/server";
 
 interface PlayerData {
-  socketId: string;
+  id: string;
   name: string;
   score: number;
   phone: string;
 }
 
-interface ChatMessageData {
+interface ChatMessage {
   id: string;
   sender: string;
   text: string;
   timestamp: number;
 }
 
-interface MessageData {
-  type: string;
-  text?: string;
-  name?: string;
-  phone?: string;
-};
-
 export default class Server implements Party.Server {
   // The string should be the players UUID session id
   private players: Record<string, PlayerData> = {};
-  private chatStack: ChatMessageData[] = [];
+  private messages: ChatMessage[] = [];
   constructor(readonly room: Party.Room) {}
 
   private broadcastState() {
@@ -42,9 +35,9 @@ export default class Server implements Party.Server {
   }
 
   onConnect(conn: Party.Connection, _ctx: Party.ConnectionContext) {
-    // Use UUID as key for players
+    console.log("New connection with connection ID:", conn.id);
     this.players[conn.id] = {
-      socketId: conn.id,
+      id: conn.id,
       name: "",
       score: 0,
       phone: "",
@@ -54,51 +47,49 @@ export default class Server implements Party.Server {
   }
 
   onClose(_conn: Party.Connection) {
-    // dont delete player data on disconnect to maintain persistance
+    // dont delete player data on disconnect
     delete this.players[_conn.id];
     this.broadcastState();
   }
-
   onMessage(message: string, sender: Party.Connection) {
-
-    // Must contain meesage type  
-    let data: MessageData;
-
+    let data: {
+      type: string;
+      text?: string;
+      name?: string;
+      phone?: string;
+    };
     try {
-      data = JSON.parse(message);
+      data = JSON.parse(message) as {
+        type: string;
+        text?: string;
+        name?: string;
+        phone?: string;
+      };
     } catch (err) {
       console.error("Failed to parse message:", err);
       return;
     }
 
-    // FOR CHAT MESSAGES
     if (data.type === "chat") {
-      // Create a new chat message
-      const chatMessage: ChatMessageData = {
+      const chatMessage: ChatMessage = {
         id: crypto.randomUUID(),
         sender: this.players[sender.id]?.name ?? sender.id,
         text: data.text ?? "",
         timestamp: Date.now(),
       };
-      // Push on chat stack
-      this.chatStack.push(chatMessage);
-      // Broadcast to all players
+      this.messages.push(chatMessage);
       this.room.broadcast(
         JSON.stringify({
           type: "chat",
           message: chatMessage,
         }),
       );
-
-    // FOR COUNTER MESSAGES
     } else if (data.type === "counter") {
       const player = this.players[sender.id];
       if (player) {
         player.score += 1;
         this.broadcastState();
       }
-
-    // FOR NAME UPDATE MESSAGES
     } else if (data.type === "updateName") {
       const player = this.players[sender.id];
       if (player && typeof data.name === "string") {
