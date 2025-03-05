@@ -133,7 +133,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const availableTabs: TabType[] =
     hasSnatchTimePassed || isGameOver ? ["info", "results"] : ["info", "game"];
 
-  console.log("Available tabs:", availableTabs);
+  // console.log("Available tabs:", availableTabs);
 
   return (
     <main

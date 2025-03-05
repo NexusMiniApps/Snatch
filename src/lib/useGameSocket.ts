@@ -54,13 +54,20 @@ export default function useGameSocket(session?: AuthSession) {
     console.log("Current Session is: ", session);
 
     let playerId = session?.user?.id ?? "";
+
+    if (playerId === "") {
+      console.log("No player ID found");
+      return;
+    }
+
     console.log("Current Player ID is: ", playerId);
     setCurrentPlayerId(playerId);
     
+    console.log("Current Player ID is: ", currentPlayerId);
     const partySocket = new PartySocket({
       host,
       room: "my-room",
-      id: currentPlayerId ?? "",
+      id: playerId,
     });
 
     let userName;
