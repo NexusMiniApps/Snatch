@@ -44,6 +44,12 @@ export default function useGameSocket(session?: AuthSession) {
   const [playerName, setPlayerName] = useState<string>("BULLSHIT");
 
   useEffect(() => {
+
+    if (session === undefined) {
+      console.log("DONT CONNECT TO SOCKET");
+      return;
+    }
+
     console.log("CONNECTING TO SOCKET");
     const host =
       process.env.NODE_ENV === "production"
@@ -53,7 +59,7 @@ export default function useGameSocket(session?: AuthSession) {
     // Check if session exists
     console.log("Current Session is: ", session);
 
-    let playerId = session?.user?.id ?? "";
+    const playerId = session?.user?.id ?? "";
 
     if (playerId === "") {
       console.log("No player ID found");
@@ -63,7 +69,6 @@ export default function useGameSocket(session?: AuthSession) {
     console.log("Current Player ID is: ", playerId);
     setCurrentPlayerId(playerId);
     
-    console.log("Current Player ID is: ", currentPlayerId);
     const partySocket = new PartySocket({
       host,
       room: "my-room",
