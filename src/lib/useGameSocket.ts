@@ -53,7 +53,7 @@ export default function useGameSocket(session?: AuthSession) {
     console.log("CONNECTING TO SOCKET");
     const host =
       process.env.NODE_ENV === "production"
-        ? "snatch-party.shilohgreen.partykit.dev"
+        ? "https://snatch-party.shilohgreen.partykit.dev"
         : "localhost:1999";
 
     // Check if session exists
