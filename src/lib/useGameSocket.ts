@@ -77,10 +77,10 @@ export default function useGameSocket(session?: AuthSession) {
 
     let userName;
 
-    if (session?.user) {
+    if (session.user) {
       userName = session.user.name;
     } else {
-      userName = "Anonymous";
+      return
     }
 
     setPlayerName(userName);
