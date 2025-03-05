@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type PartySocket from "partysocket";
+import useGameSocket from "../lib/useGameSocket";
 
 interface ChatMessage {
   id: string;
@@ -20,6 +21,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const { sendMessage } = useGameSocket();
 
   useEffect(() => {
     if (!socket) return;
@@ -48,16 +50,11 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
     return () => socket.removeEventListener("message", handleMessage);
   }, [socket]);
 
-  const sendMessage = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!socket || !inputText.trim()) return;
-
-    socket.send(
-      JSON.stringify({
-        type: "chat",
-        text: inputText.trim(),
-      }),
-    );
+    if (!inputText.trim()) return;
+    
+    sendMessage(inputText);
     setInputText("");
   };
 
@@ -79,7 +76,7 @@ export default function Chat({ socket, currentPlayerId }: ChatProps) {
         ))}
       </div>
 
-      <form onSubmit={sendMessage} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
           value={inputText}

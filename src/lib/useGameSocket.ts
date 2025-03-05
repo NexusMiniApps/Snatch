@@ -150,6 +150,15 @@ export default function useGameSocket(session?: AuthSession) {
     }
   };
 
+  const sendMessage = (message: string) => {
+    if (socket && message.trim()) {
+      socket.send(JSON.stringify({
+        type: "chat",
+        text: message.trim(),
+      }));
+    }
+  };
+
   return {
     socket,
     currentPlayerCount,
@@ -159,5 +168,6 @@ export default function useGameSocket(session?: AuthSession) {
     playerName,
     updatePlayerName,
     incrementScore,
+    sendMessage,
   };
 }
