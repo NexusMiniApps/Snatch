@@ -170,6 +170,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       {/* Show Info View */}
       {activeTab === "info" && eventData && (
         <InfoView
+          players={players}
           palette={palette}
           onTimeUp={handleTimeUp}
           eventData={eventData}

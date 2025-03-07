@@ -151,6 +151,7 @@ export default function useGameSocket(session?: AuthSession) {
     });
 
     setSocket(partySocket);
+    
     return () => {
       console.log("CLOSING SOCKET");
       partySocket.close();

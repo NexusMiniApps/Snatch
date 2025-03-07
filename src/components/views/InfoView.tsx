@@ -5,7 +5,7 @@ import { IoTime } from "react-icons/io5";
 import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
 import { type EventData } from "~/app/coffee/CoffeeEvent";
-import useGameSocket from "~/lib/useGameSocket";
+import { PlayerData } from "~/lib/useGameSocket";
 
 interface InfoViewProps {
   palette: {
@@ -13,11 +13,11 @@ interface InfoViewProps {
   };
   onTimeUp: () => void;
   eventData: EventData;
+  players: PlayerData[];
 }
 
-export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
+export function InfoView({ palette, onTimeUp, eventData, players }: InfoViewProps) {
   // Use the useGameSocket hook to get players
-  const { players } = useGameSocket(); // Get players from the hook
 
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
