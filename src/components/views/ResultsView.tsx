@@ -4,6 +4,8 @@ import LeaderboardTable from "~/components/ui/LeaderboardTable";
 import { type PlayerData } from "~/components/ui/Leaderboard";
 import Chat from "~/components/Chat";
 import type PartySocket from "partysocket";
+import { ChatMessage } from "~/lib/useGameSocket";
+
 interface ResultsViewProps {
   palette: {
     lightMuted: string;
@@ -12,10 +14,13 @@ interface ResultsViewProps {
     darkVibrant: string;
     muted: string;
     vibrant: string;
+
   };
   resultsPlayers: PlayerData[];
   socket: PartySocket | null;
   currentPlayerId: string;
+  messages: ChatMessage[];
+  sendMessage: (message: string) => void;
   // eventId: string;
 }
 
@@ -24,6 +29,8 @@ export function ResultsView({
   resultsPlayers,
   socket,
   currentPlayerId,
+  messages,
+  sendMessage,
   // eventId,
 }: ResultsViewProps) {
   // const [fetchedPlayers, setFetchedPlayers] = useState<PlayerData[]>([]);
@@ -131,7 +138,7 @@ export function ResultsView({
       </section>
 
       <div className="custom-box z-10 flex w-full max-w-96 flex-col items-center">
-        <Chat socket={socket} currentPlayerId={currentPlayerId} />
+        <Chat socket={socket} currentPlayerId={currentPlayerId} messages={messages} sendMessage={sendMessage} />
       </div>
 
       <section className="relative flex w-full max-w-96 flex-col">

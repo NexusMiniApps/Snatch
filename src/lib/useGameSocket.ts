@@ -36,12 +36,20 @@ export interface PlayerData {
   score: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  sender: string;
+  text: string;
+  timestamp: number;
+}
+
 export default function useGameSocket(session?: AuthSession) {
   const [socket, setSocket] = useState<PartySocket | null>(null);
   const [currentPlayerCount, setCurrentPlayerCount] = useState(0);
   const [currentPlayerId, setCurrentPlayerId] = useState<string>("");
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [playerName, setPlayerName] = useState<string>("BULLSHIT");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
 
@@ -147,6 +155,10 @@ export default function useGameSocket(session?: AuthSession) {
             setPlayerName(currentPlayer.name);
           }
         }
+      } else if (data.type === "chat") {
+        if ('message' in data && data.message) {
+          setMessages((prev) => [...prev, data.message as ChatMessage]);
+        }
       }
     });
 
@@ -190,5 +202,6 @@ export default function useGameSocket(session?: AuthSession) {
     updatePlayerName,
     incrementScore,
     sendMessage,
+    messages,
   };
 }

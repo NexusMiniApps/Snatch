@@ -7,7 +7,7 @@ import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
 import { type EventData } from "~/app/coffee/CoffeeEvent";
-
+import { ChatMessage } from "~/lib/useGameSocket";
 interface GameViewProps {
   onGameComplete: () => void;
   socket: PartySocket | null;
@@ -19,9 +19,12 @@ interface GameViewProps {
   palette: { lightMuted: string };
   snatchStartTime: Date;
   eventData: EventData;
+  messages: ChatMessage[];
+  sendMessage: (message: string) => void;
 }
 
 export function GameView({
+  messages,
   onGameComplete,
   socket,
   currentPlayerCount,
@@ -31,6 +34,7 @@ export function GameView({
   isGameOver,
   palette,
   snatchStartTime,
+  sendMessage,
 }: GameViewProps) {
   // Initialize isGameStarted based on current time vs snatch time
   const [isGameStarted, setIsGameStarted] = useState(
@@ -169,6 +173,8 @@ export function GameView({
           </>
         ) : (
           <ResultsView
+            sendMessage={sendMessage}
+            messages={messages}
             palette={{
               lightMuted: palette.lightMuted,
               lightVibrant: palette.lightMuted, // Fallback to lightMuted

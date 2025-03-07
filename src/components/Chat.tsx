@@ -3,52 +3,25 @@
 
 import { useState, useEffect, useRef } from "react";
 import type PartySocket from "partysocket";
-import useGameSocket from "../lib/useGameSocket";
-
-interface ChatMessage {
-  id: string;
-  sender: string;
-  text: string;
-  timestamp: number;
-}
+import useGameSocket, { ChatMessage } from "../lib/useGameSocket";
 
 interface ChatProps {
   socket: PartySocket | null;
   currentPlayerId: string;
+  messages: ChatMessage[];
+  sendMessage: (message: string) => void;
 }
 
-export default function Chat({ socket, currentPlayerId }: ChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export default function Chat({ socket, currentPlayerId, messages, sendMessage }: ChatProps) {
   const [inputText, setInputText] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const { sendMessage } = useGameSocket();
 
+  // Auto-scroll effect
   useEffect(() => {
-    if (!socket) return;
-    const handleMessage = (event: MessageEvent<string>) => {
-      try {
-        const data = JSON.parse(event.data) as {
-          type: string;
-          message: ChatMessage;
-        };
-        if (data.type === "chat") {
-          setMessages((prev) => [...prev, data.message]);
-          // Scroll chat container instead of entire page
-          setTimeout(() => {
-            if (chatContainerRef.current) {
-              chatContainerRef.current.scrollTop =
-                chatContainerRef.current.scrollHeight;
-            }
-          }, 100);
-        }
-      } catch (err) {
-        console.error("Failed to parse message:", err);
-      }
-    };
-
-    socket.addEventListener("message", handleMessage);
-    return () => socket.removeEventListener("message", handleMessage);
-  }, [socket]);
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

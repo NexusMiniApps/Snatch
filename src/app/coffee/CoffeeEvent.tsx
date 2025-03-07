@@ -48,6 +48,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     currentPlayerId,
     players,
     setCurrentPlayerCount,
+    messages,
+    sendMessage,
   } = useGameSocket(session);
 
   const eventId = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b"; // Make sure this is correct
@@ -182,6 +184,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         !hasSnatchTimePassed &&
         eventData && (
           <GameView
+            sendMessage={sendMessage}
+            messages={messages}
             socket={socket}
             currentPlayerCount={currentPlayerCount}
             currentPlayerId={currentPlayerId}
@@ -197,6 +201,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       {/* Show Results View */}
       {activeTab === "results" && eventData && (
         <ResultsView
+          sendMessage={sendMessage}
+          messages={messages}
           palette={palette}
           resultsPlayers={players}
           socket={socket}
