@@ -35,7 +35,7 @@ import prisma from '~/server/db/client';
 
 interface UserScore {
   userId: string;
-  score: number;
+  scoreStr: string;
   eventId: string;
 }
 
@@ -45,13 +45,24 @@ interface UserScore {
 //   error?: string;
 // }
 
+function serializeBigInts(obj: any): any {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    acc[key] = typeof value === 'bigint' ? value.toString() : value;
+    return acc;
+  }, {} as Record<string, any>);
+}
+
 export async function POST(request: Request) {
   try {
-    const { eventId, userId, score } = (await request.json()) as UserScore;
+    const { eventId, userId, scoreStr } = (await request.json()) as UserScore;
 
-    console.log("eventId", eventId);
-    console.log("userId", userId);
-    console.log("score", score);
+    console.log("eventId", eventId, typeof eventId);
+    console.log("userId", userId, typeof userId);
+    console.log("scoreStr", scoreStr, typeof scoreStr);
+
+    // Convert score from string to number
+    const score = parseInt(scoreStr, 10);
+    console.log("score", score, typeof score);
 
     if (!eventId || !userId || score === undefined) {
       return NextResponse.json(
@@ -86,7 +97,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(eventUserScore, { status: 200 });
+    return NextResponse.json(serializeBigInts(eventUserScore), { status: 200 });
   } catch (error) {
     console.error('Error while updating score:', {
       message: error instanceof Error ? error.message : error,

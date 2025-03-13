@@ -34,6 +34,7 @@ export function GameView({
   isGameOver,
   palette,
   snatchStartTime,
+  eventData,
   sendMessage,
 }: GameViewProps) {
   // Initialize isGameStarted based on current time vs snatch time
@@ -48,6 +49,48 @@ export function GameView({
   });
   const [displaySeconds, setDisplaySeconds] = useState(30);
   const [isActive, setIsActive] = useState(false);
+  const [postingScores, setPostingScores] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
+
+  const postScoresToDatabase = async () => {
+      setPostingScores(true);
+      setPostError(null);
+      try {
+        const requests = players.map((player) =>
+          fetch("/api/eventUserScores", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              eventId: eventData.id,
+              userId: player.id,
+              scoreStr: player.score.toString(),
+            }),
+          })
+        );
+  
+        const responses = await Promise.all(requests);
+  
+        const failedResponses = responses.filter((res) => !res.ok);
+        if (failedResponses.length > 0) {
+          throw new Error(`Failed to post scores for ${failedResponses.length} players.`);
+        }
+  
+        console.log("All scores successfully posted to the database.");
+      } catch (error: unknown) {
+
+        if (error instanceof Error) {
+          console.error("Error posting scores:", error.message);
+          setPostError(error.message);
+        } else {
+          console.error("An unexpected error occurred while posting scores.");
+          setPostError("An unexpected error occurred.");
+        }
+      } finally {
+        setPostingScores(false);
+      }
+    };
 
   // Auto-start game when snatch time begins
   useEffect(() => {
@@ -91,6 +134,7 @@ export function GameView({
         console.log("Time difference was:", timeDiff);
         setGameOver(true);
         onGameComplete();
+        postScoresToDatabase();
       }
     };
 
