@@ -39,17 +39,41 @@ interface UserScore {
   eventId: string;
 }
 
-// interface EventUserScoresResponse {
-//   success: boolean;
-//   data?: UserScore[];
-//   error?: string;
-// }
+type JsonValue = 
+  | string 
+  | number 
+  | boolean 
+  | null 
+  | JsonValue[] 
+  | { [key: string]: JsonValue };
 
-function serializeBigInts(obj: any): any {
+interface SerializableObject {
+  [key: string]: JsonValue | bigint | Date | SerializableObject | SerializableObject[];
+}
+
+function serializeBigInts(obj: SerializableObject): Record<string, JsonValue> {
   return Object.entries(obj).reduce((acc, [key, value]) => {
-    acc[key] = typeof value === 'bigint' ? value.toString() : value;
+    if (typeof value === 'bigint') {
+      acc[key] = value.toString();
+    } else if (value instanceof Date) {
+      acc[key] = value.toISOString();
+    } else if (value !== null && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        acc[key] = value.map(item => 
+          typeof item === 'object' && item !== null 
+            ? serializeBigInts(item as SerializableObject) 
+            : typeof item === 'bigint' 
+              ? (item as bigint).toString() 
+              : item as JsonValue
+        );
+      } else {
+        acc[key] = serializeBigInts(value as SerializableObject);
+      }
+    } else {
+      acc[key] = value as JsonValue;
+    }
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, JsonValue>);
 }
 
 export async function POST(request: Request) {

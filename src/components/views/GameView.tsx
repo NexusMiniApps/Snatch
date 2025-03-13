@@ -134,7 +134,7 @@ export function GameView({
         console.log("Time difference was:", timeDiff);
         setGameOver(true);
         onGameComplete();
-        postScoresToDatabase();
+        void postScoresToDatabase();
       }
     };
 
