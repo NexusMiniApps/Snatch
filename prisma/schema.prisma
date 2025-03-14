@@ -15,35 +15,38 @@ datasource db {
 }
 
 model User {
-  id              String            @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phoneNo         BigInt            @unique
-  countryCode     BigInt
-  name            String
-  verified        Boolean
-  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
-  ownedEvents     Event[]           @relation("EventOwner")
-  joinedEvents    Event[]           @relation("EventParticipants")
-  eventUserScores EventUserScores[]
-  sessions        UserSessions[]
+  id                String              @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneNo           BigInt              @unique
+  teleUsername      String?
+  countryCode       BigInt
+  name              String
+  verified          Boolean
+  createdAt         DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime            @updatedAt @db.Timestamptz(6)
+  ownedEvents       Event[]             @relation("EventOwner")
+  joinedEvents      Event[]             @relation("EventParticipants")
+  eventUserScores   EventUserScores[]
+  sessions          UserSessions[]
+  EventParticipants EventParticipants[]
 
   @@unique([phoneNo, countryCode])
 }
 
 model Event {
-  id              String            @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String
-  description     String?
-  status          EventStatus
-  startTime       DateTime          @db.Timestamptz(6)
-  snatchStartTime DateTime          @db.Timestamptz(6)
-  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
-  ownerId         String            @db.Uuid
-  owner           User              @relation("EventOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  participants    User[]            @relation("EventParticipants")
-  eventUserScores EventUserScores[]
-  location        String?
+  id                String              @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String
+  description       String?
+  status            EventStatus
+  startTime         DateTime            @db.Timestamptz(6)
+  snatchStartTime   DateTime            @db.Timestamptz(6)
+  createdAt         DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime            @updatedAt @db.Timestamptz(6)
+  ownerId           String              @db.Uuid
+  owner             User                @relation("EventOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  participants      User[]              @relation("EventParticipants")
+  eventUserScores   EventUserScores[]
+  location          String?
+  EventParticipants EventParticipants[]
 }
 
 model EventUserScores {
@@ -55,6 +58,21 @@ model EventUserScores {
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
   event     Event    @relation(fields: [eventId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, userId], name: "eventId_userId")
+}
+
+model EventParticipants {
+  eventParticipantId String   @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId            String   @db.Uuid
+  userId             String   @db.Uuid
+  hasPreReg          Boolean
+  hasJoinedGiveaway  Boolean
+  ticketNumber       String?
+  createdAt          DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @db.Timestamptz(6)
+  event              Event    @relation(fields: [eventId], references: [id])
+  user               User     @relation(fields: [userId], references: [id])
 
   @@unique([eventId, userId], name: "eventId_userId")
 }

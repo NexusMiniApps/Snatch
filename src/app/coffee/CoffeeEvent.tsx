@@ -52,7 +52,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     sendMessage,
   } = useGameSocket(session);
 
-  const eventId = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b"; // Make sure this is correct
+  const eventId = "3dffa111-4981-43ac-bb0a-a82de560ea47"; // Make sure this is correct
 
   // Add loading state check
   useEffect(() => {
@@ -78,6 +78,39 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
 
     void fetchEvent();
   }, [eventId]);
+
+  useEffect(() => {
+    async function registerParticipant() {
+      if (session?.user?.id && eventData?.id) {
+        try {
+          const response = await fetch('/api/eventParticipant', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              eventId: eventData.id,
+              userId: session.user.id,
+              isPreReg: false, 
+              hasJoinedGiveaway: false,
+            }),
+          });
+  
+          if (!response.ok) {
+            console.error('Failed to register participant:', await response.text());
+          } else {
+            console.log('Successfully registered as participant');
+          }
+        } catch (error) {
+          console.error('Error registering participant:', error);
+        }
+      }
+    }
+  
+    if (eventData && session?.user) {
+      void registerParticipant();
+    }
+  }, [eventData, session?.user]);
 
   const hasSnatchTimePassed = eventData
     ? new Date(eventData.snatchStartTime).getTime() + 30000 < Date.now()
