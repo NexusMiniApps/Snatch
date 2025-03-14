@@ -44,7 +44,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [socialAFollowed, setSocialAFollowed] = useState(false);
   const [socialBFollowed, setSocialBFollowed] = useState(false);
 
-  const palette = useVibrantPalette("/images/image.webp");
+  const palette = useVibrantPalette("/images/pokemon.jpg");
   const {
     socket,
     currentPlayerCount,

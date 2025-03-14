@@ -38,8 +38,8 @@ export function InfoView({
 
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/image.webp`
-    : "/images/image.webp";
+    ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/pokemon.jpg`
+    : "/images/pokemon.jpg";
 
   const eventSnatchStartTime = eventData.snatchStartTime;
   const eventStartTime = eventData.startTime;
@@ -70,9 +70,9 @@ export function InfoView({
     if (!session?.user?.id || !eventData?.id) {
       throw new Error("User or event data missing");
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       // Try to generate a unique ticket number
       const response = await fetch("/api/generateTicket", {
@@ -85,13 +85,12 @@ export function InfoView({
           userId: session.user.id,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to generate ticket");
       }
-      const data = await response.json() as TicketResponse;
+      const data = (await response.json()) as TicketResponse;
       return data.ticketNumber;
-
     } finally {
       setIsLoading(false);
     }
@@ -102,13 +101,13 @@ export function InfoView({
       // Handle not logged in
       return;
     }
-    
+
     try {
       if (!ticketNumber) {
         // Generate new ticket number
         const newTicket = await generateTicketNumber();
         setTicketNumber(newTicket);
-        
+
         // Update DB with the ticket number
         await fetch("/api/eventParticipant", {
           method: "POST",
@@ -123,7 +122,7 @@ export function InfoView({
             ticketNumber: newTicket,
           }),
         });
-        
+
         setHasJoined(true);
         setShowTicketDialog(true);
       } else {
@@ -139,12 +138,14 @@ export function InfoView({
   useEffect(() => {
     async function fetchUserTicket() {
       if (!session?.user?.id || !eventData?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/eventParticipant?userId=${session.user.id}&eventId=${eventData.id}`);
-        
+        const response = await fetch(
+          `/api/eventParticipant?userId=${session.user.id}&eventId=${eventData.id}`,
+        );
+
         if (response.ok) {
-          const data = await response.json() as EventParticipantResponse;
+          const data = (await response.json()) as EventParticipantResponse;
           if (data.ticketNumber) {
             setTicketNumber(data.ticketNumber);
             setHasJoined(data.hasJoinedGiveaway);
@@ -154,18 +155,28 @@ export function InfoView({
         console.error("Error fetching ticket:", error);
       }
     }
-    
+
     void fetchUserTicket();
   }, [session?.user?.id, eventData?.id]);
 
   return (
     <div className="flex w-full flex-col items-center gap-y-4">
-      <section className="z-10 h-60 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
+      <section className="z-10 h-80 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
         <div className="relative h-full w-full rounded-xl">
           <Image
             className="rounded-lg object-cover"
             src={imageSlug}
-            alt="Brewed Coffee"
+            alt="Pokemon Booster Box"
+            fill
+          />
+        </div>
+      </section>
+      <section className="z-10 h-20 w-20 max-w-96 rounded-full border-2 border-solid border-black bg-white p-1 shadow-xl">
+        <div className="relative h-full w-full rounded-xl">
+          <Image
+            className="rounded-lg object-cover"
+            src="/images/profile.png"
+            alt="Pokemon Booster Box"
             fill
           />
         </div>
@@ -176,7 +187,7 @@ export function InfoView({
           style={{
             backgroundColor: palette.lightMuted,
           }}
-          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-4rem] rounded-xl border-2 border-black"
+          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-3.5rem] rounded-xl border-2 border-black"
         />
         <div className="z-10 flex w-full max-w-96 flex-col gap-y-4 px-2">
           <div className="w-full text-xl font-medium">{eventName}</div>
@@ -194,20 +205,26 @@ export function InfoView({
       </section>
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
-        <button 
+        <button
           className="custom-box w-full p-1 shadow-lg"
           onClick={handleJoinGiveaway}
           disabled={isLoading}
         >
           <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-3xl font-medium text-white">
-            {isLoading ? "Processing..." : hasJoined ? "Show My Ticket" : "Join the Giveaway!"}
+            {isLoading
+              ? "Processing..."
+              : hasJoined
+                ? "Show My Ticket"
+                : "Join the Giveaway!"}
           </div>
         </button>
-        
+
         {ticketNumber && (
           <div className="mt-3 text-center">
             <div className="text-md font-medium">Your Ticket Number</div>
-            <div className="text-3xl font-bold tracking-wider">{ticketNumber}</div>
+            <div className="text-3xl font-bold tracking-wider">
+              {ticketNumber}
+            </div>
           </div>
         )}
 
@@ -217,25 +234,29 @@ export function InfoView({
         </div>
       </section>
 
-    {/* Ticket Popup Dialog */}
-    {showTicketDialog && (
+      {/* Ticket Popup Dialog */}
+      {showTicketDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div 
+          <div
             id="ticket-popup"
             className="mx-4 max-w-md rounded-xl border-2 border-black bg-white p-8 shadow-lg"
           >
-            <h2 className="mb-4 text-center text-xl font-bold">Your Giveaway Ticket!</h2>
-            
+            <h2 className="mb-4 text-center text-xl font-bold">
+              Your Giveaway Ticket!
+            </h2>
+
             {ticketNumber && (
               <div className="flex flex-col items-center justify-center py-4">
                 <div className="text-md mb-2">Your unique ticket number is</div>
-                <div className="text-4xl font-bold tracking-wider">{ticketNumber}</div>
+                <div className="text-4xl font-bold tracking-wider">
+                  {ticketNumber}
+                </div>
                 <div className="mt-4 text-sm text-gray-600">
                   Keep this number for the lucky draw. Screenshot to be safe!
                 </div>
               </div>
             )}
-            
+
             <div className="mt-6 flex justify-center">
               <button
                 className="rounded-md bg-gray-800 px-4 py-2 text-white"
@@ -247,6 +268,6 @@ export function InfoView({
           </div>
         </div>
       )}
-</div>
+    </div>
   );
 }
