@@ -40,8 +40,11 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [eventData, setEventData] = useState<EventData | null>(null);
+  // Social media overlay states - moved from GameView
+  const [socialAFollowed, setSocialAFollowed] = useState(false);
+  const [socialBFollowed, setSocialBFollowed] = useState(false);
 
-  const palette = useVibrantPalette("/images/coffee.jpeg");
+  const palette = useVibrantPalette("/images/image.webp");
   const {
     socket,
     currentPlayerCount,
@@ -53,6 +56,15 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   } = useGameSocket(session);
 
   const eventId = "3dffa111-4981-43ac-bb0a-a82de560ea47"; // Make sure this is correct
+
+  // Handle social media link clicks - moved from GameView
+  const handleSocialAClick = () => {
+    setSocialAFollowed(true);
+  };
+
+  const handleSocialBClick = () => {
+    setSocialBFollowed(true);
+  };
 
   // Add loading state check
   useEffect(() => {
@@ -83,30 +95,33 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     async function registerParticipant() {
       if (session?.user?.id && eventData?.id) {
         try {
-          const response = await fetch('/api/eventParticipant', {
-            method: 'POST',
+          const response = await fetch("/api/eventParticipant", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               eventId: eventData.id,
               userId: session.user.id,
-              isPreReg: false, 
+              isPreReg: false,
               hasJoinedGiveaway: false,
             }),
           });
-  
+
           if (!response.ok) {
-            console.error('Failed to register participant:', await response.text());
+            console.error(
+              "Failed to register participant:",
+              await response.text(),
+            );
           } else {
-            console.log('Successfully registered as participant');
+            console.log("Successfully registered as participant");
           }
         } catch (error) {
-          console.error('Error registering participant:', error);
+          console.error("Error registering participant:", error);
         }
       }
     }
-  
+
     if (eventData && session?.user) {
       void registerParticipant();
     }
@@ -121,7 +136,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     if (hasSnatchTimePassed) {
       console.log("Snatch time plus one minute has passed, setting game over");
       setIsGameOver(true);
-      setActiveTab("results"); // Automatically switch to results tab
+      setActiveTab("info"); // Automatically switch to results tab
     }
   }, [hasSnatchTimePassed]);
 
@@ -151,17 +166,17 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const handleTimeUp = () => {
     console.log("Time up handler called");
     if (hasSnatchTimePassed) {
-      setActiveTab("results");
+      setActiveTab("info");
       console.log("Setting active tab to results");
     } else {
-      setActiveTab("game");
+      setActiveTab("info");
     }
   };
 
   const handleGameComplete = () => {
     console.log("Game complete handler called");
     setIsGameOver(true);
-    setActiveTab("results");
+    setActiveTab("info");
   };
 
   // Get available tabs based on game state and snatch time
@@ -184,7 +199,59 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       }}
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
-      {/* Tab Navigation */}
+      {/* Social Media Overlay - moved from GameView */}
+      {(!socialAFollowed || !socialBFollowed) && (
+        <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-md">
+          <div className="flex w-full max-w-md flex-col items-center rounded-xl bg-white bg-opacity-90 p-8 shadow-2xl">
+            <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">
+              Follow Our Socials!
+            </h2>
+            <p className="mb-6 text-center text-gray-600">
+              Follow our social media accounts to stay updated with the latest
+              games and events!
+            </p>
+            <div className="flex w-full flex-col gap-4">
+              {!socialAFollowed && (
+                <div className="custom-box flex w-full p-1">
+                  <a
+                    href="https://t.me/huatzard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleSocialAClick}
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Telegram
+                  </a>
+                </div>
+              )}
+              {!socialBFollowed && (
+                <div className="custom-box flex w-full p-1">
+                  <a
+                    href="https://www.tiktok.com/@huatzard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleSocialBClick}
+                    className="flex-1 rounded-lg bg-purple-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  >
+                    Tiktok
+                  </a>
+                </div>
+              )}
+            </div>
+            {(socialAFollowed || socialBFollowed) && (
+              <p className="mt-4 text-center text-sm text-green-600">
+                {socialAFollowed && socialBFollowed
+                  ? "Thank you for following both accounts!"
+                  : socialAFollowed
+                    ? "Thanks for following on Telegram!"
+                    : "Thanks for following on Tiktok!"}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab Navigation
       <div className="z-20 flex w-full max-w-96 gap-2">
         {availableTabs.map((tab) => (
           <button
@@ -199,8 +266,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
             {tab}
           </button>
         ))}
-      </div>
-
+      </div> */}
       {/* Views */}
       {/* Show Info View */}
       {activeTab === "info" && eventData && (
@@ -229,6 +295,9 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
             palette={palette}
             snatchStartTime={new Date(eventData.snatchStartTime)}
             eventData={eventData}
+            // Pass the social media states as props to GameView
+            socialAFollowed={socialAFollowed}
+            socialBFollowed={socialBFollowed}
           />
         )}
       {/* Show Results View */}
