@@ -25,6 +25,10 @@ interface InfoViewProps {
   eventData: EventData;
   players: PlayerData[];
   session: AuthSession;
+  ticketNumber: string | null;
+  hasJoined: boolean;
+  isLoading: boolean;
+  handleJoinGiveaway: () => Promise<void>;
 }
 
 export function InfoView({
@@ -33,6 +37,10 @@ export function InfoView({
   eventData,
   players,
   session,
+  ticketNumber,
+  hasJoined,
+  isLoading,
+  handleJoinGiveaway,
 }: InfoViewProps) {
   // Use the useGameSocket hook to get players
 
@@ -61,107 +69,22 @@ export function InfoView({
     .toLowerCase(); // Make am/pm lowercase
 
   const [showTicketDialog, setShowTicketDialog] = useState(false);
-  const [ticketNumber, setTicketNumber] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasJoined, setHasJoined] = useState(false);
 
-  // Generate a random 6-digit number
-  const generateTicketNumber = async (): Promise<string> => {
-    if (!session?.user?.id || !eventData?.id) {
-      throw new Error("User or event data missing");
-    }
+  console.log("hasJoined", hasJoined);
+  console.log("ticketNumber", ticketNumber);
+  
 
-    setIsLoading(true);
-
-    try {
-      // Try to generate a unique ticket number
-      const response = await fetch("/api/generateTicket", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          eventId: eventData.id,
-          userId: session.user.id,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate ticket");
-      }
-      const data = (await response.json()) as TicketResponse;
-      return data.ticketNumber;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleJoinGiveaway = async () => {
-    if (!session?.user?.id) {
-      // Handle not logged in
-      return;
-    }
-
-    try {
-      if (!ticketNumber) {
-        // Generate new ticket number
-        const newTicket = await generateTicketNumber();
-        setTicketNumber(newTicket);
-
-        // Update DB with the ticket number
-        await fetch("/api/eventParticipant", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            eventId: eventData.id,
-            userId: session.user.id,
-            isPreReg: true,
-            hasJoinedGiveaway: true,
-            ticketNumber: newTicket,
-          }),
-        });
-
-        setHasJoined(true);
-        setShowTicketDialog(true);
-      } else {
-        // Already has a ticket, just show it
-        setShowTicketDialog(true);
-      }
-    } catch (error) {
-      console.error("Error joining giveaway:", error);
-    }
-  };
-
-  // Fetch user's existing ticket on component mount
-  useEffect(() => {
-    async function fetchUserTicket() {
-      if (!session?.user?.id || !eventData?.id) return;
-
-      try {
-        const response = await fetch(
-          `/api/eventParticipant?userId=${session.user.id}&eventId=${eventData.id}`,
-        );
-
-        if (response.ok) {
-          const data = (await response.json()) as EventParticipantResponse;
-
-          // Only set the ticket number if it exists
-          if (data.ticketNumber) {
-            setTicketNumber(data.ticketNumber);
-            setHasJoined(data.hasJoinedGiveaway);
-            console.log("Ticket number:", data.ticketNumber);
-            console.log("Has joined:", data.hasJoinedGiveaway);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching ticket:", error);
-      }
-    }
-
-    void fetchUserTicket();
-  }, [session?.user?.id, eventData?.id]);
+  // // Handle showing the ticket dialog when the button is clicked
+  // const handleShowTicket = async () => {
+  //   // If already joined, just show the dialog
+  //   if (hasJoined && ticketNumber) {
+  //     setShowTicketDialog(true);
+  //   } else {
+  //     // Otherwise, join the giveaway and then show the dialog
+  //     await handleJoinGiveaway();
+  //     setShowTicketDialog(true);
+  //   }
+  // };
 
   return (
     <div className="flex w-full flex-col items-center gap-y-4">
@@ -212,11 +135,11 @@ export function InfoView({
           onClick={handleJoinGiveaway}
           className="custom-box z-10 w-full p-1"
         >
-          {hasJoined ? (
+          {/* {hasJoined ? (
             <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-3xl font-medium text-white">
               Join the Giveaway!
             </div>
-          ) : (
+          ) : ( */}
             <div className="flex w-full items-center justify-between rounded-xl bg-gray-100">
               <div className="text-md flex flex-1 justify-center font-medium">
                 Your Ticket Number:
@@ -225,22 +148,18 @@ export function InfoView({
                 {ticketNumber}
               </div>
             </div>
-          )}
+          {/* )} */}
         </button>
       </section>
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
         {/* <button
           className="custom-box w-full p-1 shadow-lg"
-          onClick={handleJoinGiveaway}
+          onClick={handleShowTicket}
           disabled={isLoading}
         >
           <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-3xl font-medium text-white">
-            {isLoading
-              ? "Processing..."
-              : hasJoined
-                ? "Show My Ticket"
-                : "Join the Giveaway!"}
+            {"Show My Ticket"}
           </div>
         </button>
 
@@ -259,7 +178,7 @@ export function InfoView({
         </div>
       </section>
 
-      {/* Ticket Popup Dialog */}
+      {/* Ticket Popup Dialog
       {showTicketDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div
@@ -292,7 +211,7 @@ export function InfoView({
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
