@@ -165,11 +165,13 @@ export function GameView({
   return (
     <div className="flex w-full max-w-96 flex-col items-center gap-y-4">
       <div className="relative h-full w-full">
+
+
         {!gameOver ? (
           <>
             {!isGameStarted &&
               new Date(snatchStartTime).getTime() > Date.now() && (
-                <div className="fixed bottom-0 left-0 right-0 top-16 z-20 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
+                <div className="fixed bottom-0 left-0 right-0 top-16 z-20 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
                   <div className="flex w-full max-w-96 items-center justify-center px-4">
                     <CountdownDisplay
                       countdownDate={snatchStartTime}
