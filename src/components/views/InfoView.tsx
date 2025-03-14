@@ -20,7 +20,6 @@ interface EventParticipantResponse {
 interface InfoViewProps {
   palette: {
     lightMuted: string;
-    darkMuted: string;
   };
   onTimeUp: () => void;
   eventData: EventData;
