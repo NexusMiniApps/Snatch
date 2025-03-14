@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type PartySocket from "partysocket";
-import useGameSocket, { ChatMessage } from "../lib/useGameSocket";
+import { ChatMessage } from "../lib/useGameSocket";
 
 interface ChatProps {
   socket: PartySocket | null;
@@ -12,21 +12,27 @@ interface ChatProps {
   sendMessage: (message: string) => void;
 }
 
-export default function Chat({ socket, currentPlayerId, messages, sendMessage }: ChatProps) {
+export default function Chat({
+  socket,
+  currentPlayerId,
+  messages,
+  sendMessage,
+}: ChatProps) {
   const [inputText, setInputText] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll effect
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
-    
+
     sendMessage(inputText);
     setInputText("");
   };
@@ -34,19 +40,25 @@ export default function Chat({ socket, currentPlayerId, messages, sendMessage }:
   return (
     <div className="flex h-64 w-full flex-col rounded-lg bg-white p-4">
       <div ref={chatContainerRef} className="mb-4 flex-1 overflow-y-auto">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`mb-2 rounded-lg p-2 ${
-              msg.sender === currentPlayerId
-                ? "ml-auto bg-blue-100"
-                : "bg-gray-100"
-            }`}
-          >
-            <div className="text-sm font-semibold">{msg.sender}</div>
-            <div>{msg.text}</div>
+        {messages.length > 0 ? (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`mb-2 rounded-lg p-2 ${
+                msg.sender === currentPlayerId
+                  ? "ml-auto bg-blue-100"
+                  : "bg-gray-100"
+              }`}
+            >
+              <div className="text-sm font-semibold">{msg.sender}</div>
+              <div>{msg.text}</div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center italic text-gray-500">
+            No messages yet
           </div>
-        ))}
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="flex gap-2">
@@ -60,6 +72,7 @@ export default function Chat({ socket, currentPlayerId, messages, sendMessage }:
         <button
           type="submit"
           className="ml-2 rounded-lg bg-gray-800 px-4 py-2 text-white"
+          disabled={!socket}
         >
           Send
         </button>

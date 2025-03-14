@@ -41,7 +41,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [error, setError] = useState<string | null>(null);
   const [eventData, setEventData] = useState<EventData | null>(null);
 
-  const palette = useVibrantPalette("/images/coffee.jpeg");
+  const palette = useVibrantPalette("/images/image.webp");
   const {
     socket,
     currentPlayerCount,
@@ -52,7 +52,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     sendMessage,
   } = useGameSocket(session);
 
-  const eventId = "d6c0f003-e5cf-4835-88b0-debd2cc48d1b"; // Make sure this is correct
+  const eventId = "3dffa111-4981-43ac-bb0a-a82de560ea47"; // Make sure this is correct
 
   // Add loading state check
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     if (hasSnatchTimePassed) {
       console.log("Snatch time plus one minute has passed, setting game over");
       setIsGameOver(true);
-      setActiveTab("results"); // Automatically switch to results tab
+      setActiveTab("info");
     }
   }, [hasSnatchTimePassed]);
 
@@ -118,18 +118,18 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const handleTimeUp = () => {
     console.log("Time up handler called");
     if (hasSnatchTimePassed) {
-      setActiveTab("results");
+      setActiveTab("info");
       console.log("Setting active tab to results");
     } else {
-      setActiveTab("game");
+      setActiveTab("info");
     }
   };
 
-  const handleGameComplete = () => {
-    console.log("Game complete handler called");
-    setIsGameOver(true);
-    setActiveTab("results");
-  };
+  // const handleGameComplete = () => {
+  //   console.log("Game complete handler called");
+  //   setIsGameOver(true);
+  //   setActiveTab("results");
+  // };
 
   // Get available tabs based on game state and snatch time
   const availableTabs: TabType[] =
@@ -151,7 +151,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       }}
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
-      {/* Tab Navigation */}
+      {/* Tab Navigation
       <div className="z-20 flex w-full max-w-96 gap-2">
         {availableTabs.map((tab) => (
           <button
@@ -166,7 +166,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
             {tab}
           </button>
         ))}
-      </div>
+      </div> */}
 
       {/* Views */}
       {/* Show Info View */}
@@ -179,7 +179,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         />
       )}
       {/* Show Game View */}
-      {activeTab === "game" &&
+      {/* {activeTab === "game" &&
         !isGameOver &&
         !hasSnatchTimePassed &&
         eventData && (
@@ -197,9 +197,9 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
             snatchStartTime={new Date(eventData.snatchStartTime)}
             eventData={eventData}
           />
-        )}
+        )} */}
       {/* Show Results View */}
-      {activeTab === "results" && eventData && (
+      {/* {activeTab === "results" && eventData && (
         <ResultsView
           sendMessage={sendMessage}
           messages={messages}
@@ -208,7 +208,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           socket={socket}
           currentPlayerId={currentPlayerId}
         />
-      )}
+      )} */}
     </main>
   );
 }

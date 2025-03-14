@@ -10,19 +10,25 @@ import { PlayerData } from "~/lib/useGameSocket";
 interface InfoViewProps {
   palette: {
     lightMuted: string;
+    darkMuted: string;
   };
   onTimeUp: () => void;
   eventData: EventData;
   players: PlayerData[];
 }
 
-export function InfoView({ palette, onTimeUp, eventData, players }: InfoViewProps) {
+export function InfoView({
+  palette,
+  onTimeUp,
+  eventData,
+  players,
+}: InfoViewProps) {
   // Use the useGameSocket hook to get players
 
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/coffee.jpeg`
-    : "/images/coffee.jpeg";
+    ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/image.webp`
+    : "/images/image.webp";
   // const eventName = "Specialty Coffee Workshop";
   // const eventLocation = "SUTD";
   // const eventDate = "21st February, Friday";
@@ -51,7 +57,7 @@ export function InfoView({ palette, onTimeUp, eventData, players }: InfoViewProp
     .toLowerCase(); // Make am/pm lowercase
 
   return (
-    <div className="flex flex-col items-center gap-y-4">
+    <div className="flex w-full flex-col items-center gap-y-4">
       <section className="z-10 h-60 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
         <div className="relative h-full w-full rounded-xl">
           <Image
@@ -68,7 +74,7 @@ export function InfoView({ palette, onTimeUp, eventData, players }: InfoViewProp
           style={{
             backgroundColor: palette.lightMuted,
           }}
-          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-4rem] border-y-2 border-black"
+          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-4rem] rounded-xl border-2 border-black"
         />
         <div className="z-10 flex w-full max-w-96 flex-col gap-y-4 px-2">
           <div className="w-full text-xl font-medium">{eventName}</div>
@@ -86,17 +92,15 @@ export function InfoView({ palette, onTimeUp, eventData, players }: InfoViewProp
       </section>
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
-        <CountdownDisplay
-          countdownDate={eventSnatchStartTime}
-          onTimeUp={onTimeUp}
-          onDisplayClick={onTimeUp}
-          hasSnatchTimeEnded={
-            new Date(eventSnatchStartTime).getTime() + 30000 < Date.now()
-          }
-        />
-        <div className="px-2 py-4 text-lg font-light">
-          <span className="font-semibold">{players.length}</span> people
-          currently waiting here...
+        <button className="custom-box w-full p-1 shadow-lg">
+          <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-3xl font-medium text-white">
+            Join the Giveaway!
+          </div>
+        </button>
+
+        <div className="font-lights px-2 py-4 text-lg">
+          <span className="font-semibold">{players.length}</span> people have
+          joined...
         </div>
       </section>
     </div>
