@@ -207,30 +207,35 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
               Follow Our Socials!
             </h2>
             <p className="mb-6 text-center text-gray-600">
-              Follow our social media accounts to stay updated with the latest games and events!
+              Follow our social media accounts to stay updated with the latest
+              games and events!
             </p>
-            <div className="flex w-full flex-col gap-4 sm:flex-row">
+            <div className="flex w-full flex-col gap-4">
               {!socialAFollowed && (
-                <a
-                  href="https://t.me/huatzard"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handleSocialAClick}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Telegram
-                </a>
+                <div className="custom-box flex w-full p-1">
+                  <a
+                    href="https://t.me/huatzard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleSocialAClick}
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Telegram
+                  </a>
+                </div>
               )}
               {!socialBFollowed && (
-                <a
-                  href="https://www.tiktok.com/@huatzard"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handleSocialBClick}
-                  className="flex-1 rounded-lg bg-purple-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                >
-                  Tiktok
-                </a>
+                <div className="custom-box flex w-full p-1">
+                  <a
+                    href="https://www.tiktok.com/@huatzard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleSocialBClick}
+                    className="flex-1 rounded-lg bg-purple-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  >
+                    Tiktok
+                  </a>
+                </div>
               )}
             </div>
             {(socialAFollowed || socialBFollowed) && (
@@ -238,8 +243,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
                 {socialAFollowed && socialBFollowed
                   ? "Thank you for following both accounts!"
                   : socialAFollowed
-                  ? "Thanks for following on Telegram!"
-                  : "Thanks for following on Tiktok!"}
+                    ? "Thanks for following on Telegram!"
+                    : "Thanks for following on Tiktok!"}
               </p>
             )}
           </div>
