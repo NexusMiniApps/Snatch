@@ -23,6 +23,7 @@ export function LoginForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [telegramUsername, setTelegramUsername] = useState("");
   const [countryCode, setCountryCode] = useState(
     COUNTRY_CODES.find((code) => code.value === "+65")!.value,
   );
@@ -31,7 +32,7 @@ export function LoginForm() {
   const createUser = api.user.createUser.useMutation({
     onSuccess: (result: { sessionId: string; sessionExpiry: Date }) => {
       setSessionCookie(result.sessionId, result.sessionExpiry);
-      void router.push("/coffee");
+      void router.push("/giveaway");
       void router.refresh();
     },
   });
@@ -43,6 +44,7 @@ export function LoginForm() {
         name,
         phoneNo: phoneNumber,
         countryCode: countryCode,
+        teleUsername: telegramUsername,
         verified: false,
       });
 
@@ -78,8 +80,28 @@ export function LoginForm() {
         </div>
 
         <div className="flex flex-col">
+          <label htmlFor="telegramUsername" className="">
+            Telegram Username
+          </label>
+          <div className="flex">
+            <span className="flex items-center rounded-l-md border-2 border-r-0 border-black bg-gray-100 px-3 text-gray-500">
+              @
+            </span>
+            <input
+              id="telegramUsername"
+              type="text"
+              value={telegramUsername}
+              onChange={(e) => setTelegramUsername(e.target.value)}
+              required
+              className="w-full rounded-r-md border-2 border-black px-4 py-2 text-black"
+              placeholder="username"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col">
           <label htmlFor="phone" className="">
-            Phone Number
+            Phone Number (Required)
           </label>
           <div className="flex gap-2">
             <select

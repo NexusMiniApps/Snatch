@@ -44,6 +44,7 @@ export const userRouter = createTRPCRouter({
         name: z.string().min(1),
         phoneNo: z.string().min(1),
         countryCode: z.string().min(1),
+        teleUsername: z.string().optional(),
         verified: z.boolean().optional(),
       }),
     )
@@ -55,12 +56,14 @@ export const userRouter = createTRPCRouter({
         },
         update: {
           name: input.name,
+          teleUsername: input.teleUsername,
         },
         create: {
           phoneNo: BigInt(input.phoneNo),
           countryCode: BigInt(input.countryCode),
           name: input.name,
           verified: input.verified ?? false,
+          teleUsername: input.teleUsername ?? "",
         },
       });
 
