@@ -41,7 +41,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [error, setError] = useState<string | null>(null);
   const [eventData, setEventData] = useState<EventData | null>(null);
 
-  const palette = useVibrantPalette("/images/coffee.jpeg");
+  const palette = useVibrantPalette("/images/image.webp");
   const {
     socket,
     currentPlayerCount,
@@ -83,30 +83,33 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     async function registerParticipant() {
       if (session?.user?.id && eventData?.id) {
         try {
-          const response = await fetch('/api/eventParticipant', {
-            method: 'POST',
+          const response = await fetch("/api/eventParticipant", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               eventId: eventData.id,
               userId: session.user.id,
-              isPreReg: false, 
+              isPreReg: false,
               hasJoinedGiveaway: false,
             }),
           });
-  
+
           if (!response.ok) {
-            console.error('Failed to register participant:', await response.text());
+            console.error(
+              "Failed to register participant:",
+              await response.text(),
+            );
           } else {
-            console.log('Successfully registered as participant');
+            console.log("Successfully registered as participant");
           }
         } catch (error) {
-          console.error('Error registering participant:', error);
+          console.error("Error registering participant:", error);
         }
       }
     }
-  
+
     if (eventData && session?.user) {
       void registerParticipant();
     }
@@ -121,7 +124,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     if (hasSnatchTimePassed) {
       console.log("Snatch time plus one minute has passed, setting game over");
       setIsGameOver(true);
-      setActiveTab("results"); // Automatically switch to results tab
+      setActiveTab("info"); // Automatically switch to results tab
     }
   }, [hasSnatchTimePassed]);
 
@@ -151,17 +154,17 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const handleTimeUp = () => {
     console.log("Time up handler called");
     if (hasSnatchTimePassed) {
-      setActiveTab("results");
+      setActiveTab("info");
       console.log("Setting active tab to results");
     } else {
-      setActiveTab("game");
+      setActiveTab("info");
     }
   };
 
   const handleGameComplete = () => {
     console.log("Game complete handler called");
     setIsGameOver(true);
-    setActiveTab("results");
+    setActiveTab("info");
   };
 
   // Get available tabs based on game state and snatch time
@@ -184,7 +187,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       }}
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
-      {/* Tab Navigation */}
+      {/* Tab Navigation
       <div className="z-20 flex w-full max-w-96 gap-2">
         {availableTabs.map((tab) => (
           <button
@@ -199,8 +202,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
             {tab}
           </button>
         ))}
-      </div>
-
+      </div> */}
       {/* Views */}
       {/* Show Info View */}
       {activeTab === "info" && eventData && (
