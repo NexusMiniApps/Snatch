@@ -165,7 +165,7 @@ export function InfoView({
 
   return (
     <div className="flex w-full flex-col items-center gap-y-4">
-      <section className="z-10 h-80 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
+      <section className="z-10 h-64 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
         <div className="relative h-full w-full rounded-xl">
           <Image
             className="rounded-lg object-cover"
