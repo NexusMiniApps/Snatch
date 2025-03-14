@@ -4,8 +4,18 @@ import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
 import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
-import { type EventData } from "~/app/giveaway/CoffeeEvent";
+import { type AuthSession, type EventData } from "~/app/giveaway/CoffeeEvent";
 import { PlayerData } from "~/lib/useGameSocket";
+import { useEffect, useState } from "react";
+
+interface TicketResponse {
+  ticketNumber: string;
+}
+
+interface EventParticipantResponse {
+  ticketNumber: string;
+  hasJoinedGiveaway: boolean;
+}
 
 interface InfoViewProps {
   palette: {
@@ -14,6 +24,7 @@ interface InfoViewProps {
   onTimeUp: () => void;
   eventData: EventData;
   players: PlayerData[];
+  session: AuthSession;
 }
 
 export function InfoView({
@@ -21,6 +32,7 @@ export function InfoView({
   onTimeUp,
   eventData,
   players,
+  session,
 }: InfoViewProps) {
   // Use the useGameSocket hook to get players
 
@@ -28,13 +40,6 @@ export function InfoView({
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/image.webp`
     : "/images/image.webp";
-  // const eventName = "Specialty Coffee Workshop";
-  // const eventLocation = "SUTD";
-  // const eventDate = "21st February, Friday";
-  // const eventTime = "10:00am";
-  // const eventDescription =
-  //   "Learn how to make delicious filter coffee in this exclusive workshop (valued at $88)!";
-  // const countdownDate = "2025-02-21T00:00:00";
 
   const eventSnatchStartTime = eventData.snatchStartTime;
   const eventStartTime = eventData.startTime;
@@ -54,6 +59,104 @@ export function InfoView({
       hour12: true, // Enable 12-hour format with AM/PM
     })
     .toLowerCase(); // Make am/pm lowercase
+
+  const [showTicketDialog, setShowTicketDialog] = useState(false);
+  const [ticketNumber, setTicketNumber] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+
+  // Generate a random 6-digit number
+  const generateTicketNumber = async (): Promise<string> => {
+    if (!session?.user?.id || !eventData?.id) {
+      throw new Error("User or event data missing");
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Try to generate a unique ticket number
+      const response = await fetch("/api/generateTicket", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          eventId: eventData.id,
+          userId: session.user.id,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to generate ticket");
+      }
+      const data = await response.json() as TicketResponse;
+      return data.ticketNumber;
+
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleJoinGiveaway = async () => {
+    if (!session?.user?.id) {
+      // Handle not logged in
+      return;
+    }
+    
+    try {
+      if (!ticketNumber) {
+        // Generate new ticket number
+        const newTicket = await generateTicketNumber();
+        setTicketNumber(newTicket);
+        
+        // Update DB with the ticket number
+        await fetch("/api/eventParticipant", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            eventId: eventData.id,
+            userId: session.user.id,
+            isPreReg: true,
+            hasJoinedGiveaway: true,
+            ticketNumber: newTicket,
+          }),
+        });
+        
+        setHasJoined(true);
+        setShowTicketDialog(true);
+      } else {
+        // Already has a ticket, just show it
+        setShowTicketDialog(true);
+      }
+    } catch (error) {
+      console.error("Error joining giveaway:", error);
+    }
+  };
+
+  // Fetch user's existing ticket on component mount
+  useEffect(() => {
+    async function fetchUserTicket() {
+      if (!session?.user?.id || !eventData?.id) return;
+      
+      try {
+        const response = await fetch(`/api/eventParticipant?userId=${session.user.id}&eventId=${eventData.id}`);
+        
+        if (response.ok) {
+          const data = await response.json() as EventParticipantResponse;
+          if (data.ticketNumber) {
+            setTicketNumber(data.ticketNumber);
+            setHasJoined(data.hasJoinedGiveaway);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching ticket:", error);
+      }
+    }
+    
+    void fetchUserTicket();
+  }, [session?.user?.id, eventData?.id]);
 
   return (
     <div className="flex w-full flex-col items-center gap-y-4">
@@ -91,17 +194,59 @@ export function InfoView({
       </section>
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
-        <button className="custom-box w-full p-1 shadow-lg">
+        <button 
+          className="custom-box w-full p-1 shadow-lg"
+          onClick={handleJoinGiveaway}
+          disabled={isLoading}
+        >
           <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-3xl font-medium text-white">
-            Join the Giveaway!
+            {isLoading ? "Processing..." : hasJoined ? "Show My Ticket" : "Join the Giveaway!"}
           </div>
         </button>
+        
+        {ticketNumber && (
+          <div className="mt-3 text-center">
+            <div className="text-md font-medium">Your Ticket Number</div>
+            <div className="text-3xl font-bold tracking-wider">{ticketNumber}</div>
+          </div>
+        )}
 
         <div className="font-lights px-2 py-4 text-lg">
           <span className="font-semibold">{players.length}</span> people have
           joined...
         </div>
       </section>
-    </div>
+
+    {/* Ticket Popup Dialog */}
+    {showTicketDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div 
+            id="ticket-popup"
+            className="mx-4 max-w-md rounded-xl border-2 border-black bg-white p-8 shadow-lg"
+          >
+            <h2 className="mb-4 text-center text-xl font-bold">Your Giveaway Ticket!</h2>
+            
+            {ticketNumber && (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="text-md mb-2">Your unique ticket number is</div>
+                <div className="text-4xl font-bold tracking-wider">{ticketNumber}</div>
+                <div className="mt-4 text-sm text-gray-600">
+                  Keep this number for the lucky draw. Screenshot to be safe!
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-6 flex justify-center">
+              <button
+                className="rounded-md bg-gray-800 px-4 py-2 text-white"
+                onClick={() => setShowTicketDialog(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+</div>
   );
 }

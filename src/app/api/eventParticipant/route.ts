@@ -6,6 +6,7 @@ interface EventParticipant {
   eventId: string;
   isPreReg: boolean;
   hasJoinedGiveaway: boolean;
+  ticketNumber?: string;
 }
 
 type JsonValue = 
@@ -22,7 +23,7 @@ interface SerializableObject {
 
 export async function POST(request: Request) {
   try {
-    const { eventId, userId, isPreReg, hasJoinedGiveaway} = (await request.json()) as EventParticipant;
+    const { eventId, userId, isPreReg, hasJoinedGiveaway, ticketNumber} = (await request.json()) as EventParticipant;
 
     if (!eventId || !userId || isPreReg === undefined) {
       return NextResponse.json(
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (typeof eventId !== 'string' || typeof userId !== 'string' || typeof isPreReg !== 'boolean') {
+    if (typeof eventId !== 'string' || typeof userId !== 'string' || typeof isPreReg !== 'boolean' || typeof hasJoinedGiveaway !== 'boolean' || (ticketNumber && typeof ticketNumber !== 'string')) {
       return NextResponse.json(
         { error: 'Invalid data types' },
         { status: 400 }
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
         hasPreReg: isPreReg,
         hasJoinedGiveaway: hasJoinedGiveaway,
         updatedAt: new Date(),
+        ticketNumber: ticketNumber,
       },
       create: {
         eventId: eventId,

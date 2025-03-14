@@ -21,6 +21,8 @@ interface GameViewProps {
   eventData: EventData;
   messages: ChatMessage[];
   sendMessage: (message: string) => void;
+  socialAFollowed: boolean;
+  socialBFollowed: boolean;
 }
 
 export function GameView({
@@ -36,6 +38,8 @@ export function GameView({
   snatchStartTime,
   eventData,
   sendMessage,
+  socialAFollowed,
+  socialBFollowed
 }: GameViewProps) {
   // Initialize isGameStarted based on current time vs snatch time
   const [isGameStarted, setIsGameStarted] = useState(

@@ -7,7 +7,7 @@ import { GameView } from "~/components/views/GameView";
 import useGameSocket from "~/lib/useGameSocket";
 import { ResultsView } from "~/components/views/ResultsView";
 
-type AuthSession = {
+export type AuthSession = {
   user: {
     id: string;
     createdAt: Date;
@@ -233,7 +233,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
                     onClick={handleSocialBClick}
                     className="flex-1 rounded-lg bg-purple-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                   >
-                    Tiktok
+                    TikTok
                   </a>
                 </div>
               )}
@@ -243,8 +243,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
                 {socialAFollowed && socialBFollowed
                   ? "Thank you for following both accounts!"
                   : socialAFollowed
-                    ? "Thanks for following on Telegram!"
-                    : "Thanks for following on Tiktok!"}
+                    ? "Thanks for joining us on Telegram!"
+                    : "Thanks for following us on TikTok!"}
               </p>
             )}
           </div>
@@ -275,6 +275,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           palette={palette}
           onTimeUp={handleTimeUp}
           eventData={eventData}
+          session={session}
         />
       )}
       {/* Show Game View */}
