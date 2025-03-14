@@ -68,7 +68,8 @@ export function InfoView({
     })
     .toLowerCase(); // Make am/pm lowercase
 
-  const [showTicketDialog, setShowTicketDialog] = useState(false);
+  const [giveawayParticipantCount, setGiveawayParticipantCount] = useState<number>(0);
+
 
   console.log("hasJoined", hasJoined);
   console.log("ticketNumber", ticketNumber);
@@ -85,6 +86,25 @@ export function InfoView({
   //     setShowTicketDialog(true);
   //   }
   // };
+
+  useEffect(() => {
+    async function fetchParticipantCount() {
+      if (!eventData?.id) return;
+      
+      try {
+        const response = await fetch(`/api/eventParticipant/count?eventId=${eventData.id}&hasJoined=true`);
+        
+        if (response.ok) {
+          const data = await response.json() as { count: number };
+          setGiveawayParticipantCount(data.count);
+        }
+      } catch (error) {
+        console.error("Error fetching participant count:", error);
+      }
+    }
+    
+    void fetchParticipantCount();
+  }, [eventData?.id]);
 
   return (
     <div className="flex w-full flex-col items-center gap-y-4">
@@ -173,7 +193,7 @@ export function InfoView({
         )} */}
 
         <div className="font-lights px-2 py-4 text-lg">
-          <span className="font-semibold">{players.length}</span> people have
+          <span className="font-semibold">{giveawayParticipantCount}</span> people have
           joined the giveaway!
         </div>
       </section>
