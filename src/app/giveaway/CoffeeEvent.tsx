@@ -61,6 +61,21 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
 
   const eventId = "3dffa111-4981-43ac-bb0a-a82de560ea47"; // Make sure this is correct
 
+  // Define interface for event participant response
+  interface EventParticipantResponse {
+    ticketNumber: string | null;
+    hasJoinedGiveaway: boolean;
+    isPreReg: boolean;
+    hasPreReg: boolean;
+    userId: string;
+    eventId: string;
+  }
+
+  // Define interface for ticket response
+  interface TicketResponse {
+    ticketNumber: string;
+  }
+
   // Handle social media link clicks - moved from GameView
   const handleSocialAClick = () => {
     setSocialAFollowed(true);
@@ -69,6 +84,61 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const handleSocialBClick = () => {
     setSocialBFollowed(true);
   };
+
+  async function registerParticipant() {
+    console.log("xx registerParticipant");
+    if (session?.user?.id) {
+      try {
+        // First, generate a ticket number
+        const ticketResponse = await fetch("/api/generateTicket", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            eventId: eventId,
+            userId: session.user.id,
+          }),
+        });
+
+        if (!ticketResponse.ok) {
+          throw new Error("Failed to generate ticket number");
+        }
+
+        const ticketData = await ticketResponse.json() as TicketResponse;
+        const newTicketNumber = ticketData.ticketNumber;
+
+        // Then register the participant with the ticket number
+        const response = await fetch("/api/eventParticipant", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            eventId: eventId,
+            userId: session.user.id,
+            isPreReg: true,
+            hasJoinedGiveaway: true,
+            ticketNumber: newTicketNumber,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error(
+            "Failed to register participant:",
+            await response.text(),
+          );
+        } else {
+          // Update local state with the new ticket number
+          setTicketNumber(newTicketNumber);
+          setHasJoined(true);
+          console.log("Successfully registered as participant with ticket:", newTicketNumber);
+        }
+      } catch (error) {
+        console.error("Error registering participant:", error);
+      }
+    }
+  }
 
   // Generate a random 6-digit number - moved from InfoView
   const generateTicketNumber = async (): Promise<string> => {
@@ -94,7 +164,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       if (!response.ok) {
         throw new Error("Failed to generate ticket");
       }
-      const data = (await response.json()) as { ticketNumber: string };
+      const data = await response.json() as TicketResponse;
       return data.ticketNumber;
     } finally {
       setIsLoading(false);
@@ -114,7 +184,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         setTicketNumber(newTicket);
 
         // Update DB with the ticket number
-        await fetch("/api/eventParticipant", {
+        const response = await fetch("/api/eventParticipant", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -128,7 +198,14 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           }),
         });
 
-        setHasJoined(true);
+        if (response.ok) {
+          const data = await response.json() as EventParticipantResponse;
+          console.log("Successfully joined giveaway", data);
+          setHasJoined(true);
+        } else {
+          console.error("Failed to join giveaway:", await response.text());
+        }
+        
         // setShowTicketDialog(true); - Removed as requested
       } else {
         // Already has a ticket, just show it
@@ -141,63 +218,48 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
 
   // Fetch user's existing ticket on component mount
   useEffect(() => {
-    async function registerParticipant() {
-      if (session?.user?.id && eventData?.id) {
-        try {
-          const response = await fetch("/api/eventParticipant", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              eventId: eventData.id,
-              userId: session.user.id,
-              isPreReg: false,
-              hasJoinedGiveaway: false,
-            }),
-          });
-
-          if (!response.ok) {
-            console.error(
-              "Failed to register participant:",
-              await response.text(),
-            );
-          } else {
-            console.log("Successfully registered as participant");
-          }
-        } catch (error) {
-          console.error("Error registering participant:", error);
-        }
-      }
-    }
-
     async function fetchUserTicket() {
       console.log("Fetching user ticket1");
       if (!session?.user?.id || !eventId) return;
       console.log("Fetching user ticket2");
-
+      console.log("xx session.user.id", session.user.id);
+      console.log("xx eventId", eventId);
       try {
         const response = await fetch(
           `/api/eventParticipant?userId=${session.user.id}&eventId=${eventId}`,
         );
-
+        console.log("xx response", response);
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json() as EventParticipantResponse;
+          console.log("xx data", data); 
           if (data.ticketNumber) {
             setTicketNumber(data.ticketNumber);
-            setHasJoined(data.hasJoinedGiveaway);
+            setHasJoined(data.hasJoinedGiveaway ?? false);
             console.log("xx Ticket number:", data.ticketNumber);
             console.log("xx Has joined:", data.hasJoinedGiveaway);
           }
+        } else {
+          console.log("xx Failed to fetch ticket:", response.status);
+          if (response.status === 404) {
+            // If participant not found, we'll register them
+            console.log("xx Participant not found, registering...");
+            await registerParticipant();
+          } else {
+            // For other errors, throw an error to be caught by the catch block
+            throw new Error(`Failed to fetch ticket: ${response.status}`);
+          }
         }
       } catch (error) {
+        console.log("xx error", error);
         console.error("Error fetching ticket:", error);
       }
     }
 
 
     if (session?.user) {
+      console.log("xx Fetching user ticket3");
       fetchUserTicket().catch(() => {
+        console.log("xx dont have ticket");
         void registerParticipant();
       });
     }
@@ -214,7 +276,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         );
 
         if (response.ok) {
-          const participantData = await response.json();
+          const participantData = await response.json() as EventParticipantResponse;
 
           // If the participant has completed prerequisites, set both social follows to true
           if (participantData.hasPreReg === true) {
@@ -226,6 +288,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           }
         } else {
           console.log("No existing participation record found or other error");
+          await registerParticipant();
         }
       } catch (error) {
         console.error("Error checking prerequisites status:", error);
@@ -258,7 +321,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       }
     }
 
-    void fetchEvent().then((data)=>{});
+    void fetchEvent();
   }, [eventId]);
 
   const hasSnatchTimePassed = eventData

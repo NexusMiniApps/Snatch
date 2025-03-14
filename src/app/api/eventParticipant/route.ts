@@ -86,6 +86,8 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
+    console.log("xx eventId", eventId);
+    console.log("xx userId", userId);
 
     const eventParticipant = await prisma.eventParticipants.findUnique({
       where: {
@@ -95,6 +97,7 @@ export async function GET(request: Request) {
         },
       },
     });
+    console.log("xx eventParticipant", eventParticipant);
 
     if (!eventParticipant) {
       return NextResponse.json(
