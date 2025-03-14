@@ -6,7 +6,7 @@ import type PartySocket from "partysocket";
 import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
-import { type EventData } from "~/app/coffee/CoffeeEvent";
+import { type EventData } from "~/app/giveaway/CoffeeEvent";
 import { ChatMessage } from "~/lib/useGameSocket";
 interface GameViewProps {
   onGameComplete: () => void;
@@ -53,44 +53,45 @@ export function GameView({
   const [postError, setPostError] = useState<string | null>(null);
 
   const postScoresToDatabase = async () => {
-      setPostingScores(true);
-      setPostError(null);
-      try {
-        const requests = players.map((player) =>
-          fetch("/api/eventUserScores", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              eventId: eventData.id,
-              userId: player.id,
-              scoreStr: player.score.toString(),
-            }),
-          })
-        );
-  
-        const responses = await Promise.all(requests);
-  
-        const failedResponses = responses.filter((res) => !res.ok);
-        if (failedResponses.length > 0) {
-          throw new Error(`Failed to post scores for ${failedResponses.length} players.`);
-        }
-  
-        console.log("All scores successfully posted to the database.");
-      } catch (error: unknown) {
+    setPostingScores(true);
+    setPostError(null);
+    try {
+      const requests = players.map((player) =>
+        fetch("/api/eventUserScores", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            eventId: eventData.id,
+            userId: player.id,
+            scoreStr: player.score.toString(),
+          }),
+        }),
+      );
 
-        if (error instanceof Error) {
-          console.error("Error posting scores:", error.message);
-          setPostError(error.message);
-        } else {
-          console.error("An unexpected error occurred while posting scores.");
-          setPostError("An unexpected error occurred.");
-        }
-      } finally {
-        setPostingScores(false);
+      const responses = await Promise.all(requests);
+
+      const failedResponses = responses.filter((res) => !res.ok);
+      if (failedResponses.length > 0) {
+        throw new Error(
+          `Failed to post scores for ${failedResponses.length} players.`,
+        );
       }
-    };
+
+      console.log("All scores successfully posted to the database.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error posting scores:", error.message);
+        setPostError(error.message);
+      } else {
+        console.error("An unexpected error occurred while posting scores.");
+        setPostError("An unexpected error occurred.");
+      }
+    } finally {
+      setPostingScores(false);
+    }
+  };
 
   // Auto-start game when snatch time begins
   useEffect(() => {
@@ -165,8 +166,6 @@ export function GameView({
   return (
     <div className="flex w-full max-w-96 flex-col items-center gap-y-4">
       <div className="relative h-full w-full">
-
-
         {!gameOver ? (
           <>
             {!isGameStarted &&

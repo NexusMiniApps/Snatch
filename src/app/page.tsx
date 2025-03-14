@@ -10,7 +10,7 @@ export default async function Home() {
   // If user has valid session, redirect to coffee page
   if (session?.user) {
     console.log("[Client] User has valid session");
-    redirect("/coffee");
+    redirect("/giveaway");
   }
   console.log("[Client] User does not have valid session");
 

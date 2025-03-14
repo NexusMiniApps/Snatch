@@ -4,7 +4,7 @@ import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
 import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
-import { type EventData } from "~/app/coffee/CoffeeEvent";
+import { type EventData } from "~/app/giveaway/CoffeeEvent";
 import { PlayerData } from "~/lib/useGameSocket";
 
 interface InfoViewProps {

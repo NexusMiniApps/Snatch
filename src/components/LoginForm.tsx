@@ -31,7 +31,7 @@ export function LoginForm() {
   const createUser = api.user.createUser.useMutation({
     onSuccess: (result: { sessionId: string; sessionExpiry: Date }) => {
       setSessionCookie(result.sessionId, result.sessionExpiry);
-      void router.push("/coffee");
+      void router.push("/giveaway");
       void router.refresh();
     },
   });
