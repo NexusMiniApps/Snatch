@@ -146,9 +146,13 @@ export function InfoView({
 
         if (response.ok) {
           const data = (await response.json()) as EventParticipantResponse;
+
+          // Only set the ticket number if it exists
           if (data.ticketNumber) {
             setTicketNumber(data.ticketNumber);
             setHasJoined(data.hasJoinedGiveaway);
+            console.log("Ticket number:", data.ticketNumber);
+            console.log("Has joined:", data.hasJoinedGiveaway);
           }
         }
       } catch (error) {
@@ -203,9 +207,30 @@ export function InfoView({
           </div>
         </div>
       </section>
+      <section className="flex w-full max-w-96 flex-col items-center rounded-xl shadow-lg">
+        <button
+          onClick={handleJoinGiveaway}
+          className="custom-box z-10 w-full p-1"
+        >
+          {hasJoined ? (
+            <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-3xl font-medium text-white">
+              Join the Giveaway!
+            </div>
+          ) : (
+            <div className="flex w-full items-center justify-between rounded-xl bg-gray-100">
+              <div className="text-md flex flex-1 justify-center font-medium">
+                Your Ticket Number:
+              </div>
+              <div className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
+                {ticketNumber}
+              </div>
+            </div>
+          )}
+        </button>
+      </section>
 
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
-        <button
+        {/* <button
           className="custom-box w-full p-1 shadow-lg"
           onClick={handleJoinGiveaway}
           disabled={isLoading}
@@ -221,16 +246,16 @@ export function InfoView({
 
         {ticketNumber && (
           <div className="mt-3 text-center">
-            <div className="text-md font-medium">Your Ticket Number</div>
-            <div className="text-3xl font-bold tracking-wider">
+            <div className="text-xl font-medium">Your Ticket Number</div>
+            <div className="text-4xl font-bold tracking-wider">
               {ticketNumber}
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="font-lights px-2 py-4 text-lg">
           <span className="font-semibold">{players.length}</span> people have
-          joined...
+          joined the giveaway!
         </div>
       </section>
 
@@ -251,7 +276,7 @@ export function InfoView({
                 <div className="text-4xl font-bold tracking-wider">
                   {ticketNumber}
                 </div>
-                <div className="mt-4 text-sm text-gray-600">
+                <div className="mt-4 text-center text-sm text-gray-600">
                   Keep this number for the lucky draw. Screenshot to be safe!
                 </div>
               </div>
