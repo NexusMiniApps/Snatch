@@ -237,7 +237,7 @@ export default function WinnerSelector({
           {tickets.map((ticket, index) => (
             <motion.div
               key={ticket.ticketNumber}
-              className={`relative rounded-lg border-2 p-4 text-center font-mono ${
+              className={`relative rounded-lg border-2 p-2 text-center font-mono ${
                 highlightedIndex === index
                   ? "border-yellow-500 bg-yellow-200 shadow-lg"
                   : "border-gray-200 bg-white"
