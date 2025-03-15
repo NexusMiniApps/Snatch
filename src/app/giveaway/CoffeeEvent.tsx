@@ -89,26 +89,6 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     console.log("xx registerParticipant");
     if (session?.user?.id) {
       try {
-        // First, generate a ticket number
-        const ticketResponse = await fetch("/api/generateTicket", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            eventId: eventId,
-            userId: session.user.id,
-          }),
-        });
-
-        if (!ticketResponse.ok) {
-          throw new Error("Failed to generate ticket number");
-        }
-
-        const ticketData = await ticketResponse.json() as TicketResponse;
-        const newTicketNumber = ticketData.ticketNumber;
-
-        // Then register the participant with the ticket number
         const response = await fetch("/api/eventParticipant", {
           method: "POST",
           headers: {
@@ -117,9 +97,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           body: JSON.stringify({
             eventId: eventId,
             userId: session.user.id,
-            isPreReg: true,
-            hasJoinedGiveaway: true,
-            ticketNumber: newTicketNumber,
+            isPreReg: false,
+            hasJoinedGiveaway: false,
           }),
         });
 
@@ -130,9 +109,9 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           );
         } else {
           // Update local state with the new ticket number
-          setTicketNumber(newTicketNumber);
-          setHasJoined(true);
-          console.log("Successfully registered as participant with ticket:", newTicketNumber);
+          // setTicketNumber(newTicketNumber);
+          //setHasJoined(true);
+          // console.log("Successfully registered as participant with ticket:", newTicketNumber);
         }
       } catch (error) {
         console.error("Error registering participant:", error);
@@ -297,6 +276,17 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
 
     void checkPrerequisites();
   }, [session?.user?.id, eventId]);
+
+  useEffect(() => {
+    // Check if both social accounts are followed
+    if (socialAFollowed && socialBFollowed) {
+      // Only call handleJoinGiveaway if user isn't already registered
+      if (!hasJoined && session?.user?.id) {
+        console.log("Both socials followed - automatically joining giveaway");
+        void handleJoinGiveaway();
+      }
+    }
+  }, [socialAFollowed, socialBFollowed]);
 
   // Add loading state check
   useEffect(() => {

@@ -152,7 +152,7 @@ export function InfoView({
       </section>
       <section className="flex w-full max-w-96 flex-col items-center rounded-xl shadow-lg">
         <button
-          onClick={handleJoinGiveaway}
+          // onClick={handleJoinGiveaway}
           className="custom-box z-10 w-full p-1"
         >
           {/* {hasJoined ? (
