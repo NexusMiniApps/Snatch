@@ -30,7 +30,7 @@ export interface EventData {
   status: string;
   ownerId: string;
   snatchStartTime: Date;
-  // imageSlug: string;
+  // imageSlug: string; 
   // add any other fields that your event contains
 }
 // TODO: Should generalize to all events next time
@@ -59,13 +59,12 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     sendMessage,
   } = useGameSocket(session);
 
-  const eventId = "3dffa111-4981-43ac-bb0a-a82de560ea47"; // Make sure this is correct
+  const eventId = "eb5946d8-4b98-479e-83a9-c4c8093c83a1"; // Make sure this is correct
 
   // Define interface for event participant response
   interface EventParticipantResponse {
     ticketNumber: string | null;
     hasJoinedGiveaway: boolean;
-    isPreReg: boolean;
     hasPreReg: boolean;
     userId: string;
     eventId: string;
@@ -143,7 +142,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       if (!response.ok) {
         throw new Error("Failed to generate ticket");
       }
-      const data = await response.json() as TicketResponse;
+      const data = (await response.json()) as TicketResponse;
       return data.ticketNumber;
     } finally {
       setIsLoading(false);
@@ -178,13 +177,13 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         });
 
         if (response.ok) {
-          const data = await response.json() as EventParticipantResponse;
+          const data = (await response.json()) as EventParticipantResponse;
           console.log("Successfully joined giveaway", data);
           setHasJoined(true);
         } else {
           console.error("Failed to join giveaway:", await response.text());
         }
-        
+
         // setShowTicketDialog(true); - Removed as requested
       } else {
         // Already has a ticket, just show it
@@ -194,6 +193,32 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       console.error("Error joining giveaway:", error);
     }
   };
+
+  // Add loading state check
+  useEffect(() => {
+    async function fetchEvent() {
+      try {
+        const res = await fetch(`/api/events/${eventId}`);
+        if (!res.ok) {
+          console.log("Response error:", res);
+          throw new Error("Failed to fetch event data");
+        }
+        const data = (await res.json()) as EventData;
+        console.log("Fetched event data:", data);
+        setEventData(data);
+        return data;
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError(
+          err instanceof Error ? err.message : "An unexpected error occurred",
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void fetchEvent();
+  }, [eventId]);
 
   // Fetch user's existing ticket on component mount
   useEffect(() => {
@@ -209,11 +234,11 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         );
         console.log("xx response", response);
         if (response.ok) {
-          const data = await response.json() as EventParticipantResponse;
-          console.log("xx data", data); 
+          const data = (await response.json()) as EventParticipantResponse;
+          console.log("xx data", data);
           if (data.ticketNumber) {
             setTicketNumber(data.ticketNumber);
-            setHasJoined(data.hasJoinedGiveaway ?? false);
+            setHasJoined(data.hasJoinedGiveaway);
             console.log("xx Ticket number:", data.ticketNumber);
             console.log("xx Has joined:", data.hasJoinedGiveaway);
           }
@@ -233,7 +258,6 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         console.error("Error fetching ticket:", error);
       }
     }
-
 
     if (session?.user) {
       console.log("xx Fetching user ticket3");
@@ -255,7 +279,8 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         );
 
         if (response.ok) {
-          const participantData = await response.json() as EventParticipantResponse;
+          const participantData =
+            (await response.json()) as EventParticipantResponse;
 
           // If the participant has completed prerequisites, set both social follows to true
           if (participantData.hasPreReg === true) {
@@ -287,32 +312,6 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       }
     }
   }, [socialAFollowed, socialBFollowed]);
-
-  // Add loading state check
-  useEffect(() => {
-    async function fetchEvent() {
-      try {
-        const res = await fetch(`/api/events/${eventId}`);
-        if (!res.ok) {
-          console.log("Response error:", res);
-          throw new Error("Failed to fetch event data");
-        }
-        const data = (await res.json()) as EventData;
-        console.log("Fetched event data:", data);
-        setEventData(data);
-        return data;
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError(
-          err instanceof Error ? err.message : "An unexpected error occurred",
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void fetchEvent();
-  }, [eventId]);
 
   const hasSnatchTimePassed = eventData
     ? new Date(eventData.snatchStartTime).getTime() + 30000 < Date.now()

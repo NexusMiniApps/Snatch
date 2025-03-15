@@ -28,6 +28,7 @@ model User {
   eventUserScores   EventUserScores[]
   sessions          UserSessions[]
   EventParticipants EventParticipants[]
+  wonEvents         Event[]             @relation("EventWinner")
 
   @@unique([phoneNo, countryCode])
 }
@@ -41,12 +42,16 @@ model Event {
   snatchStartTime   DateTime            @db.Timestamptz(6)
   createdAt         DateTime            @default(now()) @db.Timestamptz(6)
   updatedAt         DateTime            @updatedAt @db.Timestamptz(6)
-  ownerId           String              @db.Uuid
-  owner             User                @relation("EventOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ownerId           String?             @db.Uuid
+  owner             User?               @relation("EventOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   participants      User[]              @relation("EventParticipants")
   eventUserScores   EventUserScores[]
   location          String?
   EventParticipants EventParticipants[]
+  winnerUserId      String?             @db.Uuid
+  winnerTicket      String?
+  winnerDrawnAt     DateTime?           @db.Timestamptz(6)
+  winner            User?               @relation("EventWinner", fields: [winnerUserId], references: [id], onDelete: SetNull)
 }
 
 model EventUserScores {
