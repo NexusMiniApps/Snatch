@@ -390,10 +390,10 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
         <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-md">
           <div className="m-3 mt-2 flex w-full max-w-md flex-col items-center rounded-xl bg-white bg-opacity-90 p-8 shadow-2xl">
             <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">
-              Follow Our Socials!
+              Huatzard Hobbyfest Card Show Giveaway is over! 
             </h2>
             <p className="mb-6 text-center text-gray-600">
-              Follow our social media accounts to qualify for the giveaway!
+              Follow our social media accounts to keep up with future events and giveaways!
             </p>
             <div className="flex w-full flex-col gap-4">
               {!socialAFollowed && (
@@ -402,7 +402,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
                     href="https://t.me/huatzard"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={handleSocialAClick}
+                    // onClick={handleSocialAClick}
                     className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     Telegram
@@ -415,7 +415,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
                     href="https://www.tiktok.com/@huatzard"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={handleSocialBClick}
+                    // onClick={handleSocialBClick}
                     className="flex-1 rounded-lg bg-purple-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                   >
                     TikTok
