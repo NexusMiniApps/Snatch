@@ -6,6 +6,8 @@ import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
 import useGameSocket from "~/lib/useGameSocket";
 import { ResultsView } from "~/components/views/ResultsView";
+import { registerParticipant, handleJoinGiveaway, type EventParticipantResponse, fetchEvent, type EventData, fetchUserTicket, checkPrerequisites } from "~/lib/registrationUtils";
+import { EVENT_IDS, GAME_SETTINGS } from "~/lib/settings";
 
 export type AuthSession = {
   user: {
@@ -21,18 +23,6 @@ export type AuthSession = {
 
 type TabType = "info" | "game" | "results";
 
-export interface EventData {
-  id: string;
-  name: string;
-  location: string;
-  startTime: Date;
-  description: string;
-  status: string;
-  ownerId: string;
-  snatchStartTime: Date;
-  // imageSlug: string; 
-  // add any other fields that your event contains
-}
 // TODO: Should generalize to all events next time
 export default function CoffeeEvent({ session }: { session: AuthSession }) {
   const [activeTab, setActiveTab] = useState<TabType>("info");
@@ -59,272 +49,72 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     sendMessage,
   } = useGameSocket(session);
 
-  const eventId = "eb5946d8-4b98-479e-83a9-c4c8093c83a1"; // Make sure this is correct
+  const eventId = EVENT_IDS.COFFEE_EVENT;
 
-  // Define interface for event participant response
-  interface EventParticipantResponse {
-    ticketNumber: string | null;
-    hasJoinedGiveaway: boolean;
-    hasPreReg: boolean;
-    userId: string;
-    eventId: string;
-  }
-
-  // Define interface for ticket response
-  interface TicketResponse {
-    ticketNumber: string;
-  }
-
-  // Handle social media link clicks - moved from GameView
-  const handleSocialAClick = () => {
-    setSocialAFollowed(true);
-  };
-
-  const handleSocialBClick = () => {
-    setSocialBFollowed(true);
-  };
-
-  async function registerParticipant() {
-    console.log("xx registerParticipant");
-    if (session?.user?.id) {
-      try {
-        const response = await fetch("/api/eventParticipant", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            eventId: eventId,
-            userId: session.user.id,
-            isPreReg: false,
-            hasJoinedGiveaway: false,
-          }),
-        });
-
-        if (!response.ok) {
-          console.error(
-            "Failed to register participant:",
-            await response.text(),
-          );
-        } else {
-          // Update local state with the new ticket number
-          // setTicketNumber(newTicketNumber);
-          //setHasJoined(true);
-          // console.log("Successfully registered as participant with ticket:", newTicketNumber);
-        }
-      } catch (error) {
-        console.error("Error registering participant:", error);
-      }
-    }
-  }
-
-  // Generate a random 6-digit number - moved from InfoView
-  const generateTicketNumber = async (): Promise<string> => {
-    if (!session?.user?.id || !eventData?.id) {
-      throw new Error("User or event data missing");
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Try to generate a unique ticket number
-      const response = await fetch("/api/generateTicket", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          eventId: eventData.id,
-          userId: session.user.id,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate ticket");
-      }
-      const data = (await response.json()) as TicketResponse;
-      return data.ticketNumber;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleJoinGiveaway = async () => {
-    if (!session?.user?.id) {
-      // Handle not logged in
-      return;
-    }
-
-    try {
-      if (!ticketNumber) {
-        // Generate new ticket number
-        const newTicket = await generateTicketNumber();
-        setTicketNumber(newTicket);
-
-        // Update DB with the ticket number
-        const response = await fetch("/api/eventParticipant", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            eventId: eventData?.id,
-            userId: session.user.id,
-            isPreReg: true,
-            hasJoinedGiveaway: true,
-            ticketNumber: newTicket,
-          }),
-        });
-
-        if (response.ok) {
-          const data = (await response.json()) as EventParticipantResponse;
-          console.log("Successfully joined giveaway", data);
-          setHasJoined(true);
-        } else {
-          console.error("Failed to join giveaway:", await response.text());
-        }
-
-        // setShowTicketDialog(true); - Removed as requested
-      } else {
-        // Already has a ticket, just show it
-        // setShowTicketDialog(true); - Removed as requested
-      }
-    } catch (error) {
-      console.error("Error joining giveaway:", error);
-    }
-  };
-
-  // Add loading state check
+  // Combined initialization effect
   useEffect(() => {
-    async function fetchEvent() {
+    void (async () => {
       try {
-        const res = await fetch(`/api/events/${eventId}`);
-        if (!res.ok) {
-          console.log("Response error:", res);
-          throw new Error("Failed to fetch event data");
-        }
-        const data = (await res.json()) as EventData;
-        console.log("Fetched event data:", data);
+        // Load event data
+        const data = await fetchEvent(eventId);
         setEventData(data);
-        return data;
+
+        // If user is logged in, fetch their ticket and check prerequisites
+        if (session?.user?.id) {
+          // Fetch user's ticket
+          await fetchUserTicket(session.user.id, eventId, setTicketNumber, setHasJoined).catch(() => {
+            console.log("No existing ticket found, registering participant");
+            void registerParticipant(session.user.id, eventId);
+          });
+
+          // Check prerequisites
+          await checkPrerequisites(session.user.id, eventId, setSocialAFollowed, setSocialBFollowed);
+        }
       } catch (err) {
-        console.error("Fetch error:", err);
-        setError(
-          err instanceof Error ? err.message : "An unexpected error occurred",
-        );
+        console.error("Initialization error:", err);
+        setError(err instanceof Error ? err.message : "An unexpected error occurred");
       } finally {
         setLoading(false);
       }
-    }
-
-    void fetchEvent();
-  }, [eventId]);
-
-  // Fetch user's existing ticket on component mount
-  useEffect(() => {
-    async function fetchUserTicket() {
-      console.log("Fetching user ticket1");
-      if (!session?.user?.id || !eventId) return;
-      console.log("Fetching user ticket2");
-      console.log("xx session.user.id", session.user.id);
-      console.log("xx eventId", eventId);
-      try {
-        const response = await fetch(
-          `/api/eventParticipant?userId=${session.user.id}&eventId=${eventId}`,
-        );
-        console.log("xx response", response);
-        if (response.ok) {
-          const data = (await response.json()) as EventParticipantResponse;
-          console.log("xx data", data);
-          if (data.ticketNumber) {
-            setTicketNumber(data.ticketNumber);
-            setHasJoined(data.hasJoinedGiveaway);
-            console.log("xx Ticket number:", data.ticketNumber);
-            console.log("xx Has joined:", data.hasJoinedGiveaway);
-          }
-        } else {
-          console.log("xx Failed to fetch ticket:", response.status);
-          if (response.status === 404) {
-            // If participant not found, we'll register them
-            console.log("xx Participant not found, registering...");
-            await registerParticipant();
-          } else {
-            // For other errors, throw an error to be caught by the catch block
-            throw new Error(`Failed to fetch ticket: ${response.status}`);
-          }
-        }
-      } catch (error) {
-        console.log("xx error", error);
-        console.error("Error fetching ticket:", error);
-      }
-    }
-
-    if (session?.user) {
-      console.log("xx Fetching user ticket3");
-      fetchUserTicket().catch(() => {
-        console.log("xx dont have ticket");
-        void registerParticipant();
-      });
-    }
+    })();
   }, [session?.user?.id, eventId]);
 
-  // Check if user has already completed prerequisites
-  useEffect(() => {
-    async function checkPrerequisites() {
-      if (!session?.user?.id || !eventId) return;
-
-      try {
-        const response = await fetch(
-          `/api/eventParticipant?eventId=${eventId}&userId=${session.user.id}`,
-        );
-
-        if (response.ok) {
-          const participantData =
-            (await response.json()) as EventParticipantResponse;
-
-          // If the participant has completed prerequisites, set both social follows to true
-          if (participantData.hasPreReg === true) {
-            setSocialAFollowed(true);
-            setSocialBFollowed(true);
-            console.log(
-              "Prerequisites already completed, social requirements satisfied",
-            );
-          }
-        } else {
-          console.log("No existing participation record found or other error");
-          await registerParticipant();
-        }
-      } catch (error) {
-        console.error("Error checking prerequisites status:", error);
-      }
-    }
-
-    void checkPrerequisites();
-  }, [session?.user?.id, eventId]);
-
+  // Update the useEffect that calls handleJoinGiveaway
   useEffect(() => {
     // Check if both social accounts are followed
     if (socialAFollowed && socialBFollowed) {
       // Only call handleJoinGiveaway if user isn't already registered
-      if (!hasJoined && session?.user?.id) {
+      if (!hasJoined && session?.user?.id && eventData?.id) {
         console.log("Both socials followed - automatically joining giveaway");
-        void handleJoinGiveaway();
+        void handleJoinGiveaway(
+          session.user.id,
+          eventData.id,
+          setIsLoading,
+          setTicketNumber,
+          setHasJoined
+        );
       }
     }
   }, [socialAFollowed, socialBFollowed]);
 
   const hasSnatchTimePassed = eventData
-    ? new Date(eventData.snatchStartTime).getTime() + 30000 < Date.now()
+    ? new Date(eventData.snatchStartTime).getTime() + GAME_SETTINGS.SNATCH_TIME_BUFFER < Date.now()
     : false;
 
-  // Modified useEffect to set both isGameOver and activeTab
-  useEffect(() => {
-    if (hasSnatchTimePassed) {
-      console.log("Snatch time plus one minute has passed, setting game over");
-      setIsGameOver(true);
-      setActiveTab("info"); // Automatically switch to results tab
-    }
-  }, [hasSnatchTimePassed]);
+  // Commented out for now because we are not running the game yet
+
+  // // Modified useEffect to set both isGameOver and activeTab
+  // useEffect(() => {
+  //   if (hasSnatchTimePassed) {
+  //     console.log("Snatch time plus one minute has passed, setting game over");
+  //     setIsGameOver(true);
+  //     setActiveTab("info"); // Automatically switch to results tab
+  //   }
+  // }, [hasSnatchTimePassed]);
+
+    // // Get available tabs based on game state and snatch time
+    // const availableTabs: TabType[] =
+    // hasSnatchTimePassed || isGameOver ? ["info", "results"] : ["info", "game"];
 
   // Debug logs
   console.log("Render state:", {
@@ -365,12 +155,6 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     setActiveTab("info");
   };
 
-  // Get available tabs based on game state and snatch time
-  const availableTabs: TabType[] =
-    hasSnatchTimePassed || isGameOver ? ["info", "results"] : ["info", "game"];
-
-  // console.log("Available tabs:", availableTabs);
-
   return (
     <main
       style={{
@@ -385,12 +169,12 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
       }}
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
-      {/* Social Media Overlay - moved from GameView */}
+      {/* Social Media Overlay */}
       {(!socialAFollowed || !socialBFollowed) && (
         <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-md">
           <div className="m-3 mt-2 flex w-full max-w-md flex-col items-center rounded-xl bg-white bg-opacity-90 p-8 shadow-2xl">
             <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">
-              Huatzard Hobbyfest Card Show Giveaway is over! 
+              Huatzard Hobbyfest Card Show Giveaway is over!
             </h2>
             <p className="mb-6 text-center text-gray-600">
               Follow our social media accounts to keep up with future events and giveaways!
@@ -402,7 +186,9 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
                     href="https://t.me/huatzard"
                     target="_blank"
                     rel="noopener noreferrer"
-                    // onClick={handleSocialAClick}
+                    onClick={() => {
+                      setSocialAFollowed(true);
+                    }}
                     className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     Telegram
@@ -415,7 +201,9 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
                     href="https://www.tiktok.com/@huatzard"
                     target="_blank"
                     rel="noopener noreferrer"
-                    // onClick={handleSocialBClick}
+                    onClick={() => {
+                      setSocialBFollowed(true);
+                    }}  
                     className="flex-1 rounded-lg bg-purple-600 px-4 py-3 text-center font-medium text-white transition-all hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                   >
                     TikTok
@@ -464,7 +252,17 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
           ticketNumber={ticketNumber}
           hasJoined={hasJoined}
           isLoading={isLoading}
-          handleJoinGiveaway={handleJoinGiveaway}
+          handleJoinGiveaway={async () => {
+            if (session?.user?.id && eventData?.id) {
+              await handleJoinGiveaway(
+                session.user.id,
+                eventData.id,
+                setIsLoading,
+                setTicketNumber,
+                setHasJoined
+              );
+            }
+          }}
         />
       )}
       {/* Show Game View */}

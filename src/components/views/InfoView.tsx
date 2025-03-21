@@ -3,19 +3,10 @@
 import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
 import Image from "next/image";
-import CountdownDisplay from "~/components/ui/CountdownDisplay";
-import { type AuthSession, type EventData } from "~/app/giveaway/CoffeeEvent";
+import { type AuthSession } from "~/app/giveaway/CoffeeEvent";
+import { type EventData, type EventParticipantResponse } from "~/lib/registrationUtils";
 import { PlayerData } from "~/lib/useGameSocket";
 import { useEffect, useState } from "react";
-
-interface TicketResponse {
-  ticketNumber: string;
-}
-
-interface EventParticipantResponse {
-  ticketNumber: string;
-  hasJoinedGiveaway: boolean;
-}
 
 interface InfoViewProps {
   palette: {

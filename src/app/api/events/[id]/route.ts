@@ -8,6 +8,8 @@ export async function GET(
 ) {
   const { id } = await params;
 
+  console.log("Fetching event with ID:", id);
+
   try {
     const event = await prisma.event.findUnique({
       where: { id }, // id is a UUID string

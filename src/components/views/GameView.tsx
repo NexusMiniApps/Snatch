@@ -6,7 +6,7 @@ import type PartySocket from "partysocket";
 import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
-import { type EventData } from "~/app/giveaway/CoffeeEvent";
+import { type EventData } from "~/lib/registrationUtils";
 import { ChatMessage } from "~/lib/useGameSocket";
 interface GameViewProps {
   onGameComplete: () => void;
