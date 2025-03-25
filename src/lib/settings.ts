@@ -4,7 +4,7 @@
 
 // Event IDs
 export const EVENT_IDS = {
-  COFFEE_EVENT: "eb5946d8-4b98-479e-83a9-c4c8093c83a1",
+  HUATZARD_EVENT: "eb5946d8-4b98-479e-83a9-c4c8093c83a1",
 } as const;
 
 // Game Settings

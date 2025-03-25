@@ -3,7 +3,7 @@
 import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
 import Image from "next/image";
-import { type AuthSession } from "~/app/giveaway/CoffeeEvent";
+import { type AuthSession } from "~/app/giveaway/BasePage";
 import { type EventData, type EventParticipantResponse } from "~/lib/registrationUtils";
 import { PlayerData } from "~/lib/useGameSocket";
 import { useEffect, useState } from "react";

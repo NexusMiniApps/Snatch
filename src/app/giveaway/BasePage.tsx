@@ -24,7 +24,7 @@ export type AuthSession = {
 type TabType = "info" | "game" | "results";
 
 // TODO: Should generalize to all events next time
-export default function CoffeeEvent({ session }: { session: AuthSession }) {
+export default function BasePage({ session }: { session: AuthSession }) {
   const [activeTab, setActiveTab] = useState<TabType>("info");
   const [isGameOver, setIsGameOver] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,24 +49,21 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     sendMessage,
   } = useGameSocket(session);
 
-  const eventId = EVENT_IDS.COFFEE_EVENT;
+  const eventId = EVENT_IDS.HUATZARD_EVENT;
 
   // Combined initialization effect
   useEffect(() => {
     void (async () => {
       try {
-        // Load event data
+        // On component mount, load event data into state
         const data = await fetchEvent(eventId);
         setEventData(data);
 
         // If user is logged in, fetch their ticket and check prerequisites
         if (session?.user?.id) {
           // Fetch user's ticket
-          await fetchUserTicket(session.user.id, eventId, setTicketNumber, setHasJoined).catch(() => {
-            console.log("No existing ticket found, registering participant");
-            void registerParticipant(session.user.id, eventId);
-          });
-
+          // If no existing ticket is found, register the participant
+          await fetchUserTicket(session.user.id, eventId, setTicketNumber, setHasJoined)
           // Check prerequisites
           await checkPrerequisites(session.user.id, eventId, setSocialAFollowed, setSocialBFollowed);
         }
@@ -102,6 +99,7 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     : false;
 
   // Commented out for now because we are not running the game yet
+  // Also game logic should be handled direct in the game component, yet to implement
 
   // // Modified useEffect to set both isGameOver and activeTab
   // useEffect(() => {
@@ -138,19 +136,15 @@ export default function CoffeeEvent({ session }: { session: AuthSession }) {
     return <div>Error loading event details: {error}</div>;
   }
 
-  console.log(session);
   const handleTimeUp = () => {
-    console.log("Time up handler called");
     if (hasSnatchTimePassed) {
       setActiveTab("info");
-      console.log("Setting active tab to results");
     } else {
       setActiveTab("info");
     }
   };
 
   const handleGameComplete = () => {
-    console.log("Game complete handler called");
     setIsGameOver(true);
     setActiveTab("info");
   };
