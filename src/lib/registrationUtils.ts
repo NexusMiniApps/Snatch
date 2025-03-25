@@ -196,10 +196,12 @@ export const fetchUserTicket = async (
 export const registerParticipant = async (
   userId: string,
   eventId: string,
-  isPreReg: boolean = false,
-  hasJoinedGiveaway: boolean = false,
+  isPreReg?: boolean,
+  hasJoinedGiveaway?: boolean,
 ): Promise<EventParticipantResponse> => {
-  
+  isPreReg = isPreReg ?? false; // Default to false if undefined
+  hasJoinedGiveaway = hasJoinedGiveaway ?? false;
+
   const response = await fetch("/api/eventParticipant", {
     method: "POST",
     headers: {
