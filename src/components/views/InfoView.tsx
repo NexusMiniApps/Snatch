@@ -4,47 +4,29 @@ import { FaLocationDot } from "react-icons/fa6";
 import { IoTime } from "react-icons/io5";
 import Image from "next/image";
 import { type AuthSession } from "~/app/giveaway/BasePage";
-import { type EventData, type EventParticipantResponse } from "~/lib/registrationUtils";
-import { PlayerData } from "~/lib/useGameSocket";
+import { type EventData } from "~/lib/registrationUtils";
+import { usePartySocket } from "~/PartySocketContext";
 import { useEffect, useState } from "react";
 
 interface InfoViewProps {
   palette: {
     lightMuted: string;
   };
-  onTimeUp: () => void;
-  eventData: EventData;
-  players: PlayerData[];
   session: AuthSession;
-  ticketNumber: string | null;
-  hasJoined: boolean;
-  isLoading: boolean;
-  handleJoinGiveaway: () => Promise<void>;
 }
 
-export function InfoView({
-  palette,
-  onTimeUp,
-  eventData,
-  players,
-  session,
-  ticketNumber,
-  hasJoined,
-  isLoading,
-  handleJoinGiveaway,
-}: InfoViewProps) {
-  // Use the useGameSocket hook to get players
+export function InfoView({ palette }: InfoViewProps) {
+  const { ticketNumber, hasJoined, eventData } = usePartySocket();
 
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/images/pokemon.jpg`
     : "/images/pokemon.jpg";
 
-  const eventSnatchStartTime = eventData.snatchStartTime;
-  const eventStartTime = eventData.startTime;
-  const eventName = eventData.name;
-  const eventLocation = eventData.location;
-  const eventDescription = eventData.description;
+  const eventStartTime = eventData?.startTime ?? '';
+  const eventName = eventData?.name ?? '';
+  const eventLocation = eventData?.location ?? '';
+  const eventDescription = eventData?.description ?? '';
 
   const eventDate = new Date(eventStartTime).toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -59,12 +41,11 @@ export function InfoView({
     })
     .toLowerCase(); // Make am/pm lowercase
 
-  const [giveawayParticipantCount, setGiveawayParticipantCount] = useState<number>(0);
-
+  const [giveawayParticipantCount, setGiveawayParticipantCount] =
+    useState<number>(0);
 
   console.log("hasJoined", hasJoined);
   console.log("ticketNumber", ticketNumber);
-  
 
   // // Handle showing the ticket dialog when the button is clicked
   // const handleShowTicket = async () => {
@@ -81,19 +62,21 @@ export function InfoView({
   useEffect(() => {
     async function fetchParticipantCount() {
       if (!eventData?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/eventParticipant/count?eventId=${eventData.id}&hasJoined=true`);
-        
+        const response = await fetch(
+          `/api/eventParticipant/count?eventId=${eventData.id}&hasJoined=true`,
+        );
+
         if (response.ok) {
-          const data = await response.json() as { count: number };
+          const data = (await response.json()) as { count: number };
           setGiveawayParticipantCount(data.count);
         }
       } catch (error) {
         console.error("Error fetching participant count:", error);
       }
     }
-    
+
     void fetchParticipantCount();
   }, [eventData?.id]);
 
@@ -151,14 +134,14 @@ export function InfoView({
               Join the Giveaway!
             </div>
           ) : ( */}
-            <div className="flex w-full items-center justify-between rounded-xl bg-gray-100">
-              <div className="text-md flex flex-1 justify-center font-medium">
-                Your Ticket Number:
-              </div>
-              <div className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
-                {ticketNumber}
-              </div>
+          <div className="flex w-full items-center justify-between rounded-xl bg-gray-100">
+            <div className="text-md flex flex-1 justify-center font-medium">
+              Your Ticket Number:
             </div>
+            <div className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
+              {ticketNumber}
+            </div>
+          </div>
           {/* )} */}
         </button>
       </section>
@@ -184,8 +167,8 @@ export function InfoView({
         )} */}
 
         <div className="font-lights px-2 py-4 text-lg">
-          <span className="font-semibold">{giveawayParticipantCount}</span> people have
-          joined the giveaway!
+          <span className="font-semibold">{giveawayParticipantCount}</span>{" "}
+          people have joined the giveaway!
         </div>
       </section>
 

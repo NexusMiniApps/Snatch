@@ -1,13 +1,12 @@
 "use client";
 
-import useGameSocket from "~/lib/useGameSocket";
+import { usePartySocket } from "~/PartySocketContext";
 import FullLeaderboardTable from "~/components/ui/FullLeaderboardTable";
 import { useSession } from "next-auth/react";
 
 function LeaderboardContent() {
   const { data: session } = useSession();
-  const { players } = useGameSocket();
-  const currentPlayerId = session?.user?.id ?? "";
+  const { players, currentPlayerId } = usePartySocket();
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-8 p-8">

@@ -1,46 +1,33 @@
 "use client";
 
 import CookieButton from "~/components/ui/CookieButton";
-import { Leaderboard, type PlayerData } from "~/components/ui/Leaderboard";
-import type PartySocket from "partysocket";
+import { Leaderboard } from "~/components/ui/Leaderboard";
 import { ResultsView } from "~/components/views/ResultsView";
 import { useState, useEffect } from "react";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
 import { type EventData } from "~/lib/registrationUtils";
-import { ChatMessage } from "~/lib/useGameSocket";
+import { usePartySocket } from "~/PartySocketContext";
+
 interface GameViewProps {
-  onGameComplete: () => void;
-  socket: PartySocket | null;
-  currentPlayerCount: number;
-  currentPlayerId: string;
-  players: PlayerData[];
-  setCurrentPlayerCount: (count: number) => void;
-  isGameOver: boolean;
   palette: { lightMuted: string };
   snatchStartTime: Date;
-  eventData: EventData;
-  messages: ChatMessage[];
-  sendMessage: (message: string) => void;
-  socialAFollowed: boolean;
-  socialBFollowed: boolean;
 }
 
 export function GameView({
-  messages,
-  onGameComplete,
-  socket,
-  currentPlayerCount,
-  currentPlayerId,
-  players,
-  setCurrentPlayerCount,
-  isGameOver,
   palette,
   snatchStartTime,
-  eventData,
-  sendMessage,
-  socialAFollowed,
-  socialBFollowed
 }: GameViewProps) {
+  const {
+    socket,
+    currentPlayerCount,
+    currentPlayerId,
+    players,
+    setCurrentPlayerCount,
+    eventData,
+    isGameOver,
+    handleGameComplete,
+  } = usePartySocket();
+
   // Initialize isGameStarted based on current time vs snatch time
   const [isGameStarted, setIsGameStarted] = useState(
     new Date(snatchStartTime).getTime() <= Date.now(),
@@ -67,7 +54,7 @@ export function GameView({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            eventId: eventData.id,
+            eventId: eventData?.id,
             userId: player.id,
             scoreStr: player.score.toString(),
           }),
@@ -138,14 +125,14 @@ export function GameView({
         console.log("Game Over at:", now.toISOString());
         console.log("Time difference was:", timeDiff);
         setGameOver(true);
-        onGameComplete();
+        handleGameComplete();
         void postScoresToDatabase();
       }
     };
 
     const timer = setInterval(checkGameOver, 100);
     return () => clearInterval(timer);
-  }, [gameEndTime, onGameComplete]);
+  }, [gameEndTime, handleGameComplete]);
 
   useEffect(() => {
     if (gameOver) {
@@ -222,8 +209,6 @@ export function GameView({
           </>
         ) : (
           <ResultsView
-            sendMessage={sendMessage}
-            messages={messages}
             palette={{
               lightMuted: palette.lightMuted,
               lightVibrant: palette.lightMuted, // Fallback to lightMuted
@@ -233,8 +218,6 @@ export function GameView({
               vibrant: palette.lightMuted, // Fallback to lightMuted
             }}
             resultsPlayers={players}
-            socket={socket}
-            currentPlayerId={currentPlayerId}
           />
         )}
       </div>
