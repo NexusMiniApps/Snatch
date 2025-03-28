@@ -39,10 +39,12 @@ export default function CommentCard({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
 
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   // Motion values for drag
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-30, 30]);
   const opacity = useTransform(x, [-200, 0, 200], [0, 1, 0]);
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
   // Add logging to check comments when they're received
   useEffect(() => {
@@ -98,7 +100,7 @@ export default function CommentCard({
       await handleVote(isRight);
     } else {
       // Reset position if not swiped far enough
-      x.set(0);
+      setDirection(null);
     }
   };
 
@@ -152,6 +154,7 @@ export default function CommentCard({
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.9}
               onDragEnd={handleDragEnd}
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               style={{ x, rotate }}
               className="w-full cursor-grab rounded-xl bg-white shadow-xl active:cursor-grabbing"
             >
