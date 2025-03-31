@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
@@ -20,6 +20,11 @@ export type AuthSession = {
 };
 
 export function BasePage({ session }: { session: AuthSession }) {
+  const [activeTab, setActiveTab] = useState<"info" | "game" | "results">(
+    "info",
+  );
+  const availableTabs = ["info", "game", "results"];
+
   useEffect(() => {
     console.warn("BasePage mounted");
   }, []);
@@ -29,7 +34,6 @@ export function BasePage({ session }: { session: AuthSession }) {
 
   const palette = useVibrantPalette("/images/pokemon.jpg");
   const {
-    activeTab,
     isGameOver,
     loading,
     error,
@@ -67,6 +71,10 @@ export function BasePage({ session }: { session: AuthSession }) {
   }
 
   const hasSnatchTimePassed = new Date(eventData.snatchStartTime) < new Date();
+
+  console.log("xx isGameOver:", isGameOver);
+  console.log("xx hasSnatchTimePassed:", hasSnatchTimePassed);
+  console.log("xx eventData:", eventData);
 
   return (
     <main
@@ -138,12 +146,12 @@ export function BasePage({ session }: { session: AuthSession }) {
         </div>
       )}
 
-      {/* Tab Navigation
+      {/* Tab Navigation */}
       <div className="z-20 flex w-full max-w-96 gap-2">
         {availableTabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => setActiveTab(tab as "info" | "game" | "results")}
             className={`flex-1 rounded-t-lg border-2 border-b-0 border-black bg-white p-2 font-medium capitalize transition-colors ${
               activeTab === tab
                 ? "text-black"
@@ -153,20 +161,18 @@ export function BasePage({ session }: { session: AuthSession }) {
             {tab}
           </button>
         ))}
-      </div> */}
+      </div>
       {/* Views */}
       {/* Show Info View */}
       {activeTab === "info" && eventData && (
-        <InfoView
-          palette={palette}
-          session={session}
-        />
+        <InfoView palette={palette} session={session} />
       )}
       {/* Show Game View */}
       {activeTab === "game" &&
-        !isGameOver &&
-        !hasSnatchTimePassed &&
-        eventData && (
+        // !isGameOver &&
+        // !hasSnatchTimePassed &&
+        // eventData && 
+        (
           <GameView
             palette={palette}
             snatchStartTime={new Date(eventData.snatchStartTime)}
@@ -174,10 +180,7 @@ export function BasePage({ session }: { session: AuthSession }) {
         )}
       {/* Show Results View */}
       {activeTab === "results" && eventData && (
-        <ResultsView
-          palette={palette}
-          resultsPlayers={players}
-        />
+        <ResultsView palette={palette} resultsPlayers={players} />
       )}
     </main>
   );

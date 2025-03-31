@@ -13,10 +13,7 @@ interface GameViewProps {
   snatchStartTime: Date;
 }
 
-export function GameView({
-  palette,
-  snatchStartTime,
-}: GameViewProps) {
+export function GameView({ palette, snatchStartTime }: GameViewProps) {
   const {
     socket,
     currentPlayerCount,
@@ -26,6 +23,7 @@ export function GameView({
     eventData,
     isGameOver,
     handleGameComplete,
+    incrementScore,
   } = usePartySocket();
 
   // Initialize isGameStarted based on current time vs snatch time
@@ -35,10 +33,10 @@ export function GameView({
   const [gameOver, setGameOver] = useState(isGameOver);
   const [gameEndTime] = useState(() => {
     const endTime = new Date(snatchStartTime);
-    endTime.setSeconds(endTime.getSeconds() + 30);
+    endTime.setSeconds(endTime.getSeconds() + 300);
     return endTime;
   });
-  const [displaySeconds, setDisplaySeconds] = useState(30);
+  const [displaySeconds, setDisplaySeconds] = useState(300);
   const [isActive, setIsActive] = useState(false);
   const [postingScores, setPostingScores] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
@@ -119,6 +117,7 @@ export function GameView({
   // Game over check
   useEffect(() => {
     const checkGameOver = () => {
+      console.log("Game Over Check");
       const now = new Date();
       const timeDiff = gameEndTime.getTime() - now.getTime();
       if (timeDiff <= 0) {
@@ -154,9 +153,11 @@ export function GameView({
     return () => clearInterval(timer);
   }, [snatchStartTime]);
 
+  console.log("xx isGameStarted:", isGameStarted);
   return (
     <div className="flex w-full max-w-96 flex-col items-center gap-y-4">
       <div className="relative h-full w-full">
+        <div className="absolute left-0 top-0 z-10 h-16 w-16 bg-pink-500"></div>
         {!gameOver ? (
           <>
             {!isGameStarted &&
@@ -196,6 +197,7 @@ export function GameView({
                   count={currentPlayerCount}
                   socket={socket}
                   onIncrement={(newCount) => {
+                    incrementScore();
                     setCurrentPlayerCount(newCount);
                   }}
                   disabled={!isActive}

@@ -3,13 +3,14 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from "react";
 import PartySocket from "partysocket";
 import { type EventData } from "~/lib/registrationUtils";
-import { EVENT_IDS, GAME_SETTINGS } from "~/lib/settings";
+import { EVENT_IDS, GAME_SETTINGS, EVENT_TYPE } from "~/lib/settings";
 import {
   fetchEvent,
   fetchUserTicket,
   checkPrerequisites,
   handleJoinGiveaway,
 } from "~/lib/registrationUtils";
+import { gameSocketListenerInit } from "~/lib/gameSocketListenerInit";
 
 type AuthSession = {
   user: {
@@ -43,10 +44,21 @@ interface PartySocketContextType {
   currentPlayerId: string;
   players: PlayerData[];
   playerName: string;
-  updatePlayerName: (name: string) => void;
   incrementScore: () => void;
   sendMessage: (message: string) => void;
   messages: ChatMessage[];
+
+  // Socials
+  socialAFollowed: boolean;
+  setSocialAFollowed: (value: boolean) => void;
+  socialBFollowed: boolean;
+  setSocialBFollowed: (value: boolean) => void;
+
+  // Chosen/Random
+  ticketNumber: string | null;
+  setTicketNumber: (value: string | null) => void;
+  hasJoined: boolean;
+  setHasJoined: (value: boolean) => void;
   
   // Game state
   isGameOver: boolean;
@@ -54,20 +66,10 @@ interface PartySocketContextType {
   loading: boolean;
   error: string | null;
   eventData: EventData | null;
-  socialAFollowed: boolean;
-  setSocialAFollowed: (value: boolean) => void;
-  socialBFollowed: boolean;
-  setSocialBFollowed: (value: boolean) => void;
-  ticketNumber: string | null;
-  setTicketNumber: (value: string | null) => void;
-  hasJoined: boolean;
-  setHasJoined: (value: boolean) => void;
-  isLoading: boolean;
-  setIsLoading: (value: boolean) => void;
-  activeTab: "info" | "game" | "results";
-  setActiveTab: (value: "info" | "game" | "results") => void;
   handleTimeUp: () => void;
   handleGameComplete: () => void;
+  isLoading: boolean;
+  setIsLoading: (value: boolean) => void;
 }
 
 const PartySocketContext = createContext<PartySocketContextType | undefined>(undefined);
@@ -198,10 +200,13 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
 
     console.log("Current Player ID is: ", playerId);
     setCurrentPlayerId(playerId);
+
+    const eventType = EVENT_TYPE
     
     const partySocket = new PartySocket({
       host,
       room: "my-room",
+      party: eventType,
       id: playerId,
     });
 
@@ -219,63 +224,20 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
       partySocket.send(JSON.stringify({ type: "updateName", name: userName }));
     });
 
-    partySocket.addEventListener("message", (e) => {
-      let data: {
-        type: string;
-        value?: number;
-        state?: { connections: PlayerData[] };
-        id?: string;
-        message?: ChatMessage;
-      } = { type: "" };
-
-      try {
-        const messageData = e.data as string;
-        const parsedData: unknown = JSON.parse(messageData);
-        if (
-          typeof parsedData === "object" &&
-          parsedData !== null &&
-          "type" in parsedData
-        ) {
-          data = parsedData as {
-            type: string;
-            value?: number;
-            state?: { connections: PlayerData[] };
-            id?: string;
-            message?: ChatMessage;
-          };
-        } else {
-          console.error("Invalid data format:", parsedData);
-          return;
-        }
-      } catch (error) {
-        console.error("Error parsing message:", error);
-        return;
-      }
-
-      if (data.type === "counter") {
-        if (typeof data.value === "number") {
-          setCurrentPlayerCount(data.value);
-        }
-      } else if (data.type === "connection") {
-        if (typeof data.id === "string") {
-          console.log("Player ID from Server is: ", data.id);
-        }
-      } else if (data.type === "state") {
-        if (data.state && Array.isArray(data.state.connections)) {
-          setPlayers(data.state.connections);
-          const currentPlayer = data.state.connections.find(
-            (p: PlayerData) => p.id === currentPlayerId,
-          );
-          if (currentPlayer) {
-            setPlayerName(currentPlayer.name);
-          }
-        }
-      } else if (data.type === "chat") {
-        if ('message' in data && data.message) {
-          setMessages((prev) => [...prev, data.message as ChatMessage]);
-        }
-      }
+    if (eventType === "game") {
+    gameSocketListenerInit({
+      socket: partySocket,
+      setCurrentPlayerCount,
+      currentPlayerId,
+      setPlayers,
+      setPlayerName,
+      setMessages,
     });
+    } else if (eventType === "chosen") {
+      console.log("INIT CHOSEN SOCKET");
+    } else if (eventType === "random") {
+      console.log("INIT RANDOM SOCKET");
+    }
 
     setSocket(partySocket);
     
@@ -284,13 +246,6 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
       partySocket.close();
     };
   }, [session, currentPlayerId]);
-
-  const updatePlayerName = (name: string) => {
-    if (socket && name.trim()) {
-      socket.send(JSON.stringify({ type: "updateName", name: name.trim() }));
-      setPlayerName(name);
-    }
-  };
 
   const incrementScore = () => {
     if (socket) {
@@ -315,7 +270,6 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
     currentPlayerId,
     players,
     playerName,
-    updatePlayerName,
     incrementScore,
     sendMessage,
     messages,

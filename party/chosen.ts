@@ -27,6 +27,13 @@ interface WinnerData {
   name: string;
 }
 
+// Add enum for event types
+enum EventType {
+  GAME = 'game',
+  CHOSEN = 'chosen',
+  RANDOM = 'random'
+}
+
 export default class Server implements Party.Server {
   // The string should be the players UUID session id
   private players: Record<string, PlayerData> = {};
@@ -35,6 +42,8 @@ export default class Server implements Party.Server {
   // Add new properties for winner selection
   private tickets: Record<string, TicketData[]> = {}; // eventId -> tickets
   private winners: Record<string, WinnerData> = {}; // eventId -> winner
+
+  private eventType: EventType = EventType.GAME; // Default to game
 
   constructor(readonly room: Party.Room) {}
 
@@ -70,6 +79,7 @@ export default class Server implements Party.Server {
     this.broadcastState();
   }
   onMessage(message: string, sender: Party.Connection) {
+    
     let data: {
       type: string;
       text?: string;
@@ -79,6 +89,7 @@ export default class Server implements Party.Server {
       tickets?: TicketData[];
       winner?: WinnerData;
     };
+    
     try {
       data = JSON.parse(message) as {
         type: string;
@@ -108,7 +119,9 @@ export default class Server implements Party.Server {
           message: chatMessage,
         }),
       );
-    } else if (data.type === "counter") {
+    } 
+    
+    if (data.type === "counter") {
       const player = this.players[sender.id];
       if (player) {
         player.score += 1;
@@ -149,7 +162,7 @@ export default class Server implements Party.Server {
           tickets: this.tickets[data.eventId] ?? [],
         }),
       );
-    } else if (data.type === "announceWinner" && data.eventId && data.winner) {
+    } else if (data.type === "" && data.eventId && data.winner) {
       // Store the winner
       this.winners[data.eventId] = data.winner;
 
