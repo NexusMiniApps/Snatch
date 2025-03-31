@@ -2,7 +2,11 @@ import Papa from "papaparse";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+// Original poster's username to filter out
+const ORIGINAL_POSTER = "lilac.oak";
+
 interface InstagramComment {
+  id: string;
   username: string;
   comment: string;
   tags: string[];
@@ -14,6 +18,7 @@ interface CsvRow {
   Username: string;
   Comment: string;
   "Avatar URL": string;
+  "Comment ID": string;
 }
 
 function extractTags(comment: string): string[] {
@@ -25,6 +30,19 @@ function extractTags(comment: string): string[] {
 function cleanComment(comment: string): string {
   // Remove all @mentions and any text until a space
   return comment.replace(/@[\w._]+\s*/g, "").trim();
+}
+
+function isValidComment(comment: InstagramComment): boolean {
+  // Filter out comments with less than 3 tags
+  if (comment.tags.length < 3) return false;
+
+  // Filter out empty comments
+  if (comment.comment.length === 0) return false;
+
+  // Filter out comments from the original poster
+  if (comment.username === ORIGINAL_POSTER) return false;
+
+  return true;
 }
 
 async function convertCsvToJson(): Promise<void> {
@@ -53,13 +71,16 @@ async function convertCsvToJson(): Promise<void> {
       process.exit(1);
     }
 
-    // Convert to desired JSON format
-    const jsonData: InstagramComment[] = result.data.map((record: CsvRow) => ({
-      username: record.Username,
-      comment: cleanComment(record.Comment),
-      tags: extractTags(record.Comment),
-      profilePictureUrl: record["Avatar URL"],
-    }));
+    // Convert to desired JSON format and filter comments
+    const jsonData: InstagramComment[] = result.data
+      .map((record: CsvRow) => ({
+        id: record["Comment ID"],
+        username: record.Username,
+        comment: cleanComment(record.Comment),
+        tags: extractTags(record.Comment),
+        profilePictureUrl: record["Avatar URL"],
+      }))
+      .filter(isValidComment);
 
     // Write to JSON file
     const outputPath = join(
@@ -73,6 +94,7 @@ async function convertCsvToJson(): Promise<void> {
     console.log("Conversion completed successfully!");
     console.log(`Output saved to: ${outputPath}`);
     console.log(`Total entries converted: ${jsonData.length}`);
+    console.log(`Filtered out ${result.data.length - jsonData.length} entries`);
   } catch (error) {
     console.error("Error during conversion:", error);
     process.exit(1);
