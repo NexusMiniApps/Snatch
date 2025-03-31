@@ -4,7 +4,20 @@
  */
 import "./src/env.js";
 
-/** @type {import("next").NextConfig} */
-const config = {};
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.cdninstagram.com",
+        pathname: "/**",
+      },
+    ],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    unoptimized: true,
+  },
+};
 
-export default config;
+export default nextConfig;
