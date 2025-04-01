@@ -10,7 +10,9 @@ import {
   checkPrerequisites,
   handleJoinGiveaway,
 } from "~/lib/registrationUtils";
-import { gameSocketListenerInit } from "~/lib/gameSocketListenerInit";
+import { gameSocketListenerInit } from "~/lib/socketlisteners/gameSocketListenerInit";
+import { chosenSocketListenerInit } from "~/lib/socketlisteners/chosenSocketListenerInit";
+import { randomSocketListenerInit } from "~/lib/socketlisteners/randomSocketListenerInit";
 
 type AuthSession = {
   user: {
@@ -99,6 +101,10 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
   const [hasJoined, setHasJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"info" | "game" | "results">("info");
+
+  // Random State
+
+  // Chosen State
 
   const eventId = EVENT_IDS.HUATZARD_EVENT;
 
@@ -225,18 +231,18 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
     });
 
     if (eventType === "game") {
-    gameSocketListenerInit({
-      socket: partySocket,
-      setCurrentPlayerCount,
-      currentPlayerId,
-      setPlayers,
-      setPlayerName,
-      setMessages,
-    });
+      gameSocketListenerInit({
+        socket: partySocket,
+        setCurrentPlayerCount,
+        currentPlayerId,
+        setPlayers,
+        setPlayerName,
+        setMessages,
+      });
     } else if (eventType === "chosen") {
-      console.log("INIT CHOSEN SOCKET");
+      chosenSocketListenerInit({});
     } else if (eventType === "random") {
-      console.log("INIT RANDOM SOCKET");
+      randomSocketListenerInit({});
     }
 
     setSocket(partySocket);
