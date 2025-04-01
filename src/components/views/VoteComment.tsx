@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import type PartySocket from "partysocket";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 
@@ -25,12 +25,12 @@ export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
     const [votedComments, setVotedComments] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
     
-    // Initialize comments with random scores after mounting (client-side only)
+    // Initialize comments and set up socket listeners
     useEffect(() => {
+        // First, initialize with local data
         const initialComments = matchaComments
             .filter(item => item.comment && item.comment.trim() !== "")
             .map((item, index) => ({
-                // Create a truly unique ID by combining username and index
                 id: `${item.username}-${index}`,
                 text: item.comment || "", 
                 username: item.username,
@@ -38,15 +38,72 @@ export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
                 score: Math.floor(Math.random() * 10), 
                 tags: item.tags || []
             }))
-            .sort((a, b) => b.score - a.score); // Pre-sort by score
+            .sort((a, b) => b.score - a.score);
         
         setComments(initialComments);
         setIsLoading(false);
-    }, []);
+        
+        // If socket is available, send initial comments and set up listeners
+        if (socket) {
+            // Send the initial comments to the server if needed
+            socket.send(JSON.stringify({
+                type: "setComments",
+                comments: initialComments
+            }));
+            
+            // Request latest comments from server
+            socket.send(JSON.stringify({ type: "getComments" }));
+            
+            // Request user's votes
+            socket.send(JSON.stringify({ 
+                type: "getUserVotes",
+                userId: currentUserId
+            }));
+            
+            // Set up listeners for updates
+            const handleMessage = (event: MessageEvent) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.type === "comments" && Array.isArray(data.comments)) {
+                        setComments(data.comments);
+                        setIsLoading(false);
+                    }
+                    
+                    if (data.type === "userVotes" && Array.isArray(data.votedComments)) {
+                        // Create a new Set from the array of voted comment IDs
+                        const newVotedComments = new Set<string>(data.votedComments);
+                        console.log("Received voted comments:", data.votedComments);
+                        setVotedComments(newVotedComments);
+                    }
+                } catch (error) {
+                    console.error("Error handling message:", error);
+                }
+            };
+            
+            socket.addEventListener("message", handleMessage);
+            
+            return () => {
+                socket.removeEventListener("message", handleMessage);
+            };
+        }
+    }, [socket, currentUserId]);
 
     const handleVote = (commentId: string) => {
         // Check if comment is already voted
-        if (votedComments.has(commentId)) {
+        const isVoted = votedComments.has(commentId);
+        
+        // Send to server first, then update UI optimistically
+        if (socket) {
+            socket.send(JSON.stringify({
+                type: "vote",
+                commentId,
+                isUpvote: !isVoted // true to add vote, false to remove vote
+            }));
+        }
+        
+        // Optimistic UI update
+        if (isVoted) {
             // Unvote the comment
             setVotedComments(prev => {
                 const newSet = new Set(prev);
