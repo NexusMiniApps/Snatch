@@ -1,23 +1,19 @@
 // components/ui/ChatUI.tsx
 "use client";
 
+import { PartySocket } from "partysocket";
 import { useState, useEffect, useRef } from "react";
-import type PartySocket from "partysocket";
-import { ChatMessage } from "../lib/useGameSocket";
+import { usePartySocket } from "~/PartySocketContext";
 
-interface ChatProps {
-  socket: PartySocket | null;
-  currentPlayerId: string;
-  messages: ChatMessage[];
-  sendMessage: (message: string) => void;
-}
 
-export default function Chat({
-  socket,
-  currentPlayerId,
-  messages,
-  sendMessage,
-}: ChatProps) {
+export default function Chat() {
+  const {
+    socket,
+    currentPlayerId,
+    messages,
+    sendMessage,
+  } = usePartySocket();
+
   const [inputText, setInputText] = useState("");
   const chatContainerRef = useRef<HTMLDivElement>(null);
 

@@ -27,20 +27,11 @@ interface WinnerData {
   name: string;
 }
 
-// Add comment interfaces
-interface CommentData {
-  id: string;
-  text: string;
-  username: string;
-  profilePicture?: string;
-  score: number;
-  tags?: string[];
-}
-
-interface VoteData {
-  commentId: string;
-  userId: string;
-  isUpvote: boolean; // true for upvote, false for removing upvote
+// Add enum for event types
+enum EventType {
+  GAME = 'game',
+  CHOSEN = 'chosen',
+  RANDOM = 'random'
 }
 
 export default class Server implements Party.Server {
@@ -52,9 +43,7 @@ export default class Server implements Party.Server {
   private tickets: Record<string, TicketData[]> = {}; // eventId -> tickets
   private winners: Record<string, WinnerData> = {}; // eventId -> winner
 
-  // Add storage for comments and votes
-  private comments: CommentData[] = [];
-  private userVotes: Record<string, Set<string>> = {}; // userId -> Set of commentIds
+  private eventType: EventType = EventType.GAME; // Default to game
 
   constructor(readonly room: Party.Room) {}
 
@@ -72,16 +61,6 @@ export default class Server implements Party.Server {
     );
   }
 
-  // Add method to broadcast comments
-  private broadcastComments() {
-    this.room.broadcast(
-      JSON.stringify({
-        type: "comments",
-        comments: this.comments,
-      }),
-    );
-  }
-
   onConnect(conn: Party.Connection, _ctx: Party.ConnectionContext) {
     console.log("New connection with connection ID:", conn.id);
     this.players[conn.id] = {
@@ -91,21 +70,6 @@ export default class Server implements Party.Server {
       phone: "",
     };
     conn.send(JSON.stringify({ type: "connection", id: conn.id }));
-
-    // Send current comments state to the new connection
-    conn.send(JSON.stringify({ 
-      type: "comments", 
-      comments: this.comments 
-    }));
-    
-    // Send user's votes
-    if (this.userVotes[conn.id]) {
-      conn.send(JSON.stringify({ 
-        type: "userVotes", 
-        votedComments: Array.from(this.userVotes[conn.id] || new Set()) 
-      }));
-    }
-    
     this.broadcastState();
   }
 
@@ -115,6 +79,7 @@ export default class Server implements Party.Server {
     this.broadcastState();
   }
   onMessage(message: string, sender: Party.Connection) {
+    
     let data: {
       type: string;
       text?: string;
@@ -123,11 +88,8 @@ export default class Server implements Party.Server {
       eventId?: string;
       tickets?: TicketData[];
       winner?: WinnerData;
-
-      comments?: CommentData[];
-      commentId?: string;
-      isUpvote?: boolean;
     };
+    
     try {
       data = JSON.parse(message) as {
         type: string;
@@ -157,7 +119,9 @@ export default class Server implements Party.Server {
           message: chatMessage,
         }),
       );
-    } else if (data.type === "counter") {
+    } 
+    
+    if (data.type === "counter") {
       const player = this.players[sender.id];
       if (player) {
         player.score += 1;
@@ -198,7 +162,7 @@ export default class Server implements Party.Server {
           tickets: this.tickets[data.eventId] ?? [],
         }),
       );
-    } else if (data.type === "announceWinner" && data.eventId && data.winner) {
+    } else if (data.type === "" && data.eventId && data.winner) {
       // Store the winner
       this.winners[data.eventId] = data.winner;
 
@@ -210,66 +174,6 @@ export default class Server implements Party.Server {
           winner: data.winner,
         }),
       );
-    }
-
-    // Add handlers for comments
-    else if (data.type === "setComments" && Array.isArray(data.comments)) {
-      // Only set comments if they haven't been set before
-      if (this.comments.length === 0) {
-        this.comments = data.comments;
-        this.broadcastComments();
-      }
-    } 
-    else if (data.type === "vote" && data.commentId) {
-      // Initialize user's votes if not already done
-      if (!this.userVotes[sender.id]) {
-        this.userVotes[sender.id] = new Set();
-      }
-      
-      // Get user votes set
-      const userVotes = this.userVotes[sender.id];
-      const hasVoted = userVotes?.has(data.commentId);
-      
-      // Find the comment
-      const comment = this.comments.find(c => c.id === data.commentId);
-      if (!comment) return;
-      
-      // Handle vote or unvote based on isUpvote flag
-      if (data.isUpvote === true && !hasVoted) {
-        // Add new vote
-        userVotes?.add(data.commentId);
-        comment.score += 1;
-        console.log(`User ${sender.id} voted for comment ${data.commentId}`);
-      } 
-      else if (data.isUpvote === false && hasVoted) {
-        // Remove existing vote
-        userVotes?.delete(data.commentId);
-        comment.score = Math.max(0, comment.score - 1);
-        console.log(`User ${sender.id} unvoted comment ${data.commentId}`);
-      }
-      
-      // Broadcast updated comments to all clients
-      this.broadcastComments();
-      
-      // Send updated votes to this user
-      sender.send(JSON.stringify({
-        type: "userVotes",
-        votedComments: Array.from(userVotes?.values() || [])
-      }));
-    }
-    else if (data.type === "getComments") {
-      // Send current comments to the requesting client
-      sender.send(JSON.stringify({
-        type: "comments",
-        comments: this.comments
-      }));
-    }
-    else if (data.type === "getUserVotes") {
-      // Send user's votes to the requesting client
-      sender.send(JSON.stringify({
-        type: "userVotes",
-        votedComments: Array.from(this.userVotes[sender.id] || new Set())
-      }));
     }
   }
 }

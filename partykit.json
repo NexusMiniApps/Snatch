@@ -1,6 +1,11 @@
 {
   "$schema": "https://www.partykit.io/schema.json",
   "name": "snatch-party",
-  "main": "party/index.ts",
+  "main": "party/game.ts",
+  "parties": {
+    "game": "party/game.ts",
+    "random": "party/random.ts",
+    "chosen": "party/chosen.ts"
+  },
   "compatibilityDate": "2025-02-07"
 }
