@@ -168,6 +168,7 @@ export const fetchUserTicket = async (
     );
     if (response.ok) {
       const data = (await response.json()) as EventParticipantResponse;
+      console.log("FETCHED USER TICKET DATA: ", data);
       // Load into state
       setTicketNumber(data.ticketNumber);
       setHasJoined(data.hasJoinedGiveaway);

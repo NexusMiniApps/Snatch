@@ -51,14 +51,14 @@ function AdminPanel() {
     <main className="flex min-h-screen flex-col items-center gap-8 p-8">
       <h1 className="text-3xl font-bold">Admin Panel</h1>
 
-      {/* <button
+      <button
         onClick={handleStartSnatch}
         className="rounded-lg bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 active:bg-blue-700"
       >
         Start New Snatch (15s)
-      </button> */}
+      </button>
 
-      <WinnerSelector eventId="eb5946d8-4b98-479e-83a9-c4c8093c83a1" isAdmin />
+      {/* <WinnerSelector eventId="eb5946d8-4b98-479e-83a9-c4c8093c83a1" isAdmin /> */}
     </main>
   );
 }
