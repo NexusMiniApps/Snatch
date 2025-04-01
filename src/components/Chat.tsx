@@ -1,14 +1,12 @@
 // components/ui/ChatUI.tsx
 "use client";
 
+import { PartySocket } from "partysocket";
 import { useState, useEffect, useRef } from "react";
 import { usePartySocket } from "~/PartySocketContext";
 
-interface ChatProps {
-  // No props needed anymore as we'll get everything from context
-}
 
-export default function Chat({}: ChatProps) {
+export default function Chat() {
   const {
     socket,
     currentPlayerId,

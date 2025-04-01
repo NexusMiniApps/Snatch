@@ -1,9 +1,3 @@
-interface SocketMessageHandlerParams {
-
-}
-
-export function randomSocketListenerInit({
-
-}: SocketMessageHandlerParams) {
+export function randomSocketListenerInit({}) {
   // Random socket logic will go here
 } 

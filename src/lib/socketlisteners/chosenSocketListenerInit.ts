@@ -1,5 +1,3 @@
-interface SocketMessageHandlerParams {}
-
-export function chosenSocketListenerInit({}: SocketMessageHandlerParams) {
+export function chosenSocketListenerInit({}) {
   // Chosen socket logic will go here
 }

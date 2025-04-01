@@ -60,7 +60,7 @@ export function gameSocketListenerInit({
       }
     } else if (data.type === "chat") {
       if ('message' in data && data.message) {
-        setMessages((prev) => [...prev, data.message as ChatMessage]);
+        setMessages((prev) => [...prev, data.message!]);
       }
     }
   });

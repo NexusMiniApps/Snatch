@@ -191,25 +191,8 @@ export default function BasePage({ session }: { session: AuthSession }) {
       {/* Show Info View */}
       {activeTab === "info" && eventData && (
         <InfoView
-          players={players}
           palette={palette}
-          onTimeUp={handleTimeUp}
-          eventData={eventData}
           session={session}
-          ticketNumber={ticketNumber}
-          hasJoined={hasJoined}
-          isLoading={isLoading}
-          handleJoinGiveaway={async () => {
-            if (session?.user?.id && eventData?.id) {
-              await handleJoinGiveaway(
-                session.user.id,
-                eventData.id,
-                setIsLoading,
-                setTicketNumber,
-                setHasJoined,
-              );
-            }
-          }}
         />
       )}
       {/* Show Game View */}
@@ -218,31 +201,15 @@ export default function BasePage({ session }: { session: AuthSession }) {
         !hasSnatchTimePassed &&
         eventData && (
           <GameView
-            sendMessage={sendMessage}
-            messages={messages}
-            socket={socket}
-            currentPlayerCount={currentPlayerCount}
-            currentPlayerId={currentPlayerId}
-            players={players}
-            onGameComplete={handleGameComplete}
-            isGameOver={isGameOver}
-            setCurrentPlayerCount={setCurrentPlayerCount}
             palette={palette}
             snatchStartTime={new Date(eventData.snatchStartTime)}
-            eventData={eventData}
-            socialAFollowed={socialAFollowed}
-            socialBFollowed={socialBFollowed}
           />
         )}
       {/* Show Results View */}
       {activeTab === "results" && eventData && (
         <ResultsView
-          sendMessage={sendMessage}
-          messages={messages}
           palette={palette}
           resultsPlayers={players}
-          socket={socket}
-          currentPlayerId={currentPlayerId}
         />
       )}
       {/* Show Comments View */}
