@@ -20,10 +20,10 @@ export function InfoView({ palette }: InfoViewProps) {
   //   ? `${process.env.NEXT_PUBLIC_BASE_URL}/misc/post.jpg`
   //   : "/misc/post.jpg";
 
-  const eventStartTime = eventData?.startTime ?? '';
-  const eventName = eventData?.name ?? '';
-  const eventLocation = eventData?.location ?? '';
-  const eventDescription = eventData?.description ?? '';
+  const eventStartTime = eventData?.startTime ?? "";
+  const eventName = eventData?.name ?? "";
+  const eventLocation = eventData?.location ?? "";
+  const eventDescription = eventData?.description ?? "";
 
   // const eventDate = new Date(eventStartTime).toLocaleDateString("en-GB", {
   //   day: "2-digit",
@@ -177,30 +177,30 @@ export function InfoView({ palette }: InfoViewProps) {
           </div>
         </div>
       </section>
-      <section className="flex w-full max-w-96 flex-col items-center rounded-xl shadow-lg">
+      {/* <section className="flex w-full max-w-96 flex-col items-center rounded-xl shadow-lg">
         <button
           // onClick={handleJoinGiveaway}
           className="custom-box z-10 w-full p-1"
         >
-          {/* {hasJoined ? (
+          {hasJoined ? (
             <div className="flex h-16 w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-3xl font-medium text-white">
               Join the Giveaway!
             </div>
-          ) : ( */}
-          <div className="flex w-full items-center justify-between rounded-xl bg-gray-100">
-            <div className="text-md flex flex-1 justify-center font-medium">
-              Your Ticket Number:
+          ) : (
+            <div className="flex w-full items-center justify-between rounded-xl bg-gray-100">
+              <div className="text-md flex flex-1 justify-center font-medium">
+                Your Ticket Number:
+              </div>
+              <div className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
+                {ticketNumber}
+              </div>
             </div>
-            <div className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
-              {ticketNumber}
-            </div>
-          </div>
-          {/* )} */}
+          )}
         </button>
-      </section>
+      </section> */}
 
-      <section className="z-10 flex w-full max-w-96 flex-col items-center">
-        {/* <button
+      {/* <section className="z-10 flex w-full max-w-96 flex-col items-center"> */}
+      {/* <button
           className="custom-box w-full p-1 shadow-lg"
           onClick={handleShowTicket}
           disabled={isLoading}
@@ -219,11 +219,11 @@ export function InfoView({ palette }: InfoViewProps) {
           </div>
         )} */}
 
-        <div className="font-lights px-2 py-4 text-lg">
+      {/* <div className="font-lights px-2 py-4 text-lg">
           <span className="font-semibold">{giveawayParticipantCount}</span>{" "}
           people have joined the giveaway!
         </div>
-      </section>
+      </section> */}
 
       {/* Ticket Popup Dialog
       {showTicketDialog && (
