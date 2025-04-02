@@ -3,14 +3,7 @@
 import { useState, useEffect } from "react";
 import CommentCard from "~/components/ui/CommentCard";
 import Image from "next/image";
-
-interface Comment {
-  id: string;
-  username: string;
-  profilePictureUrl: string;
-  comment: string;
-  tags: string[];
-}
+import type { Comment } from "~/types/comment";
 
 interface CommentViewProps {
   palette: {

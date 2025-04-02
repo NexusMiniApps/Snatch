@@ -7,14 +7,7 @@ import {
   useTransform,
   animate,
 } from "framer-motion";
-
-interface Comment {
-  id: string;
-  username: string;
-  profilePictureUrl?: string;
-  comment: string;
-  tags: string[];
-}
+import type { Comment } from "~/types/comment";
 
 interface CommentCardProps {
   comments: Comment[];
