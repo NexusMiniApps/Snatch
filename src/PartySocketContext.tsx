@@ -39,6 +39,15 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+export interface Comment {
+  id: string;
+  text: string;
+  username: string;
+  profilePicture?: string;
+  score: number;
+  tags?: string[];
+}
+
 interface PartySocketContextType {
   socket: PartySocket | null;
   currentPlayerCount: number;
@@ -56,11 +65,17 @@ interface PartySocketContextType {
   socialBFollowed: boolean;
   setSocialBFollowed: (value: boolean) => void;
 
-  // Chosen/Random
+  // Random
   ticketNumber: string | null;
   setTicketNumber: (value: string | null) => void;
   hasJoined: boolean;
   setHasJoined: (value: boolean) => void;
+
+  // Chosen
+  setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
+  votedComments: Set<string>;
+  setVotedComments:  React.Dispatch<React.SetStateAction<Set<string>>>;
+  setIsLoadingChosen: React.Dispatch<React.SetStateAction<boolean>>;
   
   // Game state
   isGameOver: boolean;
@@ -105,6 +120,9 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
   // Random State
 
   // Chosen State
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [votedComments, setVotedComments] = useState<Set<string>>(new Set());
+  const [isLoadingChosen, setIsLoadingChosen] = useState(true);
 
   const eventId = EVENT_IDS.HUATZARD_EVENT;
 
@@ -240,7 +258,13 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
         setMessages,
       });
     } else if (eventType === "chosen") {
-      chosenSocketListenerInit({});
+      chosenSocketListenerInit({
+        socket: partySocket,
+        setComments,
+        votedComments,
+        setVotedComments,
+        setIsLoadingChosen,
+      });
     } else if (eventType === "random") {
       randomSocketListenerInit({});
     }
@@ -300,6 +324,12 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
     setActiveTab,
     handleTimeUp,
     handleGameComplete,
+    
+    // Chosen state
+    setComments,
+    votedComments,
+    setVotedComments,
+    setIsLoadingChosen,
   };
 
   return (

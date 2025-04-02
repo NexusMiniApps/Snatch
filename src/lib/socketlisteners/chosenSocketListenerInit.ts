@@ -1,13 +1,5 @@
 import type PartySocket from "partysocket";
-
-interface Comment {
-  id: string;
-  comment: string;
-  username: string;
-  profilePictureUrl?: string;
-  tags: string[];
-  score: number;
-}
+import { Comment } from "~/PartySocketContext";
 
 interface SocketMessage {
   type: string;
@@ -20,7 +12,7 @@ interface ChosenSocketMessageHandlerParams {
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
   votedComments: Set<string>;
   setVotedComments: React.Dispatch<React.SetStateAction<Set<string>>>;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsLoadingChosen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface SocketListener {
@@ -33,7 +25,7 @@ export function chosenSocketListenerInit({
   setComments,
   votedComments,
   setVotedComments,
-  setIsLoading,
+  setIsLoadingChosen,
 }: ChosenSocketMessageHandlerParams): SocketListener {
   // Set up listeners for updates
   const handleMessage = (event: MessageEvent<string>) => {
@@ -42,7 +34,7 @@ export function chosenSocketListenerInit({
 
       if (data.type === "comments" && Array.isArray(data.comments)) {
         setComments(data.comments);
-        setIsLoading(false);
+        setIsLoadingChosen(false);
       }
 
       if (data.type === "userVotes" && Array.isArray(data.votedComments)) {

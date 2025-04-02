@@ -49,3 +49,7 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# misc files
+public/misc/clearedComments.json
+public/misc/savedComments.json
