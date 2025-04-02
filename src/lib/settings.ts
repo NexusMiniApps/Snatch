@@ -12,4 +12,8 @@ export const GAME_SETTINGS = {
   SNATCH_TIME_BUFFER: 30000, // 30 seconds in milliseconds
 } as const; 
 
-export const EVENT_TYPE = 'game'
+export const EVENT_TYPE = {
+  GAME: "game",
+  CHOSEN: "chosen",
+  RANDOM: "random",
+}

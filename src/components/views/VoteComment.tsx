@@ -3,7 +3,8 @@ import type PartySocket from "partysocket";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
 
 // Sample data from matchaGiveaway.json
-import matchaComments from "../../../public/misc/matchaGiveaway.json";
+import matchaComments from "../../../public/misc/savedComments.json";
+import { usePartySocket } from "~/PartySocketContext";
 
 interface Comment {
   id: string;
@@ -25,11 +26,17 @@ interface VoteCommentProps {
   currentUserId: string;
 }
 
-export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
-  // State variables
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [votedComments, setVotedComments] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(true);
+export function VoteComment() {
+const {
+    socket,
+    currentPlayerId,
+    comments,
+    setComments,
+    votedComments,
+    setVotedComments,
+    isLoadingChosen,
+    setIsLoadingChosen,
+} = usePartySocket();
 
   // Initialize comments and set up socket listeners
   useEffect(() => {
@@ -47,7 +54,7 @@ export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
       .sort((a, b) => b.score - a.score);
 
     setComments(initialComments);
-    setIsLoading(false);
+    setIsLoadingChosen(false);
 
     // If socket is available, send initial comments and set up listeners
     if (socket) {
@@ -66,7 +73,7 @@ export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
       socket.send(
         JSON.stringify({
           type: "getUserVotes",
-          userId: currentUserId,
+          userId: currentPlayerId,
         }),
       );
 
@@ -77,7 +84,7 @@ export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
 
           if (data.type === "comments" && Array.isArray(data.comments)) {
             setComments(data.comments);
-            setIsLoading(false);
+            setIsLoadingChosen(false);
           }
 
           if (data.type === "userVotes" && Array.isArray(data.votedComments)) {
@@ -91,13 +98,13 @@ export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
         }
       };
 
-      socket.addEventListener("message", handleMessage);
+      socket?.addEventListener("message", handleMessage);
 
       return () => {
-        socket.removeEventListener("message", handleMessage);
+        socket?.removeEventListener("message", handleMessage);
       };
     }
-  }, [socket, currentUserId]);
+  }, [socket, currentPlayerId]);
 
   const handleVote = (commentId: string) => {
     // Check if comment is already voted
@@ -153,7 +160,7 @@ export function VoteComment({ socket, currentUserId }: VoteCommentProps) {
   // Sort comments by score in descending order
   const sortedComments = [...comments].sort((a, b) => b.score - a.score);
 
-  if (isLoading) {
+  if (isLoadingChosen) {
     return (
       <div className="flex min-h-[200px] items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-yellow-950"></div>

@@ -72,9 +72,11 @@ interface PartySocketContextType {
   setHasJoined: (value: boolean) => void;
 
   // Chosen
+  comments: Comment[];
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
   votedComments: Set<string>;
   setVotedComments:  React.Dispatch<React.SetStateAction<Set<string>>>;
+  isLoadingChosen: boolean;
   setIsLoadingChosen: React.Dispatch<React.SetStateAction<boolean>>;
   
   // Game state
@@ -225,7 +227,8 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
     console.log("Current Player ID is: ", playerId);
     setCurrentPlayerId(playerId);
 
-    const eventType = EVENT_TYPE
+    const eventType = EVENT_TYPE.CHOSEN;
+    console.log("Event Type is: ", eventType);
     
     const partySocket = new PartySocket({
       host,
@@ -326,9 +329,11 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
     handleGameComplete,
     
     // Chosen state
+    comments,
     setComments,
     votedComments,
     setVotedComments,
+    isLoadingChosen,
     setIsLoadingChosen,
   };
 

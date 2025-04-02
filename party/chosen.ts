@@ -238,43 +238,57 @@ export default class Server implements Party.Server {
         this.userVotes[sender.id] = new Set();
       }
       
-      // Get user votes set
-      const userVotes = this.userVotes[sender.id];
-      const hasVoted = userVotes?.has(data.commentId);
+      const isUpvote = data.isUpvote !== undefined ? data.isUpvote : true;
+      const commentId = data.commentId;
       
-      // Find the comment
-      const comment = this.comments.find(c => c.id === data.commentId);
-      if (!comment) return;
+      // Check if user has already voted for this comment
+      const hasVoted = this.userVotes[sender.id]?.has(commentId) || false;
       
-      // Handle vote or unvote based on isUpvote flag
-      if (data.isUpvote === true && !hasVoted) {
-        // Add new vote
-        userVotes?.add(data.commentId);
-        comment.score += 1;
-        console.log(`User ${sender.id} voted for comment ${data.commentId}`);
+      // Update votes and scores based on the isUpvote flag
+      if (isUpvote && !hasVoted) {
+        // Add vote
+        this.userVotes[sender.id]?.add(commentId) || (this.userVotes[sender.id] = new Set([commentId]));
+        
+        // Find and update comment score
+        const comment = this.comments.find(c => c.id === commentId);
+        if (comment) {
+          comment.score += 1;
+        }
       } 
-      else if (data.isUpvote === false && hasVoted) {
-        // Remove existing vote
-        userVotes?.delete(data.commentId);
-        comment.score = Math.max(0, comment.score - 1);
-        console.log(`User ${sender.id} unvoted comment ${data.commentId}`);
+      else if (!isUpvote && hasVoted) {
+        // Remove vote
+        this.userVotes[sender.id]?.delete(commentId);
+        
+        // Find and update comment score
+        const comment = this.comments.find(c => c.id === commentId);
+        if (comment) {
+          comment.score = Math.max(0, comment.score - 1);
+        }
       }
       
-      // Broadcast updated comments to all clients
-      this.broadcastComments();
-      
-      // Send updated votes to this user
-      sender.send(JSON.stringify({
-        type: "userVotes",
-        votedComments: Array.from(userVotes?.values() || [])
-      }));
-    }
-    else if (data.type === "getComments") {
-      // Send current comments to the requesting client
-      sender.send(JSON.stringify({
+      // IMPORTANT: Broadcast updated comments to ALL clients
+      this.room.broadcast(JSON.stringify({
         type: "comments",
         comments: this.comments
       }));
+      
+      // Send updated votes to the current user
+      sender.send(JSON.stringify({
+        type: "userVotes",
+        votedComments: Array.from(this.userVotes[sender.id] || new Set())
+      }));
+    }
+    else if (data.type === "getComments") {
+      // Only send comments if we have them
+      if (this.comments.length > 0) {
+        sender.send(JSON.stringify({
+          type: "comments",
+          comments: this.comments
+        }));
+        console.log("Sent comments to client:", this.comments.length);
+      } else {
+        console.log("No comments to send to client");
+      }
     }
     else if (data.type === "getUserVotes") {
       // Send user's votes to the requesting client
