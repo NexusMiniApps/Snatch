@@ -75,7 +75,7 @@ export function chosenSocketListenerInit({
       setComments((prev) =>
         prev.map((comment) =>
           comment.id === commentId
-            ? { ...comment, score: Math.max(0, comment.score - 1) }
+            ? { ...comment, score: Math.max(0, (comment.score ?? 0) - 1) }
             : comment,
         ),
       );
@@ -91,7 +91,7 @@ export function chosenSocketListenerInit({
       setComments((prev) =>
         prev.map((comment) =>
           comment.id === commentId
-            ? { ...comment, score: comment.score + 1 }
+            ? { ...comment, score: (comment.score ?? 0) + 1 }
             : comment,
         ),
       );
