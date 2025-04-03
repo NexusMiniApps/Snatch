@@ -22,6 +22,7 @@ export function CommentView({ palette }: CommentViewProps) {
   const [hideUsernames, setHideUsernames] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCompletion, setShowCompletion] = useState(false);
   const { socket } = usePartySocket();
 
   // Load comments from JSON file
@@ -115,7 +116,9 @@ export function CommentView({ palette }: CommentViewProps) {
           throw new Error("Failed to clear comments");
         }
 
-        // Reload comments to reflect changes
+        // Reset state and reload comments
+        setComments([]);
+        setIsLoading(true);
         await loadComments();
       } else {
         console.error("Socket is not available");
@@ -213,6 +216,7 @@ export function CommentView({ palette }: CommentViewProps) {
               hideUsernames={hideUsernames}
               onSave={handleSave}
               onDiscard={handleDiscard}
+              showCompletion={showCompletion}
             />
           </div>
         </section>
@@ -235,6 +239,13 @@ export function CommentView({ palette }: CommentViewProps) {
             className="rounded-lg bg-red-500 px-4 py-2 text-sm text-white transition-colors hover:bg-red-600"
           >
             Clear Saved Comments
+          </button>
+
+          <button
+            onClick={() => setShowCompletion(!showCompletion)}
+            className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600"
+          >
+            {showCompletion ? "Hide Completion" : "Show Completion"}
           </button>
         </div>
       </div>

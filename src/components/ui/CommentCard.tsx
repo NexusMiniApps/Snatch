@@ -15,6 +15,7 @@ interface CommentCardProps {
   hideUsernames: boolean;
   onSave: (comment: Comment) => Promise<void>;
   onDiscard: (comment: Comment) => Promise<void>;
+  showCompletion?: boolean;
 }
 
 const CLEARED_COMMENTS_KEY = "/misc/clearedComments.json";
@@ -41,6 +42,7 @@ export default function CommentCard({
   hideUsernames,
   onSave,
   onDiscard,
+  showCompletion,
 }: CommentCardProps) {
   const [filteredComments, setFilteredComments] = useState<Comment[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -303,6 +305,13 @@ export default function CommentCard({
     x.set(0);
   }, [currentIndex, opacity, x]);
 
+  // Reset opacity when showCompletion changes
+  useEffect(() => {
+    if (!showCompletion) {
+      opacity.set(1);
+    }
+  }, [showCompletion, opacity]);
+
   // Handle button click with animation
   const handleButtonClick = async (isLike: boolean) => {
     if (!currentComment) return;
@@ -411,7 +420,7 @@ export default function CommentCard({
   };
 
   // Early return for showing completion message
-  if (allCardsFinished || remainingCards === 0) {
+  if (showCompletion || allCardsFinished || remainingCards === 0) {
     return (
       <motion.div
         className="flex w-full max-w-md flex-col items-center justify-center gap-4 rounded-xl text-center"

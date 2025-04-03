@@ -145,7 +145,7 @@ export function VoteComment() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-96 flex-col gap-4">
       <div className="custom-box relative z-20 w-full p-1 shadow-xl">
         <div className="rounded-lg bg-yellow-950 p-4 text-white">
           <h1 className="text-3xl font-semibold">Matcha Suggestions</h1>
@@ -157,7 +157,7 @@ export function VoteComment() {
 
       <div className="mt-4 space-y-3">
         {sortedComments.length === 0 ? (
-          <div className="rounded-lg bg-gray-100 p-6 text-center">
+          <div className="custom-box rounded-xl p-6 text-center">
             No comments yet.
           </div>
         ) : (
