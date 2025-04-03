@@ -25,25 +25,25 @@ export function CommentView({ palette }: CommentViewProps) {
   const { socket } = usePartySocket();
 
   // Load comments from JSON file
-  useEffect(() => {
-    async function loadComments() {
-      try {
-        const response = await fetch("/misc/matchaGiveaway.json");
-        if (!response.ok) {
-          throw new Error("Failed to load comments");
-        }
-        const data = (await response.json()) as Comment[];
-        setComments(data);
-      } catch (error) {
-        setError(
-          error instanceof Error ? error.message : "Failed to load comments",
-        );
-        console.error("Error loading comments:", error);
-      } finally {
-        setIsLoading(false);
+  const loadComments = async () => {
+    try {
+      const response = await fetch("/misc/matchaGiveaway.json");
+      if (!response.ok) {
+        throw new Error("Failed to load comments");
       }
+      const data = (await response.json()) as Comment[];
+      setComments(data);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to load comments",
+      );
+      console.error("Error loading comments:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
     void loadComments();
   }, []);
 
@@ -114,6 +114,9 @@ export function CommentView({ palette }: CommentViewProps) {
         if (!response.ok) {
           throw new Error("Failed to clear comments");
         }
+
+        // Reload comments to reflect changes
+        await loadComments();
       } else {
         console.error("Socket is not available");
         throw new Error("Socket connection not available");
@@ -123,6 +126,38 @@ export function CommentView({ palette }: CommentViewProps) {
       alert("Failed to clear comments");
     }
   };
+
+  // Handle WebSocket messages for syncing cleared comments
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        if (typeof event.data !== "string") {
+          console.error("Received non-string data from WebSocket");
+          return;
+        }
+        const data = JSON.parse(event.data) as {
+          type: string;
+          action?: "add" | "remove" | "clear";
+          commentId?: string;
+        };
+
+        if (data.type === "clearedComments") {
+          // Reload comments to reflect changes
+          void loadComments();
+        }
+      } catch (error) {
+        console.error(
+          "Error handling socket message:",
+          error instanceof Error ? error.message : "Unknown error",
+        );
+      }
+    };
+
+    socket.addEventListener("message", handleMessage);
+    return () => socket.removeEventListener("message", handleMessage);
+  }, [socket]);
 
   if (isLoading) {
     return (

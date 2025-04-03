@@ -105,7 +105,7 @@ export function InfoView({ palette }: InfoViewProps) {
         </div>
       </section>
       <section className="z-10 flex w-full max-w-96 flex-col items-center pt-2">
-        <div className="font-lights px-2 py-4 text-lg">
+        <div className="font-lights px-2 text-lg">
           <span className="font-semibold">{commentCount}</span> people have
           joined the giveaway!
         </div>
