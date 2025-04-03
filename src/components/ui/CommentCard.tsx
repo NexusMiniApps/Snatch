@@ -8,6 +8,7 @@ import {
   animate,
 } from "framer-motion";
 import type { Comment } from "~/types/comment";
+import { usePartySocket } from "~/PartySocketContext";
 
 interface CommentCardProps {
   comments: Comment[];
@@ -17,6 +18,11 @@ interface CommentCardProps {
 }
 
 const CLEARED_COMMENTS_KEY = "/misc/clearedComments.json";
+
+interface SocketMessage {
+  type: string;
+  clearedIds?: string[];
+}
 
 // const validateProfileImage = (url: string): string => {
 //   if (!url || url.trim() === "") {
@@ -45,6 +51,8 @@ export default function CommentCard({
   );
   // Flag to track initial mounting state
   const [isInitialMount, setIsInitialMount] = useState(true);
+  const [allCardsFinished, setAllCardsFinished] = useState(false);
+  const { socket } = usePartySocket();
 
   /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   // Motion values for drag
@@ -69,75 +77,48 @@ export default function CommentCard({
     }
   }, [isInitialMount, opacity]);
 
-  // Load cleared comments from JSON file
+  // Handle WebSocket messages for cleared comments
   useEffect(() => {
-    async function loadClearedComments() {
+    if (!socket) return;
+
+    const handleMessage = (event: MessageEvent) => {
       try {
-        const response = await fetch("/api/clearedComments");
-        if (!response.ok) throw new Error("Failed to load cleared comments");
-        const data = (await response.json()) as { clearedIds: string[] };
-        setClearedCommentIds(new Set(data.clearedIds));
+        if (typeof event.data !== "string") {
+          console.error("Received non-string data from WebSocket");
+          return;
+        }
+        const data = JSON.parse(event.data) as SocketMessage;
+        if (data.type === "clearedComments" && Array.isArray(data.clearedIds)) {
+          const clearedIds = data.clearedIds.filter(
+            (id): id is string => typeof id === "string",
+          );
+          setClearedCommentIds(new Set<string>(clearedIds));
+        }
       } catch (error) {
-        console.error("Error loading cleared comments:", error);
+        console.error("Error handling socket message:", error);
       }
-    }
-    void loadClearedComments();
-  }, []);
+    };
 
-  // Save cleared comment IDs without updating state
-  const saveClearedComments = async (newId: string) => {
-    try {
-      // If newId is empty, clear all IDs
-      if (!newId) {
-        const response = await fetch("/api/clearedComments", {
-          method: "DELETE",
-        });
-        if (!response.ok) throw new Error("Failed to clear comments");
-        return;
-      }
+    socket.addEventListener("message", handleMessage);
+    return () => socket.removeEventListener("message", handleMessage);
+  }, [socket]);
 
-      // First, get the current cleared IDs from the server
-      const getResponse = await fetch("/api/clearedComments");
-      if (!getResponse.ok) throw new Error("Failed to load cleared comments");
-      const data = (await getResponse.json()) as { clearedIds: string[] };
-
-      // Create a new array with all existing IDs plus the new one
-      const updatedIds = [...data.clearedIds];
-      if (!updatedIds.includes(newId)) {
-        updatedIds.push(newId);
-      }
-
-      // Save the updated array back to the server
-      const response = await fetch("/api/clearedComments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clearedIds: updatedIds }),
-      });
-      if (!response.ok) throw new Error("Failed to save cleared comments");
-    } catch (error) {
-      console.error("Error saving cleared comments:", error);
-    }
-  };
+  // Check if all cards are finished
+  useEffect(() => {
+    const totalComments = comments.length;
+    const clearedCount = clearedCommentIds.size;
+    const isFinished = totalComments > 0 && clearedCount === totalComments;
+    setAllCardsFinished(isFinished);
+  }, [comments.length, clearedCommentIds.size]);
 
   // Fetch saved comments count
   useEffect(() => {
     async function fetchSavedCount() {
       try {
-        const response = await fetch("/misc/savedComments.json");
-        if (response.status === 404) {
-          const initResponse = await fetch("/api/saveComment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify([]),
-          });
-          if (!initResponse.ok)
-            throw new Error("Failed to initialize saved comments");
-          setSavedCount(0);
-          return;
-        }
+        const response = await fetch("/api/saveComment");
         if (!response.ok) throw new Error("Failed to load saved comments");
         const data = (await response.json()) as Comment[];
-        setSavedCount(data.length);
+        setSavedCount(0); // Start from 0 instead of data.length
       } catch (error) {
         console.error("Error fetching saved comments count:", error);
         setSavedCount(0);
@@ -179,25 +160,39 @@ export default function CommentCard({
     }
   }, [currentIndex, filteredComments.length]);
 
-  // Determine if all cards are finished - use a state to ensure it persists
-  const [allCardsFinished, setAllCardsFinished] = useState(false);
-
-  useEffect(() => {
-    // Check if we've reached the end of cards and update the finished state
-    if (remainingCards === 0 && filteredComments.length > 0) {
-      setAllCardsFinished(true);
-    }
-  }, [remainingCards, filteredComments.length]);
-
-  // Reload cleared comments from server
-  const reloadClearedComments = async () => {
+  // Save cleared comment IDs without updating state
+  const saveClearedComments = async (newId: string) => {
     try {
-      const response = await fetch("/api/clearedComments");
-      if (!response.ok) throw new Error("Failed to load cleared comments");
-      const data = (await response.json()) as { clearedIds: string[] };
-      setClearedCommentIds(new Set(data.clearedIds));
+      // If newId is empty, clear all IDs
+      if (!newId) {
+        const response = await fetch("/api/clearedComments", {
+          method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to clear comments");
+        setClearedCommentIds(new Set()); // Clear local state
+        return;
+      }
+
+      // First, get the current cleared IDs from the server
+      const getResponse = await fetch("/api/clearedComments");
+      if (!getResponse.ok) throw new Error("Failed to load cleared comments");
+      const data = (await getResponse.json()) as { clearedIds: string[] };
+
+      // Create a new array with all existing IDs plus the new one
+      const updatedIds = [...data.clearedIds];
+      if (!updatedIds.includes(newId)) {
+        updatedIds.push(newId);
+      }
+
+      // Save the updated array back to the server
+      const response = await fetch("/api/clearedComments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clearedIds: updatedIds }),
+      });
+      if (!response.ok) throw new Error("Failed to save cleared comments");
     } catch (error) {
-      console.error("Error reloading cleared comments:", error);
+      console.error("Error saving cleared comments:", error);
     }
   };
 
@@ -212,6 +207,7 @@ export default function CommentCard({
         setSavedCount((prev) => prev + 1);
       } else {
         await onDiscard(currentComment);
+        await saveClearedComments(currentComment.id);
       }
 
       // Add to session processed IDs (doesn't trigger filtering)
@@ -344,6 +340,18 @@ export default function CommentCard({
 
       // Reset direction
       setDirection(null);
+    }
+  };
+
+  // Reload cleared comments from server
+  const reloadClearedComments = async () => {
+    try {
+      const response = await fetch("/api/clearedComments");
+      if (!response.ok) throw new Error("Failed to load cleared comments");
+      const data = (await response.json()) as { clearedIds: string[] };
+      setClearedCommentIds(new Set(data.clearedIds));
+    } catch (error) {
+      console.error("Error reloading cleared comments:", error);
     }
   };
 

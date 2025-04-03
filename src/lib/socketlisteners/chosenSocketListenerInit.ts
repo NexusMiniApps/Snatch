@@ -5,6 +5,7 @@ interface SocketMessage {
   type: string;
   comments?: Comment[];
   votedComments?: string[];
+  comment?: Comment;
 }
 
 interface ChosenSocketMessageHandlerParams {
@@ -15,7 +16,6 @@ interface ChosenSocketMessageHandlerParams {
   setIsLoadingChosen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-
 export function chosenSocketListenerInit({
   socket,
   setComments,
@@ -24,83 +24,99 @@ export function chosenSocketListenerInit({
   setIsLoadingChosen,
 }: ChosenSocketMessageHandlerParams) {
   console.log("Chosen socket listener initialized");
-  // // Set up listeners for updates
-  // const handleMessage = (event: MessageEvent<string>) => {
-  //   try {
-  //     const data = JSON.parse(event.data) as SocketMessage;
 
-  //     if (data.type === "comments" && Array.isArray(data.comments)) {
-  //       setComments(data.comments);
-  //       setIsLoadingChosen(false);
-  //     }
+  // Set up listeners for updates
+  const handleMessage = (event: MessageEvent<string>) => {
+    console.log("Received raw socket message:", event.data);
+    try {
+      const data = JSON.parse(event.data) as SocketMessage;
+      console.log("Parsed socket message:", data);
 
-  //     if (data.type === "userVotes" && Array.isArray(data.votedComments)) {
-  //       const newVotedComments = new Set<string>(data.votedComments);
-  //       console.log("Received voted comments:", data.votedComments);
-  //       setVotedComments(newVotedComments);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error handling message:", error);
-  //   }
-  // };
+      if (data.type === "comments" && Array.isArray(data.comments)) {
+        console.log("Handling comments update:", data.comments);
+        setComments(data.comments);
+        setIsLoadingChosen(false);
+      }
 
-  // const handleVote = (commentId: string) => {
-  //   // Check if comment is already voted
-  //   const isVoted = votedComments.has(commentId);
+      if (data.type === "userVotes" && Array.isArray(data.votedComments)) {
+        console.log("Handling votes update:", data.votedComments);
+        const newVotedComments = new Set<string>(data.votedComments);
+        setVotedComments(newVotedComments);
+      }
 
-  //   // Send to server first, then update UI optimistically
-  //   if (socket) {
-  //     socket.send(
-  //       JSON.stringify({
-  //         type: "vote",
-  //         commentId,
-  //         isUpvote: !isVoted, // true to add vote, false to remove vote
-  //       }),
-  //     );
-  //   }
+      // Add handler for new comments
+      if (data.type === "newComment" && data.comment) {
+        console.log("Handling new comment:", data.comment);
+        setComments((prev) => {
+          const newComments = [...prev, data.comment!];
+          console.log("Updated comments state:", newComments);
+          return newComments;
+        });
+      } else {
+        console.log("Message type not handled:", data.type);
+      }
+    } catch (error) {
+      console.error("Error handling message:", error);
+    }
+  };
 
-  //   // Optimistic UI update
-  //   if (isVoted) {
-  //     // Unvote the comment
-  //     setVotedComments((prev: Set<string>) => {
-  //       const newSet = new Set(prev);
-  //       newSet.delete(commentId);
-  //       return newSet;
-  //     });
+  const handleVote = (commentId: string) => {
+    // Check if comment is already voted
+    const isVoted = votedComments.has(commentId);
 
-  //     // Decrease the comment score
-  //     setComments((prev) =>
-  //       prev.map((comment) =>
-  //         comment.id === commentId
-  //           ? { ...comment, score: Math.max(0, comment.score - 1) }
-  //           : comment,
-  //       ),
-  //     );
-  //   } else {
-  //     // Vote the comment
-  //     setVotedComments((prev: Set<string>) => {
-  //       const newSet = new Set(prev);
-  //       newSet.add(commentId);
-  //       return newSet;
-  //     });
+    // Send to server first, then update UI optimistically
+    if (socket) {
+      socket.send(
+        JSON.stringify({
+          type: "vote",
+          commentId,
+          isUpvote: !isVoted, // true to add vote, false to remove vote
+        }),
+      );
+    }
 
-  //     // Increase the comment score
-  //     setComments((prev) =>
-  //       prev.map((comment) =>
-  //         comment.id === commentId
-  //           ? { ...comment, score: comment.score + 1 }
-  //           : comment,
-  //       ),
-  //     );
-  //   }
-  // };
+    // Optimistic UI update
+    if (isVoted) {
+      // Unvote the comment
+      setVotedComments((prev: Set<string>) => {
+        const newSet = new Set(prev);
+        newSet.delete(commentId);
+        return newSet;
+      });
 
-  // socket.addEventListener("message", handleMessage);
+      // Decrease the comment score
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment.id === commentId
+            ? { ...comment, score: Math.max(0, comment.score - 1) }
+            : comment,
+        ),
+      );
+    } else {
+      // Vote the comment
+      setVotedComments((prev: Set<string>) => {
+        const newSet = new Set(prev);
+        newSet.add(commentId);
+        return newSet;
+      });
 
-  // return {
-  //   handleVote,
-  //   cleanup: () => {
-  //     socket.removeEventListener("message", handleMessage);
-  //   },
-  // };
+      // Increase the comment score
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment.id === commentId
+            ? { ...comment, score: comment.score + 1 }
+            : comment,
+        ),
+      );
+    }
+  };
+
+  socket.addEventListener("message", handleMessage);
+
+  return {
+    handleVote,
+    cleanup: () => {
+      socket.removeEventListener("message", handleMessage);
+    },
+  };
 }

@@ -7,6 +7,7 @@ import { GameView } from "~/components/views/GameView";
 import useGameSocket from "~/lib/useGameSocket";
 import { ResultsView } from "~/components/views/ResultsView";
 import { CommentView } from "~/components/views/CommentView";
+import { VoteComment } from "~/components/views/VoteComment";
 import {
   registerParticipant,
   handleJoinGiveaway,
@@ -30,7 +31,7 @@ export type AuthSession = {
   };
 };
 
-type TabType = "info" | "game" | "results" | "comments";
+type TabType = "info" | "game" | "results" | "comments" | "vote";
 
 // TODO: Should generalize to all events next time
 export default function BasePage({ session }: { session: AuthSession }) {
@@ -172,7 +173,7 @@ export default function BasePage({ session }: { session: AuthSession }) {
     >
       {/* Tab Navigation */}
       <div className="z-20 flex w-full max-w-96 gap-2">
-        {["info", "comments"].map((tab) => (
+        {["info", "comments", "vote"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as TabType)}
@@ -190,10 +191,7 @@ export default function BasePage({ session }: { session: AuthSession }) {
       {/* Views */}
       {/* Show Info View */}
       {activeTab === "info" && eventData && (
-        <InfoView
-          palette={palette}
-          session={session}
-        />
+        <InfoView palette={palette} session={session} />
       )}
       {/* Show Game View */}
       {activeTab === "game" &&
@@ -207,13 +205,12 @@ export default function BasePage({ session }: { session: AuthSession }) {
         )}
       {/* Show Results View */}
       {activeTab === "results" && eventData && (
-        <ResultsView
-          palette={palette}
-          resultsPlayers={players}
-        />
+        <ResultsView palette={palette} resultsPlayers={players} />
       )}
       {/* Show Comments View */}
       {activeTab === "comments" && <CommentView palette={palette} />}
+      {/* Show Vote Comment View */}
+      {activeTab === "vote" && <VoteComment />}
     </main>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import CommentCard from "~/components/ui/CommentCard";
 import Image from "next/image";
 import type { Comment } from "~/types/comment";
+import { usePartySocket } from "~/PartySocketContext";
 
 interface CommentViewProps {
   palette: {
@@ -21,6 +22,7 @@ export function CommentView({ palette }: CommentViewProps) {
   const [hideUsernames, setHideUsernames] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { socket } = usePartySocket();
 
   // Load comments from JSON file
   useEffect(() => {
@@ -47,6 +49,7 @@ export function CommentView({ palette }: CommentViewProps) {
 
   const handleSave = async (comment: Comment) => {
     try {
+      // First save to API
       const response = await fetch("/api/saveComment", {
         method: "POST",
         headers: {
@@ -63,6 +66,25 @@ export function CommentView({ palette }: CommentViewProps) {
       if (!response.ok) {
         throw new Error("Failed to save comment");
       }
+
+      // Then send to WebSocket
+      if (socket) {
+        const socketMessage = {
+          type: "newComment",
+          comment: {
+            id: comment.id,
+            text: comment.comment,
+            username: comment.username,
+            profilePicture: comment.profilePictureUrl,
+            score: 0,
+            tags: comment.tags,
+          },
+        };
+        console.log("Sending socket message:", socketMessage);
+        socket.send(JSON.stringify(socketMessage));
+      } else {
+        console.error("Socket is not available");
+      }
     } catch (error) {
       console.error("Error saving comment:", error);
     }
@@ -76,25 +98,26 @@ export function CommentView({ palette }: CommentViewProps) {
 
   const handleClearSaved = async () => {
     try {
-      // Clear saved comments
-      const saveResponse = await fetch("/api/saveComment", {
-        method: "DELETE",
-      });
+      if (socket) {
+        // Send clear comments message to server
+        socket.send(
+          JSON.stringify({
+            type: "clearComments",
+          }),
+        );
+        console.log("Sent clear comments request");
 
-      if (!saveResponse.ok) {
-        throw new Error("Failed to clear saved comments");
+        // Clear the cleared comments from the API
+        const response = await fetch("/api/clearedComments", {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to clear comments");
+        }
+      } else {
+        console.error("Socket is not available");
+        throw new Error("Socket connection not available");
       }
-
-      // Also clear cleared comments using DELETE method
-      const clearedResponse = await fetch("/api/clearedComments", {
-        method: "DELETE",
-      });
-
-      if (!clearedResponse.ok) {
-        throw new Error("Failed to clear comment history");
-      }
-
-      alert("Comments cleared successfully");
     } catch (error) {
       console.error("Error clearing comments:", error);
       alert("Failed to clear comments");
