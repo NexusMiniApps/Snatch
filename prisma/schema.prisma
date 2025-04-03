@@ -37,6 +37,7 @@ model Event {
   id                String              @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String
   description       String?
+  eventType         EventType           @default(GAME)
   status            EventStatus
   startTime         DateTime            @db.Timestamptz(6)
   snatchStartTime   DateTime            @db.Timestamptz(6)
@@ -97,4 +98,10 @@ enum EventStatus {
   STARTED
   DELETED
   COMPLETED
+}
+
+enum EventType {
+  GAME
+  CHOSEN
+  RANDOM
 }
