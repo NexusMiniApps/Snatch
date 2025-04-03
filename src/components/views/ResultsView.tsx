@@ -2,7 +2,7 @@
 
 import LeaderboardTable from "~/components/ui/LeaderboardTable";
 import { type PlayerData } from "~/components/ui/Leaderboard";
-import Chat from "~/components/Chat";
+import Chat from "~/components/views/Chat";
 import { usePartySocket } from "~/PartySocketContext";
 
 interface ResultsViewProps {
