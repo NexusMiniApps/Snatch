@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
@@ -11,48 +8,48 @@ datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DIRECT_URL")
-  extensions = []
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
 model User {
   id                String              @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   phoneNo           BigInt              @unique
-  teleUsername      String?
   countryCode       BigInt
   name              String
   verified          Boolean
   createdAt         DateTime            @default(now()) @db.Timestamptz(6)
   updatedAt         DateTime            @updatedAt @db.Timestamptz(6)
+  teleUsername      String?
   ownedEvents       Event[]             @relation("EventOwner")
-  joinedEvents      Event[]             @relation("EventParticipants")
+  wonEvents         Event[]             @relation("EventWinner")
+  EventParticipants EventParticipants[]
   eventUserScores   EventUserScores[]
   sessions          UserSessions[]
-  EventParticipants EventParticipants[]
-  wonEvents         Event[]             @relation("EventWinner")
+  joinedEvents      Event[]             @relation("EventParticipants")
 
   @@unique([phoneNo, countryCode])
 }
 
 model Event {
-  id                String              @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String
   description       String?
-  eventType         EventType           @default(GAME)
   status            EventStatus
-  startTime         DateTime            @db.Timestamptz(6)
-  snatchStartTime   DateTime            @db.Timestamptz(6)
+  id                String              @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId           String?             @db.Uuid
   createdAt         DateTime            @default(now()) @db.Timestamptz(6)
   updatedAt         DateTime            @updatedAt @db.Timestamptz(6)
-  ownerId           String?             @db.Uuid
-  owner             User?               @relation("EventOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  participants      User[]              @relation("EventParticipants")
-  eventUserScores   EventUserScores[]
   location          String?
-  EventParticipants EventParticipants[]
-  winnerUserId      String?             @db.Uuid
-  winnerTicket      String?
+  startTime         DateTime            @db.Timestamptz(6)
+  snatchStartTime   DateTime            @db.Timestamptz(6)
   winnerDrawnAt     DateTime?           @db.Timestamptz(6)
-  winner            User?               @relation("EventWinner", fields: [winnerUserId], references: [id], onDelete: SetNull)
+  winnerTicket      String?
+  winnerUserId      String?             @db.Uuid
+  eventType         EventType           @default(GAME)
+  owner             User?               @relation("EventOwner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  winner            User?               @relation("EventWinner", fields: [winnerUserId], references: [id])
+  EventParticipants EventParticipants[]
+  eventUserScores   EventUserScores[]
+  participants      User[]              @relation("EventParticipants")
 }
 
 model EventUserScores {
@@ -73,17 +70,16 @@ model EventParticipants {
   eventId            String   @db.Uuid
   userId             String   @db.Uuid
   hasPreReg          Boolean
-  hasJoinedGiveaway  Boolean
-  ticketNumber       String?
   createdAt          DateTime @default(now()) @db.Timestamptz(6)
   updatedAt          DateTime @updatedAt @db.Timestamptz(6)
+  hasJoinedGiveaway  Boolean
+  ticketNumber       String?
   event              Event    @relation(fields: [eventId], references: [id])
   user               User     @relation(fields: [userId], references: [id])
 
   @@unique([eventId, userId], name: "eventId_userId")
 }
 
-// For cookies stored for users
 model UserSessions {
   id        String   @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String   @db.Uuid

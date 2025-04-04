@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     // Updated path to use misc directory
     const filePath = path.join(
       process.cwd(),
-      "public",
+      // "public",
       "misc", // Changed from "data" to "misc"
       "savedComments.json",
     );
@@ -59,16 +59,18 @@ export async function POST(request: Request) {
       savedComments = [];
 
       // Create the directory if it doesn't exist
-      await fs.mkdir(path.join(process.cwd(), "public", "misc"), {
+      await fs.mkdir(path.join(process.cwd(), "misc"), {
         recursive: true,
       });
     }
 
     // Add new comment
     savedComments.push(comment);
+    console.log("Pushed comment to array:", comment);
 
     // Write back to file
     await fs.writeFile(filePath, JSON.stringify(savedComments, null, 2));
+    console.log("Saved comments to file:", filePath);
 
     return NextResponse.json({
       message: "Comment saved successfully",
@@ -88,7 +90,7 @@ export async function GET() {
   try {
     const filePath = path.join(
       process.cwd(),
-      "public",
+      // "public",
       "misc",
       "savedComments.json",
     );
@@ -122,7 +124,7 @@ export async function DELETE() {
   try {
     const filePath = path.join(
       process.cwd(),
-      "public",
+      // "public",
       "misc",
       "savedComments.json",
     );

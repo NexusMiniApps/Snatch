@@ -134,7 +134,7 @@ export function VoteComment() {
   };
 
   // Sort comments by score in descending order
-  const sortedComments = [...comments].sort((a, b) => b.score - a.score);
+  const sortedComments = comments
 
   if (isLoadingChosen) {
     return (

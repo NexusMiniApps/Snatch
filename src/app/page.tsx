@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "~/server/auth";
-import { LoginForm } from "~/components/LoginForm";
+import { LoginForm } from "~/components/views/LoginForm";
 import { HydrateClient } from "~/trpc/server";
 import Image from "next/image";
 
