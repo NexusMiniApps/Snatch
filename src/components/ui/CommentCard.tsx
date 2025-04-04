@@ -18,8 +18,6 @@ interface CommentCardProps {
   showCompletion?: boolean;
 }
 
-const CLEARED_COMMENTS_KEY = "/misc/clearedComments.json";
-
 interface SocketMessage {
   type: string;
   clearedIds?: string[];
@@ -28,14 +26,6 @@ interface SocketMessage {
   savedCount?: number;
   comments?: Comment[];
 }
-
-// const validateProfileImage = (url: string): string => {
-//   if (!url || url.trim() === "") {
-//     console.warn("Empty profile image URL detected");
-//     return "https://github.com/identicons/default.png";
-//   }
-//   return url;
-// };
 
 export default function CommentCard({
   comments,
@@ -174,83 +164,46 @@ export default function CommentCard({
     }
   }, [currentIndex, filteredComments.length]);
 
-  // Save cleared comment IDs and notify other clients
-  const saveClearedComments = async (newId: string) => {
+  // Update to use only PartySocket for cleared comments
+  const handleClearedComments = (newId?: string) => {
+    if (!socket) {
+      console.error("Socket not available");
+      return;
+    }
+
     try {
-      // If newId is empty, clear all IDs
+      // If no newId, clear all comments
       if (!newId) {
-        const response = await fetch("/api/clearedComments", {
-          method: "DELETE",
-        });
-        if (!response.ok) throw new Error("Failed to clear comments");
-
-        // Notify other clients through WebSocket
-        if (socket) {
-          socket.send(
-            JSON.stringify({
-              type: "clearedComments",
-              action: "clear",
-            }),
-          );
-        }
-
-        setClearedCommentIds(new Set()); // Clear local state
-        return;
-      }
-
-      // First, get the current cleared IDs from the server
-      const getResponse = await fetch("/api/clearedComments");
-      if (!getResponse.ok) throw new Error("Failed to load cleared comments");
-      const data = (await getResponse.json()) as { clearedIds: string[] };
-
-      // Create a new array with all existing IDs plus the new one
-      const updatedIds = [...data.clearedIds];
-      if (!updatedIds.includes(newId)) {
-        updatedIds.push(newId);
-      }
-
-      // Save the updated array back to the server
-      const response = await fetch("/api/clearedComments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clearedIds: updatedIds }),
-      });
-      if (!response.ok) throw new Error("Failed to save cleared comments");
-
-      // Notify other clients through WebSocket
-      if (socket) {
         socket.send(
           JSON.stringify({
             type: "clearedComments",
-            action: "add",
-            commentId: newId,
+            action: "clear",
           }),
         );
+        return;
       }
+
+      // Add a new cleared comment ID
+      socket.send(
+        JSON.stringify({
+          type: "clearedComments",
+          action: "add",
+          commentId: newId,
+        }),
+      );
+      
     } catch (error) {
-      console.error("Error saving cleared comments:", error);
+      console.error("Error sending cleared comments via socket:", error);
     }
   };
 
-  // Load initial cleared comments on mount
+  // Load initial cleared comments on mount by requesting from server via socket
   useEffect(() => {
-    const loadClearedComments = async () => {
-      try {
-        const response = await fetch("/api/clearedComments");
-        if (!response.ok) throw new Error("Failed to load cleared comments");
-        const data = (await response.json()) as { clearedIds: string[] };
-        setClearedCommentIds(new Set(data.clearedIds));
-      } catch (error) {
-        console.error("Error loading cleared comments:", error);
-      }
-    };
-
-    // Request initial comments from server
+    // Request initial cleared comments from server
     if (socket) {
+      socket.send(JSON.stringify({ type: "getClearedComments" }));
       socket.send(JSON.stringify({ type: "getComments" }));
     }
-
-    void loadClearedComments();
   }, [socket]);
 
   // Handle vote (data processing only)
@@ -264,7 +217,7 @@ export default function CommentCard({
         setSavedCount((prev) => prev + 1);
       } else {
         await onDiscard(currentComment);
-        await saveClearedComments(currentComment.id);
+        handleClearedComments(currentComment.id);
       }
 
       // Add to session processed IDs (doesn't trigger filtering)
@@ -274,12 +227,14 @@ export default function CommentCard({
         return newSet;
       });
 
-      // Save to server without updating clearedCommentIds state
-      await saveClearedComments(currentComment.id);
+      // If this was a discard, mark as cleared via socket
+      if (!isLike) {
+        handleClearedComments(currentComment.id);
+      }
 
-      // After all comments are processed, update clearedCommentIds
-      if (currentIndex + 1 >= filteredComments.length) {
-        void reloadClearedComments();
+      // After all comments are processed, request updated cleared comments
+      if (currentIndex + 1 >= filteredComments.length && socket) {
+        socket.send(JSON.stringify({ type: "getClearedComments" }));
       }
     } catch (error) {
       console.error("Error processing vote:", error);
@@ -404,18 +359,6 @@ export default function CommentCard({
 
       // Reset direction
       setDirection(null);
-    }
-  };
-
-  // Reload cleared comments from server
-  const reloadClearedComments = async () => {
-    try {
-      const response = await fetch("/api/clearedComments");
-      if (!response.ok) throw new Error("Failed to load cleared comments");
-      const data = (await response.json()) as { clearedIds: string[] };
-      setClearedCommentIds(new Set(data.clearedIds));
-    } catch (error) {
-      console.error("Error reloading cleared comments:", error);
     }
   };
 

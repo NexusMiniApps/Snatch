@@ -24,6 +24,13 @@ export function CommentView({ palette }: CommentViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const { socket } = usePartySocket();
+  
+  // Add state for password protection
+  const [isPasswordEntered, setIsPasswordEntered] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  
+  const correctPassword = "iamthehost";
 
   // Load comments from JSON file
   const loadComments = async () => {
@@ -44,31 +51,65 @@ export function CommentView({ palette }: CommentViewProps) {
     }
   };
 
+  // Initial load of comments - we'll do this regardless of password
   useEffect(() => {
     void loadComments();
   }, []);
 
+  const handleClearSaved = async () => {
+    try {
+      if (socket) {
+        // Send clear comments message to server using socket only
+        socket.send(
+          JSON.stringify({
+            type: "clearComments",
+          }),
+        );
+        console.log("Reset comments state on tab load");
+
+        // Reset state and reload comments
+        setComments([]);
+        setIsLoading(true);
+        await loadComments();
+        
+        // Reset completion state as well
+        setShowCompletion(false);
+      } else {
+        console.error("Socket is not available");
+      }
+    } catch (error) {
+      console.error("Error clearing comments:", error);
+    }
+  };
+
+  // Handle password verification
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordInput === correctPassword) {
+      setIsPasswordEntered(true);
+      setPasswordError("");
+      // After password is verified, clear saved comments
+      void handleClearSaved();
+    } else {
+      setPasswordError("Incorrect password. Please try again.");
+      setPasswordInput("");
+    }
+  };
+
+  // Clear saved comments when password is entered successfully
+  useEffect(() => {
+    if (isPasswordEntered) {
+      console.log("Password verified, initializing comments tab");
+      void handleClearSaved();
+    }
+    // We only want this to run once when password is entered
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPasswordEntered]);
+
   const handleSave = async (comment: Comment) => {
     try {
-      // First save to API
-      const response = await fetch("/api/saveComment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: comment.username,
-          profilePictureUrl: comment.profilePictureUrl,
-          comment: comment.comment,
-          tags: comment.tags,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save comment");
-      }
-
-      // Then send to WebSocket
+      // Send to WebSocket instead of API
       if (socket) {
         const socketMessage = {
           type: "newComment",
@@ -92,42 +133,20 @@ export function CommentView({ palette }: CommentViewProps) {
   };
 
   const handleDiscard = async (comment: Comment) => {
-    // You can implement discard logic here if needed
-    console.log("Discarded comment:", comment);
-    return Promise.resolve();
-  };
-
-  const handleClearSaved = async () => {
-    try {
-      if (socket) {
-        // Send clear comments message to server
-        socket.send(
-          JSON.stringify({
-            type: "clearComments",
-          }),
-        );
-        console.log("Sent clear comments request");
-
-        // Clear the cleared comments from the API
-        const response = await fetch("/api/clearedComments", {
-          method: "DELETE",
-        });
-        if (!response.ok) {
-          throw new Error("Failed to clear comments");
-        }
-
-        // Reset state and reload comments
-        setComments([]);
-        setIsLoading(true);
-        await loadComments();
-      } else {
-        console.error("Socket is not available");
-        throw new Error("Socket connection not available");
-      }
-    } catch (error) {
-      console.error("Error clearing comments:", error);
-      alert("Failed to clear comments");
+    // Implement discard logic through socket
+    if (socket) {
+      socket.send(
+        JSON.stringify({
+          type: "clearedComments",
+          action: "add",
+          commentId: comment.id,
+        })
+      );
+      console.log("Discarded comment via socket:", comment);
+    } else {
+      console.error("Socket is not available for discard");
     }
+    return Promise.resolve();
   };
 
   // Handle WebSocket messages for syncing cleared comments
@@ -178,9 +197,46 @@ export function CommentView({ palette }: CommentViewProps) {
     );
   }
 
+  // Render the main content, but with an overlay if password isn't entered
   return (
-    <>
-      <div className="flex w-full flex-col items-center gap-y-4">
+    <div className="relative">
+      {/* Password overlay */}
+      {!isPasswordEntered && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md">
+          <div className="custom-box w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
+            <h2 className="mb-4 text-center text-xl font-semibold">Host Authentication</h2>
+            <p className="mb-6 text-center text-gray-600">
+              Please enter the host password to access comment management.
+            </p>
+            
+            <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+              <div>
+                <input
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Enter password"
+                  className="w-full rounded-lg border border-gray-300 p-2 focus:border-blue-500 focus:outline-none focus:ring"
+                  autoFocus
+                />
+                {passwordError && (
+                  <p className="mt-2 text-sm text-red-500">{passwordError}</p>
+                )}
+              </div>
+              
+              <button
+                type="submit"
+                className="rounded-lg bg-blue-500 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                Enter Comment Management
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Main content (visible but blurred if password not entered) */}
+      <div className={`flex w-full flex-col items-center gap-y-4 ${!isPasswordEntered ? 'pointer-events-none' : ''}`}>
         <section className="z-10 h-80 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
           <div className="relative h-full w-full rounded-xl">
             <Image
@@ -220,35 +276,35 @@ export function CommentView({ palette }: CommentViewProps) {
             />
           </div>
         </section>
-      </div>
 
-      <div className="mt-8 flex flex-col items-center gap-8 p-8">
-        <div className="flex items-center gap-6">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={hideUsernames}
-              onChange={(e) => setHideUsernames(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <span>Hide Usernames</span>
-          </label>
+        <div className="mt-8 flex flex-col items-center gap-8 p-8">
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={hideUsernames}
+                onChange={(e) => setHideUsernames(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <span>Hide Usernames</span>
+            </label>
 
-          <button
-            onClick={() => void handleClearSaved()}
-            className="rounded-lg bg-red-500 px-4 py-2 text-sm text-white transition-colors hover:bg-red-600"
-          >
-            Clear Saved Comments
-          </button>
+            <button
+              onClick={() => void handleClearSaved()}
+              className="rounded-lg bg-red-500 px-4 py-2 text-sm text-white transition-colors hover:bg-red-600"
+            >
+              Clear Saved Comments
+            </button>
 
-          <button
-            onClick={() => setShowCompletion(!showCompletion)}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600"
-          >
-            {showCompletion ? "Hide Completion" : "Show Completion"}
-          </button>
+            <button
+              onClick={() => setShowCompletion(!showCompletion)}
+              className="rounded-lg bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600"
+            >
+              {showCompletion ? "Hide Completion" : "Show Completion"}
+            </button>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

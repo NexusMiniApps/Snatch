@@ -424,6 +424,15 @@ export default class Server implements Party.Server {
         this.comments = [];
         this.broadcastComments();
       }
+    } else if (data.type === "getClearedComments") {
+      // Send the current cleared comments to the requesting client
+      sender.send(
+        JSON.stringify({
+          type: "clearedComments",
+          clearedIds: Array.from(this.clearedComments),
+        }),
+      );
+      console.log("Sent cleared comments to client:", Array.from(this.clearedComments));
     }
   }
 }
