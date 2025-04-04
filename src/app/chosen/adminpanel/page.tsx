@@ -24,6 +24,13 @@ function AdminPanel() {
   const [startTime, setStartTime] = useState("");
   const [gameStartTime, setGameStartTime] = useState("");
 
+  // Map event types to their corresponding URL slugs
+  const eventTypeToSlug: Record<EventType, string> = {
+    game: "/game",
+    chosen: "/chosen",
+    random: "/random"
+  };
+
   const updateSnatchStartTime = async (eventId: string, newStartTime: Date) => {
     try {
       const response = await fetch(`/api/events/${eventId}`, {
@@ -114,12 +121,22 @@ function AdminPanel() {
         ? `New event created successfully! ID: ${data.eventId}`
         : `Existing event updated successfully! ID: ${data.eventId}`;
         
-      alert(message);
+      // Show success message and ask for confirmation to navigate
+      const userConfirmed = window.confirm(`${message}\nClick OK to go to the event page.`);
+      
+      // Reset form
       setEventName("");
       setEventDescription("");
       setEventType("game");
       setStartTime("");
       setGameStartTime("");
+
+      // Redirect user if they clicked OK on the confirmation dialog
+      if (userConfirmed) {
+        const targetUrl = eventTypeToSlug[eventType];
+        console.log(`Redirecting to ${targetUrl}`);
+        window.location.href = targetUrl;
+      }
     } catch (error) {
       console.error("Error creating event:", error);
       alert(`Failed to create event: ${error instanceof Error ? error.message : String(error)}`);
