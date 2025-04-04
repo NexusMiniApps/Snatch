@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import type PartySocket from "partysocket";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/Avatar";
-
-// Sample data from matchaGiveaway.json
-import matchaComments from "../../../public/misc/savedComments.json";
 import { usePartySocket } from "~/PartySocketContext";
 
 interface Comment {
@@ -16,18 +13,14 @@ interface Comment {
 }
 
 interface SocketMessage {
-  type: "comments" | "userVotes";
+  type: "comments" | "userVotes" | "newComment" | "clearComments";
   comments?: Comment[];
   votedComments?: string[];
-}
-
-interface VoteCommentProps {
-  socket: PartySocket | null;
-  currentUserId: string;
+  comment?: Comment;
 }
 
 export function VoteComment() {
-const {
+  const {
     socket,
     currentPlayerId,
     comments,
@@ -36,36 +29,11 @@ const {
     setVotedComments,
     isLoadingChosen,
     setIsLoadingChosen,
-} = usePartySocket();
+  } = usePartySocket();
 
   // Initialize comments and set up socket listeners
   useEffect(() => {
-    // First, initialize with local data
-    const initialComments = matchaComments
-      .filter((item) => item.comment && item.comment.trim() !== "")
-      .map((item, index) => ({
-        id: `${item.username}-${index}`,
-        text: item.comment || "",
-        username: item.username,
-        profilePicture: item.profilePictureUrl,
-        score: Math.floor(Math.random() * 10),
-        tags: item.tags || [],
-      }))
-      .sort((a, b) => b.score - a.score);
-
-    setComments(initialComments);
-    setIsLoadingChosen(false);
-
-    // If socket is available, send initial comments and set up listeners
     if (socket) {
-      // Send the initial comments to the server if needed
-      socket.send(
-        JSON.stringify({
-          type: "setComments",
-          comments: initialComments,
-        }),
-      );
-
       // Request latest comments from server
       socket.send(JSON.stringify({ type: "getComments" }));
 
@@ -81,6 +49,7 @@ const {
       const handleMessage = (event: MessageEvent<string>) => {
         try {
           const data = JSON.parse(event.data) as SocketMessage;
+          console.log("Received socket message:", data);
 
           if (data.type === "comments" && Array.isArray(data.comments)) {
             setComments(data.comments);
@@ -88,20 +57,27 @@ const {
           }
 
           if (data.type === "userVotes" && Array.isArray(data.votedComments)) {
-            // Create a new Set from the array of voted comment IDs
             const newVotedComments = new Set<string>(data.votedComments);
-            console.log("Received voted comments:", data.votedComments);
             setVotedComments(newVotedComments);
+          }
+
+          if (data.type === "newComment" && data.comment) {
+            setComments((prev) => [...prev, data.comment!]);
+          }
+
+          if (data.type === "clearComments") {
+            setComments([]);
+            setVotedComments(new Set());
           }
         } catch (error) {
           console.error("Error handling message:", error);
         }
       };
 
-      socket?.addEventListener("message", handleMessage);
+      socket.addEventListener("message", handleMessage);
 
       return () => {
-        socket?.removeEventListener("message", handleMessage);
+        socket.removeEventListener("message", handleMessage);
       };
     }
   }, [socket, currentPlayerId]);
@@ -169,7 +145,7 @@ const {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-96 flex-col gap-4">
       <div className="custom-box relative z-20 w-full p-1 shadow-xl">
         <div className="rounded-lg bg-yellow-950 p-4 text-white">
           <h1 className="text-3xl font-semibold">Matcha Suggestions</h1>
@@ -181,17 +157,17 @@ const {
 
       <div className="mt-4 space-y-3">
         {sortedComments.length === 0 ? (
-          <div className="rounded-lg bg-gray-100 p-6 text-center">
+          <div className="custom-box rounded-xl p-6 text-center">
             No comments yet.
           </div>
         ) : (
           sortedComments.map((comment) => (
             <div
               key={comment.id}
-              className={`flex cursor-pointer items-start gap-3 rounded-lg p-4 transition-all ${
+              className={`flex cursor-pointer items-start gap-3 rounded-xl p-4 transition-all ${
                 votedComments.has(comment.id)
-                  ? "border-2 border-green-500 bg-green-50"
-                  : "border border-gray-200 bg-white hover:bg-gray-50"
+                  ? "border-2 border-green-600 bg-green-50"
+                  : "custom-box bg-white hover:bg-gray-50"
               }`}
               onClick={() => handleVote(comment.id)}
             >

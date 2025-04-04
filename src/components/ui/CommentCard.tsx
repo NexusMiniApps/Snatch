@@ -8,15 +8,26 @@ import {
   animate,
 } from "framer-motion";
 import type { Comment } from "~/types/comment";
+import { usePartySocket } from "~/PartySocketContext";
 
 interface CommentCardProps {
   comments: Comment[];
   hideUsernames: boolean;
   onSave: (comment: Comment) => Promise<void>;
   onDiscard: (comment: Comment) => Promise<void>;
+  showCompletion?: boolean;
 }
 
 const CLEARED_COMMENTS_KEY = "/misc/clearedComments.json";
+
+interface SocketMessage {
+  type: string;
+  clearedIds?: string[];
+  action?: "add" | "remove" | "clear";
+  commentId?: string;
+  savedCount?: number;
+  comments?: Comment[];
+}
 
 // const validateProfileImage = (url: string): string => {
 //   if (!url || url.trim() === "") {
@@ -31,6 +42,7 @@ export default function CommentCard({
   hideUsernames,
   onSave,
   onDiscard,
+  showCompletion,
 }: CommentCardProps) {
   const [filteredComments, setFilteredComments] = useState<Comment[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -45,6 +57,8 @@ export default function CommentCard({
   );
   // Flag to track initial mounting state
   const [isInitialMount, setIsInitialMount] = useState(true);
+  const [allCardsFinished, setAllCardsFinished] = useState(false);
+  const { socket } = usePartySocket();
 
   /* eslint-disable @typescript-eslint/no-unsafe-assignment */
   // Motion values for drag
@@ -69,82 +83,63 @@ export default function CommentCard({
     }
   }, [isInitialMount, opacity]);
 
-  // Load cleared comments from JSON file
+  // Handle WebSocket messages for cleared comments
   useEffect(() => {
-    async function loadClearedComments() {
+    if (!socket) return;
+
+    const handleMessage = (event: MessageEvent) => {
       try {
-        const response = await fetch("/api/clearedComments");
-        if (!response.ok) throw new Error("Failed to load cleared comments");
-        const data = (await response.json()) as { clearedIds: string[] };
-        setClearedCommentIds(new Set(data.clearedIds));
-      } catch (error) {
-        console.error("Error loading cleared comments:", error);
-      }
-    }
-    void loadClearedComments();
-  }, []);
-
-  // Save cleared comment IDs without updating state
-  const saveClearedComments = async (newId: string) => {
-    try {
-      // If newId is empty, clear all IDs
-      if (!newId) {
-        const response = await fetch("/api/clearedComments", {
-          method: "DELETE",
-        });
-        if (!response.ok) throw new Error("Failed to clear comments");
-        return;
-      }
-
-      // First, get the current cleared IDs from the server
-      const getResponse = await fetch("/api/clearedComments");
-      if (!getResponse.ok) throw new Error("Failed to load cleared comments");
-      const data = (await getResponse.json()) as { clearedIds: string[] };
-
-      // Create a new array with all existing IDs plus the new one
-      const updatedIds = [...data.clearedIds];
-      if (!updatedIds.includes(newId)) {
-        updatedIds.push(newId);
-      }
-
-      // Save the updated array back to the server
-      const response = await fetch("/api/clearedComments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clearedIds: updatedIds }),
-      });
-      if (!response.ok) throw new Error("Failed to save cleared comments");
-    } catch (error) {
-      console.error("Error saving cleared comments:", error);
-    }
-  };
-
-  // Fetch saved comments count
-  useEffect(() => {
-    async function fetchSavedCount() {
-      try {
-        const response = await fetch("/misc/savedComments.json");
-        if (response.status === 404) {
-          const initResponse = await fetch("/api/saveComment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify([]),
-          });
-          if (!initResponse.ok)
-            throw new Error("Failed to initialize saved comments");
-          setSavedCount(0);
+        if (typeof event.data !== "string") {
+          console.error("Received non-string data from WebSocket");
           return;
         }
-        if (!response.ok) throw new Error("Failed to load saved comments");
-        const data = (await response.json()) as Comment[];
-        setSavedCount(data.length);
+        const data = JSON.parse(event.data) as SocketMessage;
+
+        if (data.type === "clearedComments") {
+          if (data.action === "clear") {
+            setClearedCommentIds(new Set());
+          } else if (data.action === "add" && data.commentId) {
+            setClearedCommentIds((prev) => {
+              const newSet = new Set(prev);
+              newSet.add(data.commentId!);
+              return newSet;
+            });
+          } else if (data.action === "remove" && data.commentId) {
+            setClearedCommentIds((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(data.commentId!);
+              return newSet;
+            });
+          } else if (Array.isArray(data.clearedIds)) {
+            const clearedIds = data.clearedIds.filter(
+              (id): id is string => typeof id === "string",
+            );
+            setClearedCommentIds(new Set<string>(clearedIds));
+          }
+        } else if (data.type === "clearComments") {
+          // Handle clear all comments message
+          setClearedCommentIds(new Set());
+          setCurrentIndex(0);
+          setFilteredComments(comments);
+        } else if (data.type === "comments" && Array.isArray(data.comments)) {
+          setSavedCount(data.comments.length);
+        }
       } catch (error) {
-        console.error("Error fetching saved comments count:", error);
-        setSavedCount(0);
+        console.error("Error handling socket message:", error);
       }
-    }
-    void fetchSavedCount();
-  }, []);
+    };
+
+    socket.addEventListener("message", handleMessage);
+    return () => socket.removeEventListener("message", handleMessage);
+  }, [socket, comments]);
+
+  // Check if all cards are finished
+  useEffect(() => {
+    const totalComments = comments.length;
+    const clearedCount = clearedCommentIds.size;
+    const isFinished = totalComments > 0 && clearedCount === totalComments;
+    setAllCardsFinished(isFinished);
+  }, [comments.length, clearedCommentIds.size]);
 
   // Filter out cleared comments
   useEffect(() => {
@@ -179,27 +174,84 @@ export default function CommentCard({
     }
   }, [currentIndex, filteredComments.length]);
 
-  // Determine if all cards are finished - use a state to ensure it persists
-  const [allCardsFinished, setAllCardsFinished] = useState(false);
-
-  useEffect(() => {
-    // Check if we've reached the end of cards and update the finished state
-    if (remainingCards === 0 && filteredComments.length > 0) {
-      setAllCardsFinished(true);
-    }
-  }, [remainingCards, filteredComments.length]);
-
-  // Reload cleared comments from server
-  const reloadClearedComments = async () => {
+  // Save cleared comment IDs and notify other clients
+  const saveClearedComments = async (newId: string) => {
     try {
-      const response = await fetch("/api/clearedComments");
-      if (!response.ok) throw new Error("Failed to load cleared comments");
-      const data = (await response.json()) as { clearedIds: string[] };
-      setClearedCommentIds(new Set(data.clearedIds));
+      // If newId is empty, clear all IDs
+      if (!newId) {
+        const response = await fetch("/api/clearedComments", {
+          method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to clear comments");
+
+        // Notify other clients through WebSocket
+        if (socket) {
+          socket.send(
+            JSON.stringify({
+              type: "clearedComments",
+              action: "clear",
+            }),
+          );
+        }
+
+        setClearedCommentIds(new Set()); // Clear local state
+        return;
+      }
+
+      // First, get the current cleared IDs from the server
+      const getResponse = await fetch("/api/clearedComments");
+      if (!getResponse.ok) throw new Error("Failed to load cleared comments");
+      const data = (await getResponse.json()) as { clearedIds: string[] };
+
+      // Create a new array with all existing IDs plus the new one
+      const updatedIds = [...data.clearedIds];
+      if (!updatedIds.includes(newId)) {
+        updatedIds.push(newId);
+      }
+
+      // Save the updated array back to the server
+      const response = await fetch("/api/clearedComments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clearedIds: updatedIds }),
+      });
+      if (!response.ok) throw new Error("Failed to save cleared comments");
+
+      // Notify other clients through WebSocket
+      if (socket) {
+        socket.send(
+          JSON.stringify({
+            type: "clearedComments",
+            action: "add",
+            commentId: newId,
+          }),
+        );
+      }
     } catch (error) {
-      console.error("Error reloading cleared comments:", error);
+      console.error("Error saving cleared comments:", error);
     }
   };
+
+  // Load initial cleared comments on mount
+  useEffect(() => {
+    const loadClearedComments = async () => {
+      try {
+        const response = await fetch("/api/clearedComments");
+        if (!response.ok) throw new Error("Failed to load cleared comments");
+        const data = (await response.json()) as { clearedIds: string[] };
+        setClearedCommentIds(new Set(data.clearedIds));
+      } catch (error) {
+        console.error("Error loading cleared comments:", error);
+      }
+    };
+
+    // Request initial comments from server
+    if (socket) {
+      socket.send(JSON.stringify({ type: "getComments" }));
+    }
+
+    void loadClearedComments();
+  }, [socket]);
 
   // Handle vote (data processing only)
   const handleVote = async (isLike: boolean) => {
@@ -212,6 +264,7 @@ export default function CommentCard({
         setSavedCount((prev) => prev + 1);
       } else {
         await onDiscard(currentComment);
+        await saveClearedComments(currentComment.id);
       }
 
       // Add to session processed IDs (doesn't trigger filtering)
@@ -251,6 +304,13 @@ export default function CommentCard({
     // Reset x position
     x.set(0);
   }, [currentIndex, opacity, x]);
+
+  // Reset opacity when showCompletion changes
+  useEffect(() => {
+    if (!showCompletion) {
+      opacity.set(1);
+    }
+  }, [showCompletion, opacity]);
 
   // Handle button click with animation
   const handleButtonClick = async (isLike: boolean) => {
@@ -347,8 +407,20 @@ export default function CommentCard({
     }
   };
 
+  // Reload cleared comments from server
+  const reloadClearedComments = async () => {
+    try {
+      const response = await fetch("/api/clearedComments");
+      if (!response.ok) throw new Error("Failed to load cleared comments");
+      const data = (await response.json()) as { clearedIds: string[] };
+      setClearedCommentIds(new Set(data.clearedIds));
+    } catch (error) {
+      console.error("Error reloading cleared comments:", error);
+    }
+  };
+
   // Early return for showing completion message
-  if (allCardsFinished || remainingCards === 0) {
+  if (showCompletion || allCardsFinished || remainingCards === 0) {
     return (
       <motion.div
         className="flex w-full max-w-md flex-col items-center justify-center gap-4 rounded-xl text-center"
