@@ -51,5 +51,5 @@ yarn-error.log*
 .idea
 
 # misc files
-public/misc/clearedComments.json
-public/misc/savedComments.json
+/public/misc/clearedComments.json
+/public/misc/savedComments.json
