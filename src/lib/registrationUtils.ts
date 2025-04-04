@@ -25,19 +25,27 @@ export interface EventData {
 }
 
 /**
- * Fetches event data from the API
- * @param eventId - The ID of the event to fetch
- * @returns Promise<EventData> - The event data
+ * Interface for the latest event details
  */
-export const fetchEvent = async (eventId: string): Promise<EventData> => {
-  console.log("Fetching event with ID:", eventId);
-  const res = await fetch(`/api/events/${eventId}`);
+export interface LatestEventDetails {
+  id: string;
+  description: string;
+  name: string;
+}
+
+/**
+ * Fetches the latest event data from the API
+ * @returns Promise<EventData> - The latest event data
+ */
+export const fetchEvent = async (): Promise<EventData> => {
+  console.log("Fetching latest event");
+  const res = await fetch(`/api/latestEvent`);
   if (!res.ok) {
     console.log("Response error:", res);
-    throw new Error("Failed to fetch event data");
+    throw new Error("Failed to fetch latest event data");
   }
   const data = (await res.json()) as EventData;
-  console.log("Fetched event data:", data);
+  console.log("Fetched latest event data:", data);
   return data;
 };
 
@@ -263,5 +271,34 @@ export const checkPrerequisites = async (
   } catch (error) {
     console.error("Error checking prerequisites status:", error);
     throw error;
+  }
+};
+
+/**
+ * Fetches the latest event's ID, description, and name from the API
+ * @returns Promise<LatestEventDetails> - The latest event details
+ */
+export const fetchLatestEventDetails = async (): Promise<LatestEventDetails> => {
+  console.log("Fetching latest event details");
+  try {
+    const res = await fetch("/api/latestEvent");
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Response error:", res.status, errorText);
+      throw new Error(`Failed to fetch latest event details: ${errorText}`);
+    }
+    // We expect the full Event object from the API, but only need specific fields
+    const data = (await res.json()) as EventData; 
+    console.log("Fetched latest event data:", data);
+    
+    // Return only the required fields
+    return {
+      id: data.id,
+      description: data.description,
+      name: data.name,
+    };
+  } catch (error) {
+    console.error("Error fetching latest event details:", error);
+    throw error; // Re-throw the error to be handled by the caller
   }
 };

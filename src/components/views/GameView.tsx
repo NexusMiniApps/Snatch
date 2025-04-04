@@ -197,6 +197,7 @@ export function GameView({ palette, snatchStartTime }: GameViewProps) {
                   count={currentPlayerCount}
                   socket={socket}
                   onIncrement={(newCount) => {
+                    console.log("Incrementing score in GameView");
                     incrementScore();
                     setCurrentPlayerCount(newCount);
                   }}
