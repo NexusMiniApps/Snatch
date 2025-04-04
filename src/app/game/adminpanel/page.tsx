@@ -2,7 +2,6 @@
 
 import WinnerSelector from "@/components/ui/WinnerSelection";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
 
 // Define interfaces for API responses
 interface SnatchTimeResponse {
@@ -19,7 +18,6 @@ interface EventResponse {
 type EventType = "game" | "chosen" | "random";
 
 function AdminPanel() {
-  const router = useRouter(); // Initialize router
   const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventType, setEventType] = useState<EventType>("game");
@@ -137,7 +135,7 @@ function AdminPanel() {
       if (userConfirmed) {
         const targetUrl = eventTypeToSlug[eventType];
         console.log(`Redirecting to ${targetUrl}`);
-        router.push(targetUrl);
+        window.location.href = targetUrl;
       }
     } catch (error) {
       console.error("Error creating event:", error);

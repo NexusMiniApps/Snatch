@@ -3,14 +3,25 @@ import { auth } from "~/server/auth";
 import { LoginForm } from "~/components/views/LoginForm";
 import { HydrateClient } from "~/trpc/server";
 import Image from "next/image";
+import { fetchEvent } from "~/lib/registrationUtils";
 
 export default async function Home() {
   const session = await auth();
+  const eventData = await fetchEvent();
 
   // If user has valid session, redirect to coffee page
   if (session?.user) {
-    console.log("[Client] User has valid session");
-    redirect("/giveaway");
+    console.log('eventData', eventData);
+    if (eventData.eventType === "GAME") {
+      redirect("/test");
+    } else if (eventData.eventType === "CHOSEN") {
+      redirect("/chosen");
+    } else if (eventData.eventType === "RANDOM") {
+      redirect("/test");
+    } else {
+      console.log("No event type found");
+    }
+
   }
   console.log("[Client] User does not have valid session");
 

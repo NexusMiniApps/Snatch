@@ -22,6 +22,7 @@ export interface EventData {
   status: string;
   ownerId: string;
   snatchStartTime: Date;
+  eventType: string;
 }
 
 /**
@@ -39,7 +40,15 @@ export interface LatestEventDetails {
  */
 export const fetchEvent = async (): Promise<EventData> => {
   console.log("Fetching latest event");
-  const res = await fetch(`/api/latestEvent`);
+  // Determine base URL based on environmen
+  const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"; // Fallback to localhost for dev
+
+  const fetchURL = `${baseURL}/api/latestEvent`;
+  console.log("Fetching from URL:", fetchURL);
+
+  const res = await fetch(fetchURL);
   if (!res.ok) {
     console.log("Response error:", res);
     throw new Error("Failed to fetch latest event data");
