@@ -66,7 +66,7 @@ export default function BasePage({ session }: { session: AuthSession }) {
     void (async () => {
       try {
         // On component mount, load event data into state
-        const data = await fetchEvent(eventId);
+        const data = await fetchEvent();
         setEventData(data);
 
         // If user is logged in, fetch their ticket and check prerequisites
