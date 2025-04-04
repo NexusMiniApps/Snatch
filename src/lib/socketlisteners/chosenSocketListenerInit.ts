@@ -1,11 +1,13 @@
 import type PartySocket from "partysocket";
-import { Comment } from "~/PartySocketContext";
+import { ChatMessage, Comment } from "~/PartySocketContext";
+
 
 interface SocketMessage {
   type: string;
   comments?: Comment[];
   votedComments?: string[];
   comment?: Comment;
+  message?: ChatMessage;
 }
 
 interface ChosenSocketMessageHandlerParams {
@@ -14,6 +16,7 @@ interface ChosenSocketMessageHandlerParams {
   votedComments: Set<string>;
   setVotedComments: React.Dispatch<React.SetStateAction<Set<string>>>;
   setIsLoadingChosen: React.Dispatch<React.SetStateAction<boolean>>;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
 export function chosenSocketListenerInit({
@@ -22,6 +25,7 @@ export function chosenSocketListenerInit({
   votedComments,
   setVotedComments,
   setIsLoadingChosen,
+  setMessages,
 }: ChosenSocketMessageHandlerParams) {
   console.log("Chosen socket listener initialized");
 
@@ -42,6 +46,13 @@ export function chosenSocketListenerInit({
         console.log("Handling votes update:", data.votedComments);
         const newVotedComments = new Set<string>(data.votedComments);
         setVotedComments(newVotedComments);
+      }
+
+      if (data.type === "chat") {
+        if ('message' in data && data.message) {
+          console.log("Handling chat message:", data.message);
+          setMessages((prev) => [...prev, data.message as ChatMessage]);
+        }
       }
 
       // Add handler for new comments

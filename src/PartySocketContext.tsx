@@ -126,30 +126,31 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
   const [votedComments, setVotedComments] = useState<Set<string>>(new Set());
   const [isLoadingChosen, setIsLoadingChosen] = useState(true);
 
-  const eventId = EVENT_IDS.HUATZARD_EVENT;
-
   // USE EFFECT FOR EVENT DATA FETCH + TICKET FETCH
   useEffect(() => {
     void (async () => {
       try {
         // On component mount, load event data into state
-        const data = await fetchEvent(eventId);
+        const data = await fetchEvent();
         setEventData(data);
+
+        // Use the fetched event's ID for subsequent calls
+        const fetchedEventId = data.id;
 
         // If user is logged in, fetch their ticket and check prerequisites
         console.log("SESSION USER ID IS: ", session?.user?.id);
-        if (session?.user?.id) {
+        if (session?.user?.id && fetchedEventId) {
           // Fetch user's ticket
           await fetchUserTicket(
             session.user.id,
-            eventId,
+            fetchedEventId,
             setTicketNumber,
             setHasJoined,
           );
           // Check prerequisites
           await checkPrerequisites(
             session.user.id,
-            eventId,
+            fetchedEventId,
             setSocialAFollowed,
             setSocialBFollowed,
           );
@@ -163,7 +164,7 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
         setLoading(false);
       }
     })();
-  }, [session?.user?.id, eventId]);
+  }, [session?.user?.id]);
 
   // USE EFFECT FOR SOCIAL FOLLOW CHECK + JOIN GIVEAWAY
   useEffect(() => {
@@ -267,6 +268,7 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
         votedComments,
         setVotedComments,
         setIsLoadingChosen,
+        setMessages,
       });
     } else if (eventType === "random") {
       randomSocketListenerInit({});
@@ -281,6 +283,7 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
   }, [session, currentPlayerId]);
 
   const incrementScore = () => {
+    console.log("Incrementing score");
     if (socket) {
       socket.send(JSON.stringify({ type: "counter" }));
     }

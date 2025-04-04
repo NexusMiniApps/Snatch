@@ -130,6 +130,7 @@ export default class Server implements Party.Server {
     } 
     
     if (data.type === "counter") {
+      console.log("Incrementing score");
       const player = this.players[sender.id];
       if (player) {
         player.score += 1;
