@@ -29,7 +29,7 @@ export default function CountdownDisplay({
   // Timer-only variant (non-clickable)
   if (variant === "timer-only") {
     return (
-      <div className="flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
+      <div className="z-30 flex w-44 justify-center rounded-lg bg-gray-800 px-4 py-3 text-4xl font-medium text-white">
         {hasSnatchTimeEnded ? (
           "Event ended!"
         ) : !timeIsUp ? (
