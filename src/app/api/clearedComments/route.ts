@@ -8,7 +8,7 @@ interface ClearedCommentsData {
 
 const CLEARED_COMMENTS_FILE = join(
   process.cwd(),
-  "public/misc/clearedComments.json",
+  "misc/clearedComments.json",
 );
 
 export async function GET() {
