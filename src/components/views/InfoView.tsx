@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { type AuthSession } from "~/app/giveaway/BasePage";
 import { usePartySocket } from "~/PartySocketContext";
 import { useEffect, useState } from "react";
+import { type AuthSession } from "~/app/game/BasePage";
 
 interface InfoViewProps {
   palette: {

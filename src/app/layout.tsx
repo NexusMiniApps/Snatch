@@ -4,7 +4,6 @@ import { type Metadata } from "next";
 import { Poppins } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
-import { PartySocketProvider } from "~/PartySocketContext";
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 
@@ -23,13 +22,7 @@ const poppins = Poppins({
 
 export default async function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
-  const session = await auth();
-
-  if (!session) {
-    redirect("/");
-  }
-
+}: Readonly<{ children: React.ReactNode }>) { 
 
   return (
     <html lang="en" className={poppins.variable}>
@@ -41,9 +34,7 @@ export default async function RootLayout({
         <meta name="HandheldFriendly" content="true" />
       </head>
       <body>
-        <PartySocketProvider session={session}>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-        </PartySocketProvider>
+        <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
   );

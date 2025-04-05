@@ -48,6 +48,8 @@ export interface Comment {
   tags?: string[];
 }
 
+export type TabType = "info" | "game" | "results" | "comments" | 'random' | "vote";
+
 interface PartySocketContextType {
   socket: PartySocket | null;
   currentPlayerCount: number;
@@ -89,6 +91,8 @@ interface PartySocketContextType {
   handleGameComplete: () => void;
   isLoading: boolean;
   setIsLoading: (value: boolean) => void;
+  activeTab: TabType;
+  setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
 }
 
 const PartySocketContext = createContext<PartySocketContextType | undefined>(undefined);
@@ -117,7 +121,7 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
   const [ticketNumber, setTicketNumber] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "game" | "results">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "game" | "results" | "comments" | 'random' | "vote">("info");
 
   // Random State
 
@@ -200,7 +204,7 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
 
   const handleGameComplete = () => {
     setIsGameOver(true);
-    setActiveTab("info");
+    // setActiveTab("info");
   };
 
   // USE EFFECT FOR SOCKET CONNECTION
@@ -228,7 +232,8 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
     console.log("Current Player ID is: ", playerId);
     setCurrentPlayerId(playerId);
 
-    const eventType = EVENT_TYPE.CHOSEN;
+    console.log("EVENT DATA IS: ", eventData);
+    const eventType = eventData?.eventType.toLowerCase();
     console.log("Event Type is: ", eventType);
     
     const partySocket = new PartySocket({
@@ -252,7 +257,9 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
       partySocket.send(JSON.stringify({ type: "updateName", name: userName }));
     });
 
+    console.log("EVENT TYPE IS: ", eventType);
     if (eventType === "game") {
+      console.log("INITIALIZING GAME SOCKET LISTENER");
       gameSocketListenerInit({
         socket: partySocket,
         setCurrentPlayerCount,
@@ -262,6 +269,7 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
         setMessages,
       });
     } else if (eventType === "chosen") {
+      console.log("INITIALIZING CHOSEN SOCKET LISTENER");
       chosenSocketListenerInit({
         socket: partySocket,
         setComments,
@@ -280,7 +288,7 @@ export function PartySocketProvider({ children, session }: PartySocketProviderPr
       console.log("CLOSING SOCKET");
       partySocket.close();
     };
-  }, [session, currentPlayerId]);
+  }, [session, currentPlayerId, eventData]);
 
   const incrementScore = () => {
     console.log("Incrementing score");

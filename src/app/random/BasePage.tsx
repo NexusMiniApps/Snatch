@@ -2,8 +2,8 @@
 
 import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
-import { CommentView } from "~/components/views/CommentView";
-import { VoteComment } from "~/components/views/VoteComment";
+import { RandomResultsView } from "~/components/views/RandomResultsView";
+import { RandomView } from "~/components/views/RandomView";
 import { usePartySocket, type TabType } from "~/PartySocketContext";
 
 export type AuthSession = {
@@ -56,7 +56,7 @@ export default function BasePage({ session }: { session: AuthSession }) {
       className="flex min-h-screen flex-col items-center gap-y-6 overflow-hidden px-4 pt-6"
     >
       <div className="z-20 flex w-full max-w-96 gap-2">
-        {["info", "comments", "vote"].map((tab) => (
+        {["info", "random", "results"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as TabType)}
@@ -74,8 +74,8 @@ export default function BasePage({ session }: { session: AuthSession }) {
       {activeTab === "info" && eventData && (
         <InfoView palette={palette} session={session} />
       )}
-      {activeTab === "comments" && <CommentView palette={palette} />}
-      {activeTab === "vote" && <VoteComment />}
+      {activeTab === "random" && <RandomView />}
+      {activeTab === "results" && eventData && <RandomResultsView />}
     </main>
   );
 }

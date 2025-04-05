@@ -120,8 +120,8 @@ function AdminPanel() {
       const message = data.isNewEvent 
         ? `New event created successfully! ID: ${data.eventId}`
         : `Existing event updated successfully! ID: ${data.eventId}`;
-        
-      // Show success message and ask for confirmation to navigate
+      
+      // Show success message
       const userConfirmed = window.confirm(`${message}\nClick OK to go to the event page.`);
       
       // Reset form
@@ -130,7 +130,7 @@ function AdminPanel() {
       setEventType("game");
       setStartTime("");
       setGameStartTime("");
-
+      
       // Redirect user if they clicked OK on the confirmation dialog
       if (userConfirmed) {
         const targetUrl = eventTypeToSlug[eventType];
@@ -151,7 +151,7 @@ function AdminPanel() {
         onClick={handleStartSnatch}
         className="rounded-lg bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 active:bg-blue-700"
       >
-        Start New Snatch (15s)
+        Start New Snatch Game (15s)
       </button>
 
       <form
@@ -207,7 +207,7 @@ function AdminPanel() {
           <>
             <div className="flex flex-col gap-2">
               <label htmlFor="startTime" className="font-medium">
-                Start Time
+                Event Start Time
               </label>
               <input
                 type="datetime-local"
@@ -242,7 +242,7 @@ function AdminPanel() {
         </button>
       </form>
 
-      {/* <WinnerSelector eventId="eb5946d8-4b98-479e-83a9-c4c8093c83a1" isAdmin /> */}
+  
     </main>
   );
 }
