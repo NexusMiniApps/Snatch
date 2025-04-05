@@ -17,7 +17,7 @@ interface ResultsViewProps {
   resultsPlayers: PlayerData[];
 }
 
-export function ResultsView({
+export function GameResultsView({
   palette,
   resultsPlayers,
 }: ResultsViewProps) {

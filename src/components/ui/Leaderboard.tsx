@@ -72,6 +72,13 @@ export function Leaderboard({ players, currentPlayerId }: LeaderboardProps) {
     return Math.max(10, Math.min(80, Math.round(rawHeight)));
   };
 
+  console.log("sortedPlayers", sortedPlayers);
+  console.log("currentPlayerId", currentPlayerId);
+  console.log("displayPlayers", displayPlayers);
+  console.log("maxScore", maxScore);
+  console.log("minScore", minScore);
+  console.log("scoreRange", scoreRange);
+
   return (
     <div className="flex flex-col items-center mt-10">
       <div className="mt-6 text-center">

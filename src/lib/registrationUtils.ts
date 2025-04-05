@@ -23,6 +23,8 @@ export interface EventData {
   ownerId: string;
   snatchStartTime: Date;
   eventType: string;
+  winnerUserId: string;
+  winnerTicket: string;
 }
 
 /**

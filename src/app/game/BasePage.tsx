@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useVibrantPalette } from "~/lib/usePalette";
 import { InfoView } from "~/components/views/InfoView";
 import { GameView } from "~/components/views/GameView";
-import { ResultsView } from "~/components/views/ResultsView";
-import { usePartySocket } from "~/PartySocketContext";
+import { GameResultsView } from "~/components/views/GameResultsView";
+import { usePartySocket, type TabType } from "~/PartySocketContext";
 
 export type AuthSession = {
   user: {
@@ -20,10 +20,6 @@ export type AuthSession = {
 };
 
 export function BasePage({ session }: { session: AuthSession }) {
-  const [activeTab, setActiveTab] = useState<"info" | "game" | "results">(
-    "info",
-  );
-  const availableTabs = ["info", "game", "results"];
 
   useEffect(() => {
     console.warn("BasePage mounted");
@@ -44,6 +40,8 @@ export function BasePage({ session }: { session: AuthSession }) {
     setSocialBFollowed,
     isLoading,
     players,
+    activeTab,
+    setActiveTab,
   } = usePartySocket();
 
   if (loading || isLoading) {
@@ -148,10 +146,10 @@ export function BasePage({ session }: { session: AuthSession }) {
 
       {/* Tab Navigation */}
       <div className="z-20 flex w-full max-w-96 gap-2">
-        {availableTabs.map((tab) => (
+        {["info", "game", "results"].map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab as "info" | "game" | "results")}
+            onClick={() => setActiveTab(tab as TabType)}
             className={`flex-1 rounded-t-lg border-2 border-b-0 border-black bg-white p-2 font-medium capitalize transition-colors ${
               activeTab === tab
                 ? "text-black"
@@ -180,7 +178,7 @@ export function BasePage({ session }: { session: AuthSession }) {
         )}
       {/* Show Results View */}
       {activeTab === "results" && eventData && (
-        <ResultsView palette={palette} resultsPlayers={players} />
+        <GameResultsView palette={palette} resultsPlayers={players} />
       )}
     </main>
   );
