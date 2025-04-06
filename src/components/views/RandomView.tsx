@@ -20,7 +20,7 @@ export const RandomView: React.FC<RandomViewProps> = ({
 
   return (
     <div className="p-4 border rounded-lg bg-white shadow w-full max-w-96">
-      <h2 className="text-xl font-semibold mb-4">Random Event View</h2>
+      {/* <h2 className="text-xl font-semibold mb-4">Random Event View</h2> */}
       <p className="mb-4">Tickets for the random draw:</p>
       
       {/* Render WinnerSelector, passing only eventId from context, remove isAdmin */}

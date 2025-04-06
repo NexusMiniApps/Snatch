@@ -1,7 +1,7 @@
 "use client";
 
 import { useVibrantPalette } from "~/lib/usePalette";
-import { InfoView } from "~/components/views/InfoView";
+import { ChosenInfoView } from "~/components/views/ChosenInfoView";
 import { CommentView } from "~/components/views/CommentView";
 import { VoteComment } from "~/components/views/VoteComment";
 import { usePartySocket, type TabType } from "~/PartySocketContext";
@@ -72,7 +72,7 @@ export default function BasePage({ session }: { session: AuthSession }) {
       </div>
 
       {activeTab === "info" && eventData && (
-        <InfoView palette={palette} session={session} />
+        <ChosenInfoView palette={palette} session={session} />
       )}
       {activeTab === "comments" && <CommentView palette={palette} />}
       {activeTab === "vote" && <VoteComment />}
