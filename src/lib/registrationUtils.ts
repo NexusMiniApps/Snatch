@@ -36,12 +36,23 @@ export interface LatestEventDetails {
   name: string;
 }
 
+// Add debounce tracking
+let lastFetchTime = 0;
+const FETCH_COOLDOWN = 5000; // 5 seconds in milliseconds
+
 /**
  * Fetches the latest event data from the API
  * @param eventType - The type of the event (optional)
  * @returns Promise<EventData> - The latest event data
  */
 export const fetchEvent = async (eventType?: string): Promise<EventData> => {
+  const now = Date.now();
+  if (now - lastFetchTime < FETCH_COOLDOWN) {
+    console.log("Skipping fetchEvent call - too soon after last call");
+    throw new Error("Please wait before fetching event data again");
+  }
+  
+  lastFetchTime = now;
   
   // Determine base URL based on environment
   const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
