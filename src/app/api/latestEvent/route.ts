@@ -16,7 +16,7 @@ export async function GET() {
     }
 
     // Return the full event object
-    return NextResponse.json(latestEvent as Event);
+    return NextResponse.json(latestEvent);
 
   } catch (error) {
     console.error("Error fetching latest event:", error);

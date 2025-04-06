@@ -40,7 +40,7 @@ export const RandomResultsView: React.FC = () => {
         const data = await response.json() as WinnerApiResponse;
 
         if (!response.ok) {
-          throw new Error(data.error || `Failed to fetch winner (status: ${response.status})`);
+          throw new Error(data.error ?? `Failed to fetch winner (status: ${response.status})`);
         }
 
         if (data.winner) {
@@ -89,7 +89,7 @@ export const RandomResultsView: React.FC = () => {
 
       {!isLoading && !error && !winner && (
         <div className="text-center text-gray-500">
-          {noWinnerMessage || "Waiting for winner selection..."}
+          {noWinnerMessage ?? "Waiting for winner selection..."}
         </div>
       )}
     </div>

@@ -4,10 +4,8 @@ import WinnerSelector from '~/components/ui/WinnerSelection';
 // Import usePartySocket
 import { usePartySocket } from '~/PartySocketContext';
 
-// Remove props from the interface
-interface RandomViewProps {}
 
-export const RandomView: React.FC<RandomViewProps> = ({ 
+export const RandomView: React.FC = ({ 
   // No props to destructure
 }) => {
   // Get eventData from context

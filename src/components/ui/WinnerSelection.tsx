@@ -14,8 +14,6 @@ interface WinnerData {
   name: string;
 }
 
-interface EventApiResponse { /* ... */ }
-
 interface WinnerSelectorProps {
   eventId: string;
 }

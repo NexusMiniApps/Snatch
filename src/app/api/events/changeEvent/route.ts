@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       snatchStartTime: snatchStartTime
         ? new Date(snatchStartTime)
         : new Date(now.getTime() + 2 * 60 * 60 * 1000),
-      location: location || null,
+      location: location ?? null,
     };
 
     if (existingEvent) {
