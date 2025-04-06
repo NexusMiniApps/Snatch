@@ -127,11 +127,12 @@ interface PartySocketProviderProps {
   eventType: SupportedEventType;
 }
 
-export function PartySocketProvider({ 
-  children, 
-  session, 
-  eventType 
+export function PartySocketProvider({
+  children,
+  session,
+  eventType,
 }: PartySocketProviderProps) {
+  console.log("xx PartySocketProvider for eventType: ", eventType);
   // Socket related state
   const [socket, setSocket] = useState<PartySocket | null>(null);
   const [currentPlayerCount, setCurrentPlayerCount] = useState(0);
@@ -166,13 +167,15 @@ export function PartySocketProvider({
   const [votedComments, setVotedComments] = useState<Set<string>>(new Set());
   const [isLoadingChosen, setIsLoadingChosen] = useState(true);
 
+  console.log("session is: ", session);
+
   // Function to check the database for the snatch start time and update the game state
   const checkSnatchStartTime = async () => {
     try {
       if (!eventData?.id) return;
 
       // Fetch the latest event data from the database
-      const latestEventData = await fetchEvent();
+      const latestEventData = await fetchEvent("game");
 
       if (!latestEventData) return;
 
@@ -243,6 +246,7 @@ export function PartySocketProvider({
     void (async () => {
       try {
         // Pass eventType to fetchEvent
+        console.log("xx EVENT TYPE IS: ", eventType);
         const data = await fetchEvent(eventType);
         setEventData(data);
 
@@ -281,15 +285,17 @@ export function PartySocketProvider({
   // Check snatch start time on page render and periodically
   useEffect(() => {
     if (!eventData) return;
-
-    // Check immediately
-    void checkSnatchStartTime();
-
-    // Then check every 30 seconds
-    const interval = setInterval(() => {
+    let interval: NodeJS.Timeout | null = null;
+    console.log("xx eventData.eventType: ", eventData.eventType);
+    if (true) {
+      // Check immediately
       void checkSnatchStartTime();
-    }, 30000);
 
+      // Then check every 30 seconds
+      interval = setInterval(() => {
+        void checkSnatchStartTime();
+      }, 30000);
+    }
     return () => clearInterval(interval);
   }, [eventData, socket]);
 
@@ -336,12 +342,15 @@ export function PartySocketProvider({
       }
     };
 
-    // Check immediately
-    checkGamePhase();
+    console.log("xx eventData.eventType: ", eventData.eventType);
+    let interval: NodeJS.Timeout | null = null;
+    if (true) {
+      // Check immediately
+      checkGamePhase();
 
-    // Then check every second
-    const interval = setInterval(checkGamePhase, 1000);
-
+      // Then check every second
+      interval = setInterval(checkGamePhase, 1000);
+    } 
     return () => clearInterval(interval);
   }, [eventData, gamePhase]);
 
@@ -388,8 +397,9 @@ export function PartySocketProvider({
       console.log("Session undefined, not connecting to socket.");
       return;
     }
-    
-    const host = process.env.NODE_ENV === "production"
+
+    const host =
+      process.env.NODE_ENV === "production"
         ? "https://snatch-party.zhizhangt.partykit.dev"
         : "localhost:1999";
 
@@ -400,10 +410,10 @@ export function PartySocketProvider({
       console.log("Player ID or Username missing in session");
       return;
     }
-    
+
     setCurrentPlayerId(playerId);
 
-    console.log("EVENT DATA IS: ", eventData);
+    console.log("xx EVENT DATA IS: ", eventData);
     let eventType = "game";
     if (eventData && typeof eventData.eventType === "string") {
       eventType = eventData.eventType.toLowerCase();
@@ -411,15 +421,12 @@ export function PartySocketProvider({
     console.log("Event Type is: ", eventType);
     console.log("CONNECTING TO SOCKET for type:", eventType);
 
-
-    
     const partySocket = new PartySocket({
       host,
       room: "my-room",
       party: eventType,
       id: playerId,
     });
-
 
     setSocket(partySocket);
 

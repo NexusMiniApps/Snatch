@@ -4,6 +4,7 @@ import BasePage from "./BasePage";
 import { PartySocketProvider } from "~/PartySocketContext";
 
 export default async function RandomPage() {
+  console.log("xx RandomPage");
   const session = await auth();
 
   if (!session) {

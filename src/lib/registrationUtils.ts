@@ -42,7 +42,6 @@ export interface LatestEventDetails {
  * @returns Promise<EventData> - The latest event data
  */
 export const fetchEvent = async (eventType?: string): Promise<EventData> => {
-  console.log(`Fetching latest event of type: ${eventType || 'all types'}`);
   
   // Determine base URL based on environment
   const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
@@ -60,10 +59,9 @@ export const fetchEvent = async (eventType?: string): Promise<EventData> => {
   if (!res.ok) {
     const errorBody = await res.text(); // Get error details
     console.error("Response error:", res.status, errorBody);
-    throw new Error(`Failed to fetch latest event data for type ${eventType || 'all types'}: ${errorBody}`);
+    throw new Error(`Failed to fetch latest event data for type ${eventType ?? 'all types'}: ${errorBody}`);
   }
   const data = (await res.json()) as EventData;
-  console.log(`Fetched latest ${eventType || 'all types'} event data:`, data);
   return data;
 };
 

@@ -25,6 +25,8 @@ export async function auth() {
     }
   }
 
+  console.log("xx sessionId: ", sessionId);
+
   if (!sessionId) {
     console.log("[Server] No session ID found");
     return null;

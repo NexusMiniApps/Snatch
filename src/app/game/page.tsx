@@ -4,6 +4,7 @@ import { BasePage } from "./BasePage";
 import { PartySocketProvider } from "~/PartySocketContext";
 
 export default async function GamePage() {
+  console.log("xx GamePage");
   const session = await auth();
 
   if (!session) {
