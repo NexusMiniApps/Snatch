@@ -118,14 +118,19 @@ const PartySocketContext = createContext<PartySocketContextType | undefined>(
   undefined,
 );
 
+// Define possible event types
+export type SupportedEventType = "game" | "chosen" | "random";
+
 interface PartySocketProviderProps {
   children: ReactNode;
   session?: AuthSession;
+  eventType: SupportedEventType;
 }
 
-export function PartySocketProvider({
-  children,
-  session,
+export function PartySocketProvider({ 
+  children, 
+  session, 
+  eventType 
 }: PartySocketProviderProps) {
   // Socket related state
   const [socket, setSocket] = useState<PartySocket | null>(null);
@@ -237,8 +242,8 @@ export function PartySocketProvider({
   useEffect(() => {
     void (async () => {
       try {
-        // On component mount, load event data into state
-        const data = await fetchEvent();
+        // Pass eventType to fetchEvent
+        const data = await fetchEvent(eventType);
         setEventData(data);
 
         // Use the fetched event's ID for subsequent calls
@@ -271,7 +276,7 @@ export function PartySocketProvider({
         setLoading(false);
       }
     })();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, eventType]);
 
   // Check snatch start time on page render and periodically
   useEffect(() => {
@@ -379,27 +384,23 @@ export function PartySocketProvider({
 
   // USE EFFECT FOR SOCKET CONNECTION
   useEffect(() => {
-    if (session === undefined) {
-      console.log("DONT CONNECT TO SOCKET");
+    if (!session) {
+      console.log("Session undefined, not connecting to socket.");
       return;
     }
-
-    console.log("CONNECTING TO SOCKET");
-    const host =
-      process.env.NODE_ENV === "production"
+    
+    const host = process.env.NODE_ENV === "production"
         ? "https://snatch-party.zhizhangt.partykit.dev"
         : "localhost:1999";
 
-    console.log("Current Session is: ", session);
+    const playerId = session.user.id;
+    const userName = session.user.name;
 
-    const playerId = session?.user?.id ?? "";
-
-    if (playerId === "") {
-      console.log("No player ID found");
+    if (!playerId || !userName) {
+      console.log("Player ID or Username missing in session");
       return;
     }
-
-    console.log("Current Player ID is: ", playerId);
+    
     setCurrentPlayerId(playerId);
 
     console.log("EVENT DATA IS: ", eventData);
@@ -408,7 +409,10 @@ export function PartySocketProvider({
       eventType = eventData.eventType.toLowerCase();
     }
     console.log("Event Type is: ", eventType);
+    console.log("CONNECTING TO SOCKET for type:", eventType);
 
+
+    
     const partySocket = new PartySocket({
       host,
       room: "my-room",
@@ -416,13 +420,6 @@ export function PartySocketProvider({
       id: playerId,
     });
 
-    let userName;
-
-    if (session.user) {
-      userName = session.user.name;
-    } else {
-      userName = "Anonymous";
-    }
 
     setSocket(partySocket);
 
@@ -441,10 +438,11 @@ export function PartySocketProvider({
     });
 
     partySocket.addEventListener("open", () => {
+      console.log(`Socket opened for ${eventType}, sending name.`);
       partySocket.send(JSON.stringify({ type: "updateName", name: userName }));
     });
 
-    console.log("EVENT TYPE IS: ", eventType);
+    console.log("Setting up listeners for event type:", eventType);
     if (eventType === "game") {
       console.log("INITIALIZING GAME SOCKET LISTENER");
       gameSocketListenerInit({
@@ -454,6 +452,10 @@ export function PartySocketProvider({
         setPlayers,
         setPlayerName,
         setMessages,
+        setIsGameActive,
+        setTimeRemaining,
+        setGamePhase,
+        setIsGameOver,
       });
     } else if (eventType === "chosen") {
       console.log("INITIALIZING CHOSEN SOCKET LISTENER");
@@ -470,10 +472,10 @@ export function PartySocketProvider({
     }
 
     return () => {
-      console.log("CLOSING SOCKET");
+      console.log(`CLOSING SOCKET for ${eventType}`);
       partySocket.close();
     };
-  }, [session, currentPlayerId, eventData]);
+  }, [session, eventData]);
 
   const incrementScore = () => {
     console.log("Incrementing score");

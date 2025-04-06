@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import BasePage from "./BasePage";
 import { PartySocketProvider } from "~/PartySocketContext";
 
-export default async function CoffeePage() {
+export default async function ChosenPage() {
   const session = await auth();
 
   if (!session) {
@@ -11,7 +11,7 @@ export default async function CoffeePage() {
   }
 
   return (
-    <PartySocketProvider session={session}>
+    <PartySocketProvider session={session} eventType="chosen">
       <BasePage session={session} />
     </PartySocketProvider>
   );

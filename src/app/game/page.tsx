@@ -11,7 +11,7 @@ export default async function GamePage() {
   }
 
   return (
-    <PartySocketProvider session={session}>
+    <PartySocketProvider session={session} eventType="game">
       <BasePage session={session} />
     </PartySocketProvider>
   );

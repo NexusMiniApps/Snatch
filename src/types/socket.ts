@@ -15,6 +15,7 @@ export interface SocketMessage {
     isActive: boolean;
     timeRemaining: number;
     phase: "waiting" | "active" | "gameover";
+    isGameOver: boolean;
   };
   snatchStartTime?: string;
 }

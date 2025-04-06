@@ -38,25 +38,32 @@ export interface LatestEventDetails {
 
 /**
  * Fetches the latest event data from the API
+ * @param eventType - The type of the event (optional)
  * @returns Promise<EventData> - The latest event data
  */
-export const fetchEvent = async (): Promise<EventData> => {
-  console.log("Fetching latest event");
-  // Determine base URL based on environmen
+export const fetchEvent = async (eventType?: string): Promise<EventData> => {
+  console.log(`Fetching latest event of type: ${eventType || 'all types'}`);
+  
+  // Determine base URL based on environment
   const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"); // Fallback to localhost for dev
 
-  const fetchURL = `${baseURL}/api/latestEvent`;
+  // Construct the fetch URL based on whether eventType is provided
+  const fetchURL = eventType 
+    ? `${baseURL}/api/latestEvent?type=${encodeURIComponent(eventType)}`
+    : `${baseURL}/api/latestEvent`; // No type filter
+
   console.log("Fetching from URL:", fetchURL);
 
   const res = await fetch(fetchURL);
   if (!res.ok) {
-    console.log("Response error:", res);
-    throw new Error("Failed to fetch latest event data");
+    const errorBody = await res.text(); // Get error details
+    console.error("Response error:", res.status, errorBody);
+    throw new Error(`Failed to fetch latest event data for type ${eventType || 'all types'}: ${errorBody}`);
   }
   const data = (await res.json()) as EventData;
-  console.log("Fetched latest event data:", data);
+  console.log(`Fetched latest ${eventType || 'all types'} event data:`, data);
   return data;
 };
 

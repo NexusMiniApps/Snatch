@@ -11,7 +11,7 @@ export default async function RandomPage() {
   }
 
   return (
-    <PartySocketProvider session={session}>
+    <PartySocketProvider session={session} eventType="random">
       <BasePage session={session} />
     </PartySocketProvider>
   );
