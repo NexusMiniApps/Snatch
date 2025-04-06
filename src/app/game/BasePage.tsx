@@ -6,7 +6,6 @@ import { GameInfoView } from "~/components/views/GameInfoView";
 import { GameView } from "~/components/views/GameView";
 import { GameResultsView } from "~/components/views/GameResultsView";
 import { usePartySocket, type TabType } from "~/PartySocketContext";
-import { GameInfoViewWrapper } from "~/components/views/GameInfoViewWrapper";
 
 export type AuthSession = {
   user: {

@@ -14,7 +14,10 @@ interface WinnerData {
   name: string;
 }
 
-interface EventApiResponse { /* ... */ }
+interface EventApiResponse {
+  tickets: TicketData[];
+  message?: string;
+}
 
 interface WinnerSelectorProps {
   eventId: string;
@@ -72,7 +75,6 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
     void fetchTickets();
     console.log("xx tickets", tickets);
 
-
     // Also check if there's already a winner
     async function checkExistingWinner() {
       try {
@@ -86,7 +88,10 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
             console.log("winner found", data.winner);
             setWinner(data.winner);
             // Find winner index to highlight it
-            console.log("data.winner.ticketNumber", parseInt(data.winner.ticketNumber, 10));
+            console.log(
+              "data.winner.ticketNumber",
+              parseInt(data.winner.ticketNumber, 10),
+            );
             setHighlightedIndex(parseInt(data.winner.ticketNumber, 10));
           }
         }
@@ -213,13 +218,18 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
       {/* Password overlay - Conditionally render based on isPasswordEntered */}
       {!isPasswordEntered && (
         <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md">
-          <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-xl border-2 border-black">
-            <h2 className="mb-4 text-center text-xl font-semibold">Host Authentication</h2>
+          <div className="w-full max-w-sm rounded-xl border-2 border-black bg-white p-8 shadow-xl">
+            <h2 className="mb-4 text-center text-xl font-semibold">
+              Host Authentication
+            </h2>
             <p className="mb-6 text-center text-gray-600">
               Enter password to manage winner selection.
             </p>
-            
-            <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+
+            <form
+              onSubmit={handlePasswordSubmit}
+              className="flex flex-col gap-4"
+            >
               <div>
                 <input
                   type="password"
@@ -233,7 +243,7 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
                   <p className="mt-2 text-sm text-red-500">{passwordError}</p>
                 )}
               </div>
-              
+
               <button
                 type="submit"
                 className="rounded-lg bg-blue-500 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -246,7 +256,9 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
       )}
 
       {/* Main content area - Apply pointer-events-none if password not entered */}
-      <div className={`${!isPasswordEntered ? 'pointer-events-none blur-sm' : ''}`}>
+      <div
+        className={`${!isPasswordEntered ? "pointer-events-none blur-sm" : ""}`}
+      >
         <h2 className="mb-6 text-center text-2xl font-bold">
           {winner ? "🎉 Winner Selected! 🎉" : "Ticket Numbers"}
         </h2>
@@ -256,22 +268,22 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
           <div className="mb-6 flex justify-center">
             <button
               onClick={handleSelectWinner}
-              className={`rounded-lg px-6 py-3 font-medium text-white shadow-lg bg-blue-600 hover:bg-blue-700`}
+              className={`rounded-lg bg-blue-600 px-6 py-3 font-medium text-white shadow-lg hover:bg-blue-700`}
             >
               Select Winner
             </button>
           </div>
         )}
-         {/* Show message if no tickets and password entered */}
+        {/* Show message if no tickets and password entered */}
         {!isSelecting && !winner && tickets.length === 0 && !isLoading && (
-           <div className="mb-6 flex justify-center">
-              <button
-                disabled
-                className={`rounded-lg px-6 py-3 font-medium text-white shadow-lg cursor-not-allowed bg-gray-400`}
-              >
-                No Tickets Available
-              </button>
-            </div>
+          <div className="mb-6 flex justify-center">
+            <button
+              disabled
+              className={`cursor-not-allowed rounded-lg bg-gray-400 px-6 py-3 font-medium text-white shadow-lg`}
+            >
+              No Tickets Available
+            </button>
+          </div>
         )}
 
         {isSelecting && (
@@ -285,14 +297,15 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
             <h3 className="mb-2 text-xl font-medium">Congratulations!</h3>
             <div className="mb-2 text-3xl font-bold">{winner.name}</div>
             <div className="text-lg">
-              Ticket Number: <span className="text-2xl font-bold">{winner.ticketNumber}</span>
+              Ticket Number:{" "}
+              <span className="text-2xl font-bold">{winner.ticketNumber}</span>
             </div>
           </div>
         )}
 
         {/* Ticket display area - only show content if password is okay or if a winner is already selected */}
         {(isPasswordEntered || winner) && (
-          <> 
+          <>
             {tickets.length === 0 && !isLoading && !winner ? (
               <div className="text-center text-lg text-gray-500">
                 No tickets available for this event.
@@ -303,10 +316,19 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
                   <motion.div
                     key={ticket.ticketNumber}
                     className={`relative rounded-lg border-2 p-2 text-center font-mono ${highlightedIndex === index ? "border-yellow-500 bg-yellow-200 shadow-lg" : "border-gray-200 bg-white"} ${winner && winner.ticketNumber === ticket.ticketNumber ? "scale-110 transform ring-4 ring-green-500" : ""}`}
-                    animate={highlightedIndex === index ? { scale: [1, 1.1, 1], borderColor: ["#e5e7eb", "#eab308", "#e5e7eb"] } : {}}
+                    animate={
+                      highlightedIndex === index
+                        ? {
+                            scale: [1, 1.1, 1],
+                            borderColor: ["#e5e7eb", "#eab308", "#e5e7eb"],
+                          }
+                        : {}
+                    }
                   >
                     <div className="truncate text-sm">{ticket.name}</div>
-                    <div className="text-lg font-bold">{ticket.ticketNumber}</div>
+                    <div className="text-lg font-bold">
+                      {ticket.ticketNumber}
+                    </div>
                   </motion.div>
                 ))}
               </div>

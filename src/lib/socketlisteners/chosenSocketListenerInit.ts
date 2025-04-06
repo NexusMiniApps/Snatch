@@ -1,6 +1,5 @@
 import type PartySocket from "partysocket";
-import { ChatMessage, Comment } from "~/PartySocketContext";
-
+import type { ChatMessage, Comment } from "~/PartySocketContext";
 
 interface SocketMessage {
   type: string;
@@ -49,9 +48,9 @@ export function chosenSocketListenerInit({
       }
 
       if (data.type === "chat") {
-        if ('message' in data && data.message) {
+        if (data.message) {
           console.log("Handling chat message:", data.message);
-          setMessages((prev) => [...prev, data.message as ChatMessage]);
+          setMessages((prev) => [...prev, data.message!]);
         }
       }
 

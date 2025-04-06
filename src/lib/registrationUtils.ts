@@ -45,7 +45,7 @@ export const fetchEvent = async (): Promise<EventData> => {
   // Determine base URL based on environmen
   const baseURL = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"; // Fallback to localhost for dev
+    : (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"); // Fallback to localhost for dev
 
   const fetchURL = `${baseURL}/api/latestEvent`;
   console.log("Fetching from URL:", fetchURL);
@@ -289,27 +289,28 @@ export const checkPrerequisites = async (
  * Fetches the latest event's ID, description, and name from the API
  * @returns Promise<LatestEventDetails> - The latest event details
  */
-export const fetchLatestEventDetails = async (): Promise<LatestEventDetails> => {
-  console.log("Fetching latest event details");
-  try {
-    const res = await fetch("/api/latestEvent");
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Response error:", res.status, errorText);
-      throw new Error(`Failed to fetch latest event details: ${errorText}`);
+export const fetchLatestEventDetails =
+  async (): Promise<LatestEventDetails> => {
+    console.log("Fetching latest event details");
+    try {
+      const res = await fetch("/api/latestEvent");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Response error:", res.status, errorText);
+        throw new Error(`Failed to fetch latest event details: ${errorText}`);
+      }
+      // We expect the full Event object from the API, but only need specific fields
+      const data = (await res.json()) as EventData;
+      console.log("Fetched latest event data:", data);
+
+      // Return only the required fields
+      return {
+        id: data.id,
+        description: data.description,
+        name: data.name,
+      };
+    } catch (error) {
+      console.error("Error fetching latest event details:", error);
+      throw error; // Re-throw the error to be handled by the caller
     }
-    // We expect the full Event object from the API, but only need specific fields
-    const data = (await res.json()) as EventData; 
-    console.log("Fetched latest event data:", data);
-    
-    // Return only the required fields
-    return {
-      id: data.id,
-      description: data.description,
-      name: data.name,
-    };
-  } catch (error) {
-    console.error("Error fetching latest event details:", error);
-    throw error; // Re-throw the error to be handled by the caller
-  }
-};
+  };
