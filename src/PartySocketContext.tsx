@@ -175,7 +175,7 @@ export function PartySocketProvider({
       if (!eventData?.id) return;
 
       // Fetch the latest event data from the database
-      const latestEventData = await fetchEvent("game");
+      const latestEventData = await fetchEvent(eventType);
 
       if (!latestEventData) return;
 
