@@ -175,6 +175,7 @@ export function PartySocketProvider({
       if (!eventData?.id) return;
 
       // Fetch the latest event data from the database
+      console.log("xx FETCHEVENT 1: ");
       const latestEventData = await fetchEvent(eventType);
 
       if (!latestEventData) return;
@@ -247,6 +248,7 @@ export function PartySocketProvider({
       try {
         // Pass eventType to fetchEvent
         console.log("xx EVENT TYPE IS: ", eventType);
+        console.log('xx FETCHEVENT 2: ')
         const data = await fetchEvent(eventType);
         setEventData(data);
 
@@ -280,14 +282,13 @@ export function PartySocketProvider({
         setLoading(false);
       }
     })();
-  }, [session?.user?.id, eventType]);
+  }, []);
 
   // Check snatch start time on page render and periodically
   useEffect(() => {
     if (!eventData) return;
     let interval: NodeJS.Timeout | null = null;
-    console.log("xx eventData.eventType: ", eventData.eventType);
-    if (true) {
+    if (eventData.eventType === "GAME") {
       // Check immediately
       void checkSnatchStartTime();
 
@@ -296,8 +297,8 @@ export function PartySocketProvider({
         void checkSnatchStartTime();
       }, 30000);
     }
-    return () => clearInterval(interval);
-  }, [eventData, socket]);
+    return () => clearInterval(interval ?? undefined);
+  }, []);
 
   // Automatically update game phase when snatch start time is reached
   useEffect(() => {
@@ -344,15 +345,15 @@ export function PartySocketProvider({
 
     console.log("xx eventData.eventType: ", eventData.eventType);
     let interval: NodeJS.Timeout | null = null;
-    if (true) {
+    if (eventData.eventType === "GAME") {
       // Check immediately
       checkGamePhase();
 
       // Then check every second
       interval = setInterval(checkGamePhase, 1000);
     } 
-    return () => clearInterval(interval);
-  }, [eventData, gamePhase]);
+    return () => clearInterval(interval ?? undefined);
+  }, [eventData]);
 
   // USE EFFECT FOR SOCIAL FOLLOW CHECK + JOIN GIVEAWAY
   useEffect(() => {

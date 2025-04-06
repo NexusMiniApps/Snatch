@@ -259,7 +259,7 @@ export default function WinnerSelector({ eventId }: WinnerSelectorProps) {
         </h2>
 
         {/* Button is only visible if password entered, not selecting, no winner, and tickets exist */}
-        {!isSelecting && !winner && tickets.length > 0 && (
+        {!isSelecting && tickets.length > 0 && (
           <div className="mb-6 flex justify-center">
             <button
               onClick={handleSelectWinner}
