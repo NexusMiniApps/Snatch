@@ -105,7 +105,14 @@ export function gameSocketListenerInit({
       }
     } else if (data.type === "chat") {
       if ("message" in data && data.message) {
-        setMessages((prev) => [...prev, data.message!]);
+        setMessages((prev) => {
+          // Check if message already exists
+          const messageExists = prev.some(msg => msg.id === data.message!.id);
+          if (messageExists) {
+            return prev;
+          }
+          return [...prev, data.message!];
+        });
       }
     } else if (data.type === "gameState" && data.gameState) {
       if (setIsGameActive) {
