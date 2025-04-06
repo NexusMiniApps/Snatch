@@ -23,6 +23,7 @@ function AdminPanel() {
   const [eventType, setEventType] = useState<EventType>("game");
   const [startTime, setStartTime] = useState("");
   const [gameStartTime, setGameStartTime] = useState("");
+  const [location, setLocation] = useState("");
 
   // Map event types to their corresponding URL slugs
   const eventTypeToSlug: Record<EventType, string> = {
@@ -87,20 +88,26 @@ function AdminPanel() {
         name: string;
         description: string;
         type: EventType;
-        startTime?: string;
+        startTime: string;
         snatchStartTime?: string;
+        location?: string;
       }
 
       const payload: EventPayload = {
         name: eventName,
         description: eventDescription,
         type: eventType,
+        startTime: new Date(startTime).toISOString(),
       };
 
       // Add date fields if eventType is "game"
       if (eventType === "game") {
-        payload.startTime = new Date(startTime).toISOString();
         payload.snatchStartTime = new Date(gameStartTime).toISOString();
+      }
+
+      // Add location if provided
+      if (location) {
+        payload.location = location;
       }
 
       const response = await fetch(`/api/events/changeEvent`, {
@@ -130,6 +137,7 @@ function AdminPanel() {
       setEventType("game");
       setStartTime("");
       setGameStartTime("");
+      setLocation("");
       
       // Redirect user if they clicked OK on the confirmation dialog
       if (userConfirmed) {
@@ -186,6 +194,31 @@ function AdminPanel() {
           />
         </div>
         <div className="flex flex-col gap-2">
+            <label htmlFor="startTime" className="font-medium">
+              Event Start Time
+            </label>
+            <input
+              type="datetime-local"
+              id="startTime"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              required
+              className="rounded border px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+            />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="eventDescription" className="font-medium">
+            Event Location
+          </label>
+          <input
+            type="text"
+            id="eventLocation"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="rounded border px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
           <label htmlFor="eventType" className="font-medium">
             Event Type
           </label>
@@ -205,19 +238,6 @@ function AdminPanel() {
         {/* Date pickers that only appear when event type is "game" */}
         {eventType === "game" && (
           <>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="startTime" className="font-medium">
-                Event Start Time
-              </label>
-              <input
-                type="datetime-local"
-                id="startTime"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-                className="rounded border px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring"
-              />
-            </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="gameStartTime" className="font-medium">
                 Game Start Time

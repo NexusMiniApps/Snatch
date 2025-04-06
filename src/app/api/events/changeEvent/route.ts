@@ -10,6 +10,7 @@ const createEventSchema = z.object({
   type: z.enum(["game", "chosen", "random"]),
   startTime: z.string().optional(),
   snatchStartTime: z.string().optional(),
+  location: z.string().optional(),
 });
 
 // Define the type based on the schema
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     // Now body is properly typed through Zod validation
-    const { name, description, type, startTime, snatchStartTime } =
+    const { name, description, type, startTime, snatchStartTime, location} =
       validationResult.data;
 
     // Convert type to uppercase to match enum values in database
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
       snatchStartTime: snatchStartTime
         ? new Date(snatchStartTime)
         : new Date(now.getTime() + 2 * 60 * 60 * 1000),
+      location: location || null,
     };
 
     if (existingEvent) {

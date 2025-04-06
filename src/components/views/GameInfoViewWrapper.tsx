@@ -1,7 +1,7 @@
 "use client";
 
 import { type AuthSession } from "~/app/game/BasePage";
-import { InfoView as GameInfoView } from "~/components/views/GameInfoView";
+import { GameInfoView } from "~/components/views/GameInfoView";
 import { usePartySocket } from "~/PartySocketContext";
 
 interface GameInfoViewWrapperProps {
@@ -13,12 +13,10 @@ interface GameInfoViewWrapperProps {
     muted: string;
     vibrant: string;
   };
-  session: AuthSession;
 }
 
 export function GameInfoViewWrapper({
   palette,
-  session,
 }: GameInfoViewWrapperProps) {
   // Get players and eventData from PartySocketContext
   const { players, eventData } = usePartySocket();

@@ -14,7 +14,7 @@ interface InfoViewProps {
   eventData: EventData;
 }
 
-export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
+export function GameInfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
   // Use the PartySocketContext to get players
   const { players } = usePartySocket();
 
@@ -67,7 +67,7 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
           style={{
             backgroundColor: palette.lightMuted,
           }}
-          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-4rem] border-y-2 border-black"
+          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-3.5rem] rounded-xl border-2 border-black"
         />
         <div className="z-10 flex w-full max-w-96 flex-col gap-y-4 px-2">
           <div className="w-full text-xl font-medium">{eventName}</div>

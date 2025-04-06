@@ -5,7 +5,6 @@ import { Leaderboard } from "~/components/ui/Leaderboard";
 import { useState, useEffect } from "react";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
 import { usePartySocket } from "~/PartySocketContext";
-import { u } from "node_modules/framer-motion/dist/types.d-B50aGbjN";
 
 interface GameViewProps {
   palette: { lightMuted: string };
