@@ -6,17 +6,33 @@ import Image from "next/image";
 import CountdownDisplay from "~/components/ui/CountdownDisplay";
 import { usePartySocket } from "~/PartySocketContext";
 import { type EventData } from "~/lib/registrationUtils";
+import { type AuthSession } from "~/app/game/BasePage";
+
 interface InfoViewProps {
   palette: {
     lightMuted: string;
+    lightVibrant: string;
+    darkMuted: string;
+    darkVibrant: string;
+    muted: string;
+    vibrant: string;
   };
-  onTimeUp: () => void;
-  eventData: EventData;
+  session: AuthSession;
 }
 
-export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
-  // Use the PartySocketContext to get players
-  const { players } = usePartySocket();
+export function GameInfoView({ palette, session }: GameInfoViewProps) {
+  // Use the PartySocketContext to get players and eventData
+  const { players, eventData } = usePartySocket();
+
+  // Handle time up event
+  const handleTimeUp = () => {
+    console.log("Time is up!");
+    // You can add additional logic here if needed
+  };
+
+  if (!eventData) {
+    return <div>Loading event data...</div>;
+  }
 
   // Event info data
   const imageSlug = process.env.NEXT_PUBLIC_BASE_URL
@@ -67,13 +83,10 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
           style={{
             backgroundColor: palette.lightMuted,
           }}
-          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-4rem] border-y-2 border-black"
+          className="pointer-events-none absolute bottom-[-3.5rem] left-[-1.5rem] right-[-1.5rem] top-[-4rem] rounded-lg border-2 border-black"
         />
         <div className="z-10 flex w-full max-w-96 flex-col gap-y-4 px-2">
           <div className="w-full text-xl font-medium">{eventName}</div>
-          <div className="text-md flex w-full items-center">
-            <FaLocationDot className="mr-2" /> {eventLocation}
-          </div>
           <div className="text-md flex w-full items-center">
             <IoTime className="mr-2" />
             {eventDate} <span className="mx-2">·</span> {eventTime}
@@ -87,8 +100,8 @@ export function InfoView({ palette, onTimeUp, eventData }: InfoViewProps) {
       <section className="z-10 flex w-full max-w-96 flex-col items-center">
         <CountdownDisplay
           countdownDate={eventSnatchStartTime}
-          onTimeUp={onTimeUp}
-          onDisplayClick={onTimeUp}
+          onTimeUp={handleTimeUp}
+          onDisplayClick={handleTimeUp}
           hasSnatchTimeEnded={
             new Date(eventSnatchStartTime).getTime() + 30000 < Date.now()
           }

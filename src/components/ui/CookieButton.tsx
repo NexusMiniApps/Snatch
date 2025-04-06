@@ -25,8 +25,15 @@ export default function CookieButton({
 
     // Process the click immediately:
     const newCount = count + 1;
-    onIncrement(newCount);
+
+    // Log the score update for debugging
+    console.log("Sending score update:", newCount);
+
+    // Send the socket message - the socket listener will handle updating the score
     socket?.send(JSON.stringify({ type: "counter", value: newCount }));
+
+    // Call the onIncrement callback to update the local state
+    onIncrement(newCount);
 
     // Trigger the animation if it's not already playing:
     if (!isAnimating) {
@@ -38,7 +45,7 @@ export default function CookieButton({
         setIsAnimating(false);
       }, 200);
     }
-  }, [isAnimating, count, onIncrement, socket, disabled]);
+  }, [isAnimating, count, socket, disabled, onIncrement]);
 
   return (
     <div className={`animate-spin-slow ${disabled ? "opacity-50" : ""}`}>

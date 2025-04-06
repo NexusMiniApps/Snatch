@@ -80,7 +80,7 @@ export function Leaderboard({ players, currentPlayerId }: LeaderboardProps) {
   console.log("scoreRange", scoreRange);
 
   return (
-    <div className="flex flex-col items-center mt-10">
+    <div className="mt-10 flex flex-col items-center">
       <div className="mt-6 text-center">
         <div className="flex w-full items-center justify-center text-center">
           <span className="custom-box flex items-center px-4 py-2 text-xl font-semibold text-gray-600">
