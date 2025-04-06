@@ -11,4 +11,10 @@ export interface SocketMessage {
   };
   eventParticipant?: EventParticipantResponse;
   message?: ChatMessage;
-} 
+  gameState?: {
+    isActive: boolean;
+    timeRemaining: number;
+    phase: "waiting" | "active" | "gameover";
+  };
+  snatchStartTime?: string;
+}

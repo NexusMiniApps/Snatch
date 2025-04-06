@@ -22,19 +22,40 @@ export function GameView({ snatchStartTime }: GameViewProps) {
     incrementScore,
     isGameOver,
     setIsGameOver,
+    isGameActive,
+    timeRemaining,
+    gamePhase,
+    checkSnatchStartTime,
+    setGamePhase,
   } = usePartySocket();
 
-  // Initialize isGameStarted based on current time vs snatch time
-  const [isGameStarted, setIsGameStarted] = useState(
-    new Date(snatchStartTime).getTime() <= Date.now(),
-  );
-  const [gameEndTime] = useState(() => {
-    const endTime = new Date(snatchStartTime);
-    endTime.setSeconds(endTime.getSeconds() + 30);
-    return endTime;
-  });
-  const [displaySeconds, setDisplaySeconds] = useState(30);
-  const [isActive, setIsActive] = useState(false);
+  // Check snatch start time when component mounts
+  useEffect(() => {
+    void checkSnatchStartTime();
+  }, [checkSnatchStartTime]);
+
+  // Handle countdown completion
+  const handleCountdownComplete = () => {
+    if (gamePhase === "waiting") {
+      setGamePhase("active");
+    }
+  };
+
+  // Update time remaining every second when game is active
+  useEffect(() => {
+    if (gamePhase === "active" && timeRemaining > 0) {
+      const timer = setInterval(() => {
+        // The socket listener will handle the actual time update
+        // This is just a fallback to ensure the UI updates smoothly
+        if (timeRemaining <= 1) {
+          setGamePhase("gameover");
+          setIsGameOver(true);
+        }
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [gamePhase, timeRemaining, setGamePhase, setIsGameOver]);
 
   const postScoresToDatabase = async () => {
     try {
@@ -67,84 +88,42 @@ export function GameView({ snatchStartTime }: GameViewProps) {
     }
   };
 
-  // Auto-start game when snatch time begins
+  // Handle game over state
   useEffect(() => {
-    const checkAndStartGame = () => {
-      if (new Date(snatchStartTime).getTime() <= Date.now()) {
-        setIsGameStarted(true);
-      }
-    };
-
-    checkAndStartGame();
-    const timer = setInterval(checkAndStartGame, 100);
-    return () => clearInterval(timer);
-  }, [snatchStartTime]);
-
-  // Automatic timer update
-  useEffect(() => {
-    if (new Date(snatchStartTime).getTime() > Date.now()) return;
-
-    const updateTimer = () => {
-      const now = Date.now();
-      const remaining = Math.max(
-        0,
-        Math.ceil((gameEndTime.getTime() - now) / 1000),
-      );
-      setDisplaySeconds(remaining);
-      console.log("gameOver :", isGameOver);
-      if (remaining <= 0 && !isGameOver) {
-        setIsGameOver(true);
-        console.log("Posting scores to database");
-        void postScoresToDatabase();
-      }
-    };
-
-    // Update immediately and then every 100ms
-    updateTimer();
-    const timer = setInterval(updateTimer, 100);
-    return () => clearInterval(timer);
-  }, [snatchStartTime, gameEndTime]);
-
-
-  useEffect(() => {
-    if (isGameOver) {
-      console.log("Switching to Results View at:", new Date().toISOString());
+    if (isGameOver && gamePhase === "gameover") {
+      console.log("Posting scores to database");
+      void postScoresToDatabase();
     }
-  }, [isGameOver]);
+  }, [isGameOver, gamePhase]);
 
-  // Check if game should be active
-  useEffect(() => {
-    const checkGameActive = () => {
-      const now = Date.now();
-      const isGameTime = new Date(snatchStartTime).getTime() <= now;
-      setIsActive(isGameTime);
-    };
+  // Handle cookie click to update score
+  const handleCookieClick = (newCount: number) => {
+    // Update the local player count
+    setCurrentPlayerCount(newCount);
 
-    // Check immediately and then every 100ms
-    checkGameActive();
-    const timer = setInterval(checkGameActive, 100);
-    return () => clearInterval(timer);
-  }, [snatchStartTime]);
+    // Log the score update for debugging
+    console.log("Cookie clicked, updating score to:", newCount);
+  };
 
-  console.log("xx isGameStarted:", isGameStarted);
   return (
     <div className="flex w-full max-w-96 flex-col items-center gap-y-4">
       <div className="relative h-full w-full">
         <div className="absolute left-0 top-0 z-10 h-16 w-16 bg-pink-500"></div>
 
         <div className="relative">
-          {!isGameStarted &&
-            new Date(snatchStartTime).getTime() > Date.now() && (
-              <div className="fixed bottom-0 left-0 right-0 top-16 z-20 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm">
-                <div className="flex w-full max-w-96 items-center justify-center px-4">
-                  <CountdownDisplay
-                    countdownDate={snatchStartTime}
-                    onTimeUp={() => setIsGameStarted(true)}
-                    variant="timer-only"
-                  />
-                </div>
+          {/* Overlay with countdown - only visible in waiting phase */}
+          {gamePhase === "waiting" && (
+            <div className="fixed bottom-0 left-0 right-0 top-16 z-30 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm transition-opacity duration-300">
+              <div className="flex w-full max-w-96 items-center justify-center px-4">
+                <CountdownDisplay
+                  countdownDate={snatchStartTime}
+                  onTimeUp={handleCountdownComplete}
+                  variant="timer-only"
+                />
               </div>
-            )}
+            </div>
+          )}
+
           <section className="custom-box relative z-20 h-full w-full p-1 shadow-xl">
             <div className="rounded-lg bg-yellow-950 p-4 text-white">
               <h1 className="text-3xl font-semibold">Cookie Craze</h1>
@@ -159,22 +138,16 @@ export function GameView({ snatchStartTime }: GameViewProps) {
             <div className="z-20 flex flex-col items-center justify-center">
               <p
                 className={`m-4 text-2xl font-semibold transition-opacity duration-300 ${
-                  new Date(snatchStartTime).getTime() <= Date.now()
-                    ? "opacity-100"
-                    : "opacity-0"
+                  gamePhase === "active" ? "opacity-100" : "opacity-0"
                 }`}
               >
-                Time Left: {displaySeconds}s
+                Time Left: {timeRemaining}s
               </p>
               <CookieButton
                 count={currentPlayerCount}
                 socket={socket}
-                onIncrement={(newCount) => {
-                  console.log("Incrementing score in GameView");
-                  incrementScore();
-                  setCurrentPlayerCount(newCount);
-                }}
-                disabled={!isActive}
+                onIncrement={handleCookieClick}
+                disabled={gamePhase !== "active"}
               />
               <Leaderboard
                 players={players}
