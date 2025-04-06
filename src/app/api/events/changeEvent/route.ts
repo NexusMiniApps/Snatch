@@ -19,7 +19,7 @@ type EventRequestData = z.infer<typeof createEventSchema>;
 export async function POST(request: Request) {
   try {
     // Explicitly type the request body
-    const body = await request.json() as unknown;
+    const body = (await request.json()) as unknown;
 
     // Validate the request body
     const validationResult = createEventSchema.safeParse(body);
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     // Now body is properly typed through Zod validation
-    const { name, description, type, startTime, snatchStartTime, location} =
+    const { name, description, type, startTime, snatchStartTime, location } =
       validationResult.data;
 
     // Convert type to uppercase to match enum values in database
@@ -75,8 +75,8 @@ export async function POST(request: Request) {
       console.log("Updated existing event:", event.id);
     } else {
       // Create a new event - using correct prisma typing
-      event = await prisma.event.create({ 
-        data: eventData 
+      event = await prisma.event.create({
+        data: eventData,
       });
 
       console.log("Created new event:", event.id);
@@ -100,7 +100,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       { error: "Internal Server Error", details: errorMessage },
       { status: 500 },

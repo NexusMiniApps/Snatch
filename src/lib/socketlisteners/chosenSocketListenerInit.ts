@@ -49,7 +49,7 @@ export function chosenSocketListenerInit({
       }
 
       if (data.type === "chat") {
-        if ('message' in data && data.message) {
+        if (data.message) {
           console.log("Handling chat message:", data.message);
           setMessages((prev) => [...prev, data.message!]);
         }

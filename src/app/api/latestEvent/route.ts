@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "~/server/db/client";
-import { type Event } from '@prisma/client'; // Import the Event type
+import { type Event } from "@prisma/client"; // Import the Event type
 
 export async function GET() {
   try {
     const latestEvent = await prisma.event.findFirst({
       orderBy: {
-        updatedAt: 'desc', // Order by the last updated timestamp in descending order
+        updatedAt: "desc", // Order by the last updated timestamp in descending order
       },
       // No 'select' field means all fields are selected by default
     });
@@ -18,6 +18,7 @@ export async function GET() {
     // Return the full event object
     return NextResponse.json(latestEvent);
 
+    return NextResponse.json(latestEvent);
   } catch (error) {
     console.error("Error fetching latest event:", error);
     const errorMessage =

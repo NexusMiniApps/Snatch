@@ -20,7 +20,7 @@ interface InfoViewProps {
   session: AuthSession;
 }
 
-export function GameInfoView({ palette, session }: GameInfoViewProps) {
+export function GameInfoView({ palette, session }: InfoViewProps) {
   // Use the PartySocketContext to get players and eventData
   const { players, eventData } = usePartySocket();
 
