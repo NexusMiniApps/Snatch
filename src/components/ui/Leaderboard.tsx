@@ -86,7 +86,7 @@ export function Leaderboard({ players, currentPlayerId }: LeaderboardProps) {
           <span className="custom-box flex items-center px-4 py-2 text-xl font-semibold text-gray-600">
             Score to Win:{"  "}
             <span className="pl-2 text-3xl font-bold">
-              {sortedPlayers[4]?.score ?? 1}
+              {sortedPlayers[0]?.score ?? 1}
             </span>
           </span>
         </div>
