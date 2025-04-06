@@ -3,13 +3,8 @@ import React from "react";
 import WinnerSelector from "~/components/ui/WinnerSelection";
 // Import usePartySocket
 import { usePartySocket } from "~/PartySocketContext";
+
 export const RandomView: React.FC = () => {
-import { usePartySocket } from '~/PartySocketContext';
-
-
-export const RandomView: React.FC = ({ 
-  // No props to destructure
-}) => {
   // Get eventData from context
   const { eventData } = usePartySocket();
 
