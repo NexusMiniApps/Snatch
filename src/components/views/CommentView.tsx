@@ -24,12 +24,12 @@ export function CommentView({ palette }: CommentViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const { socket } = usePartySocket();
-  
+
   // Add state for password protection
   const [isPasswordEntered, setIsPasswordEntered] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  
+
   const correctPassword = "iamthehost";
 
   // Load comments from JSON file
@@ -71,7 +71,7 @@ export function CommentView({ palette }: CommentViewProps) {
         setComments([]);
         setIsLoading(true);
         await loadComments();
-        
+
         // Reset completion state as well
         setShowCompletion(false);
       } else {
@@ -85,7 +85,7 @@ export function CommentView({ palette }: CommentViewProps) {
   // Handle password verification
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (passwordInput === correctPassword) {
       setIsPasswordEntered(true);
       setPasswordError("");
@@ -140,7 +140,7 @@ export function CommentView({ palette }: CommentViewProps) {
           type: "clearedComments",
           action: "add",
           commentId: comment.id,
-        })
+        }),
       );
       console.log("Discarded comment via socket:", comment);
     } else {
@@ -204,12 +204,17 @@ export function CommentView({ palette }: CommentViewProps) {
       {!isPasswordEntered && (
         <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md">
           <div className="custom-box w-full max-w-sm rounded-xl bg-white p-8 shadow-xl">
-            <h2 className="mb-4 text-center text-xl font-semibold">Host Authentication</h2>
+            <h2 className="mb-4 text-center text-xl font-semibold">
+              Host Authentication
+            </h2>
             <p className="mb-6 text-center text-gray-600">
               Please enter the host password to access comment management.
             </p>
-            
-            <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+
+            <form
+              onSubmit={handlePasswordSubmit}
+              className="flex flex-col gap-4"
+            >
               <div>
                 <input
                   type="password"
@@ -223,7 +228,7 @@ export function CommentView({ palette }: CommentViewProps) {
                   <p className="mt-2 text-sm text-red-500">{passwordError}</p>
                 )}
               </div>
-              
+
               <button
                 type="submit"
                 className="rounded-lg bg-blue-500 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -236,7 +241,9 @@ export function CommentView({ palette }: CommentViewProps) {
       )}
 
       {/* Main content (visible but blurred if password not entered) */}
-      <div className={`flex w-full flex-col items-center gap-y-4 ${!isPasswordEntered ? 'pointer-events-none' : ''}`}>
+      <div
+        className={`flex w-full flex-col items-center gap-y-4 ${!isPasswordEntered ? "pointer-events-none" : ""}`}
+      >
         <section className="z-10 h-80 w-full max-w-96 rounded-xl border-2 border-solid border-black bg-white p-1 shadow-xl">
           <div className="relative h-full w-full rounded-xl">
             <Image
@@ -247,6 +254,22 @@ export function CommentView({ palette }: CommentViewProps) {
             />
           </div>
         </section>
+
+        <div
+          style={{
+            backgroundColor: palette.lightMuted,
+          }}
+          className="w-full max-w-96 rounded-xl border-2 border-black bg-blue-50 p-4 text-sm"
+        >
+          <h3 className="text-md mb-2 font-semibold">AI Analysis Summary</h3>
+          <p className="text-gray-700">
+            Most comments suggest matcha-based desserts, with a strong
+            preference for fusion items like matcha tiramisu, matcha brownies,
+            and matcha mochi. There&apos;s also interest in traditional Japanese
+            desserts with a matcha twist.
+          </p>
+        </div>
+
         <section className="z-10 h-20 w-20 max-w-96 rounded-full border-2 border-solid border-black bg-white p-1 shadow-xl">
           <div className="relative h-full w-full rounded-xl">
             <Image
@@ -258,7 +281,7 @@ export function CommentView({ palette }: CommentViewProps) {
           </div>
         </section>
 
-        <section className="relative flex w-full max-w-96 flex-col px-2 pt-2">
+        <section className="relative flex w-full max-w-96 flex-col px-2">
           <div
             style={{
               backgroundColor: palette.lightMuted,
@@ -277,7 +300,11 @@ export function CommentView({ palette }: CommentViewProps) {
           </div>
         </section>
 
-        <div className="mt-8 flex flex-col items-center gap-8 p-8">
+        <div className="mt-8 text-xs italic text-gray-700">
+          * comments are shown in order of a relevance score
+        </div>
+
+        <div className="flex flex-col items-center gap-8 p-8">
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2">
               <input

@@ -191,7 +191,6 @@ export default function CommentCard({
           commentId: newId,
         }),
       );
-      
     } catch (error) {
       console.error("Error sending cleared comments via socket:", error);
     }
@@ -445,6 +444,9 @@ export default function CommentCard({
             >
               {remainingCards} card{remainingCards !== 1 ? "s" : ""} remaining,{" "}
               {savedCount} comments selected
+              <div className="mt-1 text-xs text-gray-700">
+                200 comments filtered out by AI*
+              </div>
             </motion.div>
 
             {/* Action Buttons */}
