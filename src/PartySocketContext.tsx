@@ -285,19 +285,23 @@ export function PartySocketProvider({
   // Check snatch start time on page render and periodically
   useEffect(() => {
     if (!eventData) return;
-    let interval: NodeJS.Timeout | null = null;
-    console.log("xx eventData.eventType: ", eventData.eventType);
-    if (true) {
-      // Check immediately
+    
+    console.log("Setting up snatch time check interval");
+    // Check immediately
+    void checkSnatchStartTime();
+  
+    // Set up a single interval
+    const interval = setInterval(() => {
+      console.log("30-second interval: checking snatch time");
       void checkSnatchStartTime();
-
-      // Then check every 30 seconds
-      interval = setInterval(() => {
-        void checkSnatchStartTime();
-      }, 30000);
-    }
-    return () => clearInterval(interval);
-  }, [eventData, socket]);
+    }, 30000);
+    
+    // This cleanup function will be called before the effect runs again
+    return () => {
+      console.log("Clearing snatch time check interval");
+      clearInterval(interval);
+    };
+  }, [eventData]);
 
   // Automatically update game phase when snatch start time is reached
   useEffect(() => {
