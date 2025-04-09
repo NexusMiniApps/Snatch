@@ -69,11 +69,10 @@ export default function BasePage({ session }: { session: AuthSession }) {
         <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-md">
           <div className="m-3 mt-2 flex w-full max-w-md flex-col items-center rounded-xl bg-white bg-opacity-90 p-8 shadow-2xl">
             <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">
-              Huatzard Hobbyfest Card Show Giveaway is over!
+              Follow our socials!
             </h2>
             <p className="mb-6 text-center text-gray-600">
-              Follow our social media accounts to keep up with future events and
-              giveaways!
+              Follow our social media accounts to quality for the giveaway!
             </p>
             <div className="flex w-full flex-col gap-4">
               {!socialAFollowed && (
