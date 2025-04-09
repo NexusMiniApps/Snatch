@@ -54,7 +54,7 @@ export default async function Home() {
   // Render login page content ONLY if not redirected and no critical error occurred
   return (
     <HydrateClient>
-      <main className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-orange-200 to-orange-700">
+      <main className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-red-200 to-blue-300">
         <div className="container flex flex-col items-center justify-center gap-8 px-4 py-16">
           <Image
             src="/images/snatch.png"
